@@ -1,8 +1,12 @@
 import { CreditCard, TriangleAlert } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
+interface SavedCardProps {
+  onUpdateCard: () => void
+}
+
 // Masked pre-saved card shown in the "expired" demo variant.
-export function SavedCard() {
+export function SavedCard({ onUpdateCard }: SavedCardProps) {
   return (
     <div className="rounded-lg border border-border bg-muted/30 p-4">
       <div className="flex items-center justify-between">
@@ -26,6 +30,7 @@ export function SavedCard() {
 
       <button
         type="button"
+        onClick={onUpdateCard}
         className="mt-4 w-full rounded-md border border-dashed border-border py-2.5 text-xs font-medium text-foreground transition-colors hover:bg-muted/60"
       >
         Update card to continue

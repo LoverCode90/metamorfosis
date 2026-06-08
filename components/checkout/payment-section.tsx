@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { Lock } from "lucide-react"
 import type { PaymentVariant } from "@/lib/checkout"
 import { Separator } from "@/components/ui/separator"
@@ -11,10 +14,21 @@ interface PaymentSectionProps {
 }
 
 export function PaymentSection({ variant }: PaymentSectionProps) {
-  const isExpired = variant === "expired"
+  // When the user clicks "Update card to continue" inside the expired state,
+  // we gracefully unmount the SavedCard and render a fresh CardForm.
+  const [updatingCard, setUpdatingCard] = useState(false)
 
+  // Reset the local override whenever the outer variant changes.
+  const isExpired = variant === "expired" && !updatingCard
+
+  function handleUpdateCard() {
+    setUpdatingCard(true)
+  }
+
+  // Keep updatingCard in sync when the demo toggle switches away from expired.
+  // Using a key-based reset below handles this instead.
   return (
-    <section className="space-y-8">
+    <section className="space-y-8" key={variant}>
       <header className="space-y-1">
         <div className="flex items-center gap-2">
           <Lock className="h-4 w-4 text-foreground" strokeWidth={2} />
@@ -38,7 +52,11 @@ export function PaymentSection({ variant }: PaymentSectionProps) {
         <Separator className="flex-1" />
       </div>
 
-      {isExpired ? <SavedCard /> : <CardForm />}
+      {isExpired ? (
+        <SavedCard onUpdateCard={handleUpdateCard} />
+      ) : (
+        <CardForm />
+      )}
 
       <ShippingLocked />
     </section>

@@ -4,19 +4,28 @@ import {
   computeTotals,
   formatUSD,
   type PaymentVariant,
+  type CheckoutStepId,
 } from "@/lib/checkout"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 
 interface OrderSummaryProps {
+  wizardStep: CheckoutStepId
   variant: PaymentVariant
   onPlaceOrder: () => void
 }
 
-export function OrderSummary({ variant, onPlaceOrder }: OrderSummaryProps) {
+export function OrderSummary({ wizardStep, variant, onPlaceOrder }: OrderSummaryProps) {
   const { subtotal, discount, total } = computeTotals(ORDER_ITEMS)
-  const disabled = variant === "expired"
+  const isPaymentStep = wizardStep === "payment"
+  const disabled = isPaymentStep && variant === "expired"
+
+  const ctaLabel = isPaymentStep
+    ? disabled
+      ? "Update Card to Continue"
+      : "Place Secure Order"
+    : null // No CTA until payment step
 
   return (
     <aside className="lg:sticky lg:top-8">
@@ -95,18 +104,20 @@ export function OrderSummary({ variant, onPlaceOrder }: OrderSummaryProps) {
           </span>
         </div>
 
-        <button
-          type="button"
-          onClick={onPlaceOrder}
-          disabled={disabled}
-          className={cn(
-            "mt-5 h-12 w-full rounded-md bg-foreground text-sm font-semibold text-background transition-opacity",
-            "hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-            disabled && "cursor-not-allowed opacity-40 hover:opacity-40",
-          )}
-        >
-          {disabled ? "Update Card to Continue" : "Place Secure Order"}
-        </button>
+        {ctaLabel && (
+          <button
+            type="button"
+            onClick={onPlaceOrder}
+            disabled={disabled}
+            className={cn(
+              "mt-5 h-12 w-full rounded-md bg-foreground text-sm font-semibold text-background transition-opacity",
+              "hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+              disabled && "cursor-not-allowed opacity-40 hover:opacity-40",
+            )}
+          >
+            {ctaLabel}
+          </button>
+        )}
 
         <p className="mt-3 text-center text-xs text-muted-foreground">
           Powered by METAMORFOSIS LAB · 256-bit SSL secured
