@@ -1,23 +1,31 @@
 import { Tag, Truck } from "lucide-react"
 import {
-  ORDER_ITEMS,
-  computeTotals,
   formatUSD,
-  type PaymentVariant,
+  type CartItem,
   type CheckoutStepId,
+  type PaymentVariant,
+  type Totals,
 } from "@/lib/checkout"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 
 interface OrderSummaryProps {
+  items: CartItem[]
+  totals: Totals
   wizardStep: CheckoutStepId
   variant: PaymentVariant
   onPlaceOrder: () => void
 }
 
-export function OrderSummary({ wizardStep, variant, onPlaceOrder }: OrderSummaryProps) {
-  const { subtotal, discount, total } = computeTotals(ORDER_ITEMS)
+export function OrderSummary({
+  items,
+  totals,
+  wizardStep,
+  variant,
+  onPlaceOrder,
+}: OrderSummaryProps) {
+  const { subtotal, discount, tax, total } = totals
   const isPaymentStep = wizardStep === "payment"
   const disabled = isPaymentStep && variant === "expired"
 
@@ -28,11 +36,11 @@ export function OrderSummary({ wizardStep, variant, onPlaceOrder }: OrderSummary
     : null // No CTA until payment step
 
   return (
-    <aside className="lg:sticky lg:top-8">
+    <aside className="lg:sticky lg:top-24">
       <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
         {/* Product rows */}
         <ul className="space-y-5">
-          {ORDER_ITEMS.map((item) => (
+          {items.map((item) => (
             <li key={item.id} className="flex gap-4">
               <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
                 <img
@@ -61,12 +69,14 @@ export function OrderSummary({ wizardStep, variant, onPlaceOrder }: OrderSummary
           ))}
         </ul>
 
-        <div className="mt-5">
-          <Badge className="gap-1.5 border-transparent bg-emerald-600 text-white hover:bg-emerald-600">
-            <Tag className="h-3 w-3" />
-            Professional Discount Applied (-$2.00 per item)
-          </Badge>
-        </div>
+        {discount > 0 && (
+          <div className="mt-5">
+            <Badge className="gap-1.5 border-transparent bg-emerald-600 text-white hover:bg-emerald-600">
+              <Tag className="h-3 w-3" />
+              Professional Discount Applied
+            </Badge>
+          </div>
+        )}
 
         <Separator className="my-5" />
 
@@ -78,12 +88,14 @@ export function OrderSummary({ wizardStep, variant, onPlaceOrder }: OrderSummary
               {formatUSD(subtotal)}
             </dd>
           </div>
-          <div className="flex items-center justify-between">
-            <dt className="text-muted-foreground">Professional discount</dt>
-            <dd className="font-medium text-emerald-600 tabular-nums">
-              -{formatUSD(discount)}
-            </dd>
-          </div>
+          {discount > 0 && (
+            <div className="flex items-center justify-between">
+              <dt className="text-muted-foreground">Professional discount</dt>
+              <dd className="font-medium text-emerald-600 tabular-nums">
+                -{formatUSD(discount)}
+              </dd>
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <dt className="flex items-center gap-1.5 text-muted-foreground">
               <Truck className="h-4 w-4" />
@@ -91,6 +103,12 @@ export function OrderSummary({ wizardStep, variant, onPlaceOrder }: OrderSummary
             </dt>
             <dd className="font-medium uppercase tracking-wide text-emerald-600">
               Free
+            </dd>
+          </div>
+          <div className="flex items-center justify-between">
+            <dt className="text-muted-foreground">Estimated tax</dt>
+            <dd className="font-medium text-foreground tabular-nums">
+              {formatUSD(tax)}
             </dd>
           </div>
         </dl>

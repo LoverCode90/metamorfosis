@@ -1,8 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import { ArrowLeft } from "lucide-react"
 import type { PaymentVariant, CheckoutStepId } from "@/lib/checkout"
 import { cn } from "@/lib/utils"
+import { useCart } from "@/components/store/cart-context"
 import { CheckoutStepper } from "./checkout-stepper"
 import { OrderSummary } from "./order-summary"
 import { PaymentSection } from "./payment-section"
@@ -20,6 +22,8 @@ const VARIANTS: { id: PaymentVariant; label: string }[] = [
 ]
 
 export function CheckoutClient() {
+  const { items, totals, setView, placeOrder } = useCart()
+
   // Wizard step — starts at Step 2 ("info") per spec.
   const [wizardStep, setWizardStep] = useState<CheckoutStepId>("info")
 
@@ -46,7 +50,17 @@ export function CheckoutClient() {
   }
 
   function handlePlaceOrder() {
-    if (variant === "error") setToastOpen(true)
+    if (variant === "error") {
+      setToastOpen(true)
+      return
+    }
+    placeOrder({
+      email: infoData?.email ?? "you@email.com",
+      shipName: infoData
+        ? `${infoData.firstName} ${infoData.lastName}`
+        : "Valued Customer",
+      shipAddress: infoData?.address ?? "United States",
+    })
   }
 
   function selectVariant(next: PaymentVariant) {
@@ -56,6 +70,16 @@ export function CheckoutClient() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+
+      {/* Return to cart */}
+      <button
+        type="button"
+        onClick={() => setView("cart")}
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
+        Return to cart
+      </button>
 
       {/* Payment step preview-state toggles */}
       {wizardStep === "payment" && (
@@ -110,6 +134,8 @@ export function CheckoutClient() {
 
         {/* Right column — always-visible order summary */}
         <OrderSummary
+          items={items}
+          totals={totals}
           wizardStep={wizardStep}
           variant={variant}
           onPlaceOrder={handlePlaceOrder}
