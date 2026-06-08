@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation"
+import { StoreApp } from "@/components/store/store-app"
 
 export default function Page() {
-  redirect("/checkout")
+  return <StoreApp />
 }
