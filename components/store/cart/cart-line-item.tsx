@@ -14,10 +14,10 @@ export function CartLineItem({ item }: { item: CartItem }) {
   const hasDiscount = item.discountPerItem > 0
 
   return (
-    <article className="rounded-xl border border-border bg-card p-4 sm:p-5">
-      <div className="flex gap-4">
+    <article className="rounded-xl border border-border bg-card p-3 sm:p-5">
+      <div className="flex gap-3 sm:gap-4">
         {/* Thumbnail */}
-        <div className="h-24 w-24 shrink-0 overflow-hidden rounded-lg border border-border bg-muted sm:h-28 sm:w-28">
+        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-border bg-muted sm:h-28 sm:w-28">
           <img
             src={item.image || "/placeholder.svg"}
             alt={item.name}
@@ -27,12 +27,12 @@ export function CartLineItem({ item }: { item: CartItem }) {
 
         {/* Details */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start justify-between gap-2 sm:gap-3">
             <div className="min-w-0">
-              <h3 className="truncate text-sm font-semibold text-foreground sm:text-base">
+              <h3 className="truncate text-sm font-semibold text-foreground">
                 {item.name}
               </h3>
-              <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
                 {item.variant}
               </p>
             </div>
@@ -40,7 +40,7 @@ export function CartLineItem({ item }: { item: CartItem }) {
             <button
               type="button"
               onClick={() => moveToWishlist(item.id)}
-              className="flex shrink-0 items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="flex shrink-0 items-center gap-1 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:gap-1.5"
             >
               <Heart className="h-4 w-4" strokeWidth={1.75} />
               <span className="hidden sm:inline">Save</span>
@@ -49,38 +49,38 @@ export function CartLineItem({ item }: { item: CartItem }) {
 
           {/* Low stock warning */}
           {lowStock && (
-            <p className="mt-2.5 flex items-center gap-1.5 rounded-md bg-destructive/10 px-2.5 py-1.5 text-xs font-medium text-destructive">
+            <p className="mt-2 flex items-center gap-1 rounded-md bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive sm:mt-2.5 sm:px-2.5 sm:py-1.5">
               <AlertCircle className="h-3.5 w-3.5" strokeWidth={2} />
-              Only {item.stock} left in stock
+              Only {item.stock} left
             </p>
           )}
 
           {/* Delivery meta */}
-          <div className="mt-2.5 space-y-1">
-            <p className="flex items-center gap-1.5 text-xs text-emerald-600">
+          <div className="mt-2 space-y-0.5 text-xs sm:mt-2.5 sm:space-y-1">
+            <p className="flex items-center gap-1.5 text-emerald-600">
               <Truck className="h-3.5 w-3.5" strokeWidth={1.75} />
               Arrives Dec 18–20
             </p>
-            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <p className="flex items-center gap-1.5 text-muted-foreground">
               <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.75} />
               Free returns within 30 days
             </p>
           </div>
 
           {/* Price + controls */}
-          <div className="mt-4 flex items-end justify-between gap-3">
+          <div className="mt-3 flex items-end justify-between gap-2 sm:mt-4 sm:gap-3">
             <div>
               <p className="text-base font-semibold text-foreground tabular-nums">
                 {formatUSD(lineTotal)}
               </p>
               {hasDiscount && (
                 <p className="text-xs text-emerald-600 tabular-nums">
-                  -{formatUSD(item.discountPerItem * item.quantity)} pro discount
+                  -{formatUSD(item.discountPerItem * item.quantity)} discount
                 </p>
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <QtyStepper
                 value={item.quantity}
                 onIncrement={() => increment(item.id)}
@@ -91,7 +91,7 @@ export function CartLineItem({ item }: { item: CartItem }) {
                 type="button"
                 onClick={() => removeItem(item.id)}
                 aria-label={`Remove ${item.name}`}
-                className="flex h-9 w-9 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive"
+                className="flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:border-destructive/40 hover:text-destructive sm:h-9 sm:w-9"
               >
                 <Trash2 className="h-4 w-4" strokeWidth={1.75} />
               </button>

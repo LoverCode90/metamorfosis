@@ -29,16 +29,16 @@ export function ConfirmationView() {
   const { items, totals } = order
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-14">
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-14">
       {/* Hero */}
       <div className="flex flex-col items-center text-center">
-        <span className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-600 text-white">
-          <Check className="h-8 w-8" strokeWidth={2.5} />
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white sm:h-16 sm:w-16">
+          <Check className="h-7 w-7 sm:h-8 sm:w-8" strokeWidth={2.5} />
         </span>
-        <h1 className="mt-6 text-balance text-3xl font-semibold tracking-tight text-foreground">
+        <h1 className="mt-5 text-balance text-2xl font-semibold tracking-tight text-foreground sm:mt-6 sm:text-3xl">
           Thank you for your order!
         </h1>
-        <p className="mt-3 max-w-md text-pretty leading-relaxed text-muted-foreground">
+        <p className="mt-2.5 max-w-md text-pretty text-sm leading-relaxed text-muted-foreground sm:mt-3 sm:text-base">
           {"We've sent a confirmation to "}
           <span className="font-medium text-foreground">{order.email}</span>
           {". You'll get a shipping update as soon as your order is on its way."}
@@ -46,7 +46,7 @@ export function ConfirmationView() {
       </div>
 
       {/* Order + tracking ids */}
-      <div className="mt-8 grid gap-3 sm:grid-cols-2">
+      <div className="mt-6 grid gap-2.5 sm:mt-8 sm:gap-3 sm:grid-cols-2">
         <CopyRow label="Order number" value={order.number} />
         <CopyRow label="Tracking ID" value={order.trackingId} />
       </div>
@@ -61,7 +61,7 @@ export function ConfirmationView() {
       </div>
 
       {/* Order summary */}
-      <section className="mt-4 rounded-xl border border-border bg-card p-5 sm:p-6">
+      <section className="mt-4 rounded-xl border border-border bg-card p-4 sm:p-6">
         <div className="flex items-center gap-2">
           <ShoppingBag className="h-4 w-4 text-foreground" strokeWidth={2} />
           <h2 className="text-sm font-semibold tracking-tight text-foreground">
@@ -69,10 +69,10 @@ export function ConfirmationView() {
           </h2>
         </div>
 
-        <ul className="mt-5 space-y-5">
+        <ul className="mt-4 space-y-4 sm:mt-5 sm:space-y-5">
           {items.map((item) => (
-            <li key={item.id} className="flex gap-4">
-              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
+            <li key={item.id} className="flex gap-3 sm:gap-4">
+              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-border bg-muted sm:h-14 sm:w-14">
                 <img
                   src={item.image || "/placeholder.svg"}
                   alt={item.name}
@@ -87,7 +87,7 @@ export function ConfirmationView() {
                   <p className="truncate text-sm font-medium text-foreground">
                     {item.name}
                   </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
                     {item.variant}
                   </p>
                 </div>
@@ -99,9 +99,9 @@ export function ConfirmationView() {
           ))}
         </ul>
 
-        <Separator className="my-5" />
+        <Separator className="my-4 sm:my-5" />
 
-        <dl className="space-y-3 text-sm">
+        <dl className="space-y-2.5 text-sm sm:space-y-3">
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Subtotal</dt>
             <dd className="font-medium text-foreground tabular-nums">
@@ -133,39 +133,39 @@ export function ConfirmationView() {
           </div>
         </dl>
 
-        <Separator className="my-5" />
+        <Separator className="my-4 sm:my-5" />
 
         <div className="flex items-end justify-between">
           <span className="text-sm font-medium text-foreground">Total paid</span>
-          <span className="text-2xl font-semibold tracking-tight text-foreground tabular-nums">
+          <span className="text-xl font-semibold tracking-tight text-foreground tabular-nums sm:text-2xl">
             {formatUSD(totals.total)}
           </span>
         </div>
       </section>
 
       {/* Delivery details */}
-      <section className="mt-4 rounded-xl border border-border bg-card p-5 sm:p-6">
+      <section className="mt-4 rounded-xl border border-border bg-card p-4 sm:p-6">
         <h2 className="text-sm font-semibold tracking-tight text-foreground">
           Delivery Details
         </h2>
         <dl className="mt-4 space-y-4">
           <div className="flex items-start gap-3">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={1.75} />
-            <div>
+            <div className="min-w-0">
               <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Shipping to
               </dt>
-              <dd className="mt-0.5 text-sm text-foreground">{order.shipName}</dd>
-              <dd className="text-sm text-muted-foreground">{order.shipAddress}</dd>
+              <dd className="mt-0.5 truncate text-sm text-foreground">{order.shipName}</dd>
+              <dd className="truncate text-sm text-muted-foreground">{order.shipAddress}</dd>
             </div>
           </div>
           <div className="flex items-start gap-3">
             <Mail className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={1.75} />
-            <div>
+            <div className="min-w-0">
               <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Confirmation email
               </dt>
-              <dd className="mt-0.5 text-sm text-foreground">{order.email}</dd>
+              <dd className="mt-0.5 truncate text-sm text-foreground">{order.email}</dd>
             </div>
           </div>
         </dl>

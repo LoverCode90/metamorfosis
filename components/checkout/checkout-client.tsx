@@ -113,8 +113,8 @@ export function CheckoutClient() {
       {/* Main two-column grid */}
       <div className="grid gap-10 lg:grid-cols-[1fr_400px] lg:gap-14">
 
-        {/* Left column — active step */}
-        <div>
+        {/* Left column — active step (order: 1 on mobile, 1 on desktop) */}
+        <div className="order-1">
           {wizardStep === "info" && (
             <StepInfo onContinue={handleInfoContinue} />
           )}
@@ -132,14 +132,16 @@ export function CheckoutClient() {
           )}
         </div>
 
-        {/* Right column — always-visible order summary */}
-        <OrderSummary
-          items={items}
-          totals={totals}
-          wizardStep={wizardStep}
-          variant={variant}
-          onPlaceOrder={handlePlaceOrder}
-        />
+        {/* Right column — always-visible order summary (order: 2 on mobile, 2 on desktop) */}
+        <div className="order-2">
+          <OrderSummary
+            items={items}
+            totals={totals}
+            wizardStep={wizardStep}
+            variant={variant}
+            onPlaceOrder={handlePlaceOrder}
+          />
+        </div>
       </div>
 
       {/* Floating error toast */}

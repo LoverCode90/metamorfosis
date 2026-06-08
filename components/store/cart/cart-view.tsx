@@ -31,19 +31,21 @@ export function CartView() {
         <EmptyCart onShop={() => setView("home")} />
       ) : (
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px] lg:gap-12">
-          {/* Items */}
-          <div className="flex flex-col gap-4">
+          {/* Items — stack order */}
+          <div className="order-2 flex flex-col gap-4 lg:order-1">
             {items.map((item) => (
               <CartLineItem key={item.id} item={item} />
             ))}
           </div>
 
-          {/* Summary */}
-          <CartSummary
-            totals={totals}
-            onCheckout={() => setView("checkout")}
-            onContinueShopping={() => setView("home")}
-          />
+          {/* Summary — sticky on desktop, stacks last on mobile */}
+          <div className="order-1 lg:order-2">
+            <CartSummary
+              totals={totals}
+              onCheckout={() => setView("checkout")}
+              onContinueShopping={() => setView("home")}
+            />
+          </div>
         </div>
       )}
 

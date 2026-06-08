@@ -24,18 +24,18 @@ export function CartSummary({
 
   return (
     <aside className="lg:sticky lg:top-24">
-      <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
+      <div className="rounded-xl border border-border bg-card p-4 sm:p-6">
         <h2 className="text-lg font-semibold tracking-tight text-foreground">
           Order Summary
         </h2>
 
         {/* Promo accordion */}
-        <div className="mt-5 rounded-lg border border-border">
+        <div className="mt-4 sm:mt-5 rounded-lg border border-border">
           <button
             type="button"
             onClick={() => setPromoOpen((o) => !o)}
             aria-expanded={promoOpen}
-            className="flex w-full items-center justify-between gap-2 px-3.5 py-3 text-sm text-foreground"
+            className="flex w-full items-center justify-between gap-2 px-3 py-2.5 text-sm text-foreground sm:px-3.5 sm:py-3"
           >
             <span className="flex items-center gap-2">
               <Tag className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
@@ -49,16 +49,16 @@ export function CartSummary({
             />
           </button>
           {promoOpen && (
-            <div className="flex gap-2 border-t border-border p-3">
+            <div className="flex gap-2 border-t border-border p-2.5 sm:p-3">
               <input
                 value={promo}
                 onChange={(e) => setPromo(e.target.value)}
                 placeholder="Enter code"
-                className="h-10 min-w-0 flex-1 rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none transition-colors focus:border-foreground placeholder:text-muted-foreground"
+                className="h-9 min-w-0 flex-1 rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none transition-colors focus:border-foreground placeholder:text-muted-foreground sm:h-10"
               />
               <button
                 type="button"
-                className="h-10 shrink-0 rounded-md bg-foreground px-4 text-sm font-medium text-background transition-opacity hover:opacity-90"
+                className="h-9 shrink-0 rounded-md bg-foreground px-3 sm:px-4 text-sm font-medium text-background transition-opacity hover:opacity-90 sm:h-10"
               >
                 Apply
               </button>
@@ -66,10 +66,10 @@ export function CartSummary({
           )}
         </div>
 
-        <Separator className="my-5" />
+        <Separator className="my-4 sm:my-5" />
 
         {/* Breakdown */}
-        <dl className="space-y-3 text-sm">
+        <dl className="space-y-2.5 text-sm sm:space-y-3">
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">
               Subtotal ({totals.itemCount} item{totals.itemCount === 1 ? "" : "s"})
@@ -103,11 +103,11 @@ export function CartSummary({
           </div>
         </dl>
 
-        <Separator className="my-5" />
+        <Separator className="my-4 sm:my-5" />
 
         <div className="flex items-end justify-between">
           <span className="text-sm font-medium text-foreground">Total</span>
-          <span className="text-2xl font-semibold tracking-tight text-foreground tabular-nums">
+          <span className="text-xl font-semibold tracking-tight text-foreground tabular-nums sm:text-2xl">
             {formatUSD(totals.total)}
           </span>
         </div>
@@ -117,7 +117,7 @@ export function CartSummary({
           onClick={onCheckout}
           disabled={disabled}
           className={cn(
-            "mt-5 h-12 w-full rounded-md bg-foreground text-sm font-semibold text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+            "mt-4 h-11 w-full rounded-md bg-foreground text-sm font-semibold text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:mt-5 sm:h-12",
             disabled && "cursor-not-allowed opacity-40 hover:opacity-40",
           )}
         >
@@ -126,7 +126,7 @@ export function CartSummary({
         <button
           type="button"
           onClick={onContinueShopping}
-          className="mt-3 h-12 w-full rounded-md border border-border text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="mt-2.5 h-11 w-full rounded-md border border-border text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:mt-3 sm:h-12"
         >
           Continue Shopping
         </button>
