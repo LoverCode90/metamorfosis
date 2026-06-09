@@ -44,7 +44,7 @@ interface CartContextValue {
   decrement: (id: string) => void
   removeItem: (id: string) => void
   moveToWishlist: (id: string) => void
-  addToCart: (product: Product) => void
+  addToCart: (product: Product, quantity?: number) => void
 
   // Professional license verification
   hasProItems: boolean
@@ -107,17 +107,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
-  const addToCart = useCallback((product: Product) => {
+  const addToCart = useCallback((product: Product, quantity = 1) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.id === product.id)
       if (existing) {
         return prev.map((i) =>
           i.id === product.id
-            ? { ...i, quantity: Math.min(i.quantity + 1, i.stock) }
+            ? { ...i, quantity: Math.min(i.quantity + quantity, i.stock) }
             : i,
         )
       }
-      return [...prev, { ...product, quantity: 1 }]
+      return [...prev, { ...product, quantity: Math.min(quantity, product.stock) }]
     })
   }, [])
 

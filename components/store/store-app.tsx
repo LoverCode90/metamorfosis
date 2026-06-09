@@ -7,6 +7,7 @@ import { PlaceholderPage } from "./placeholder-page"
 import { CartView } from "./cart/cart-view"
 import { ConfirmationView } from "./confirmation/confirmation-view"
 import { ProductsPage } from "./products/products-page"
+import { ProductDetailPage } from "./products/product-detail-page"
 
 function ActiveView() {
   const { view } = useCart()
@@ -14,6 +15,8 @@ function ActiveView() {
   switch (view) {
     case "products":
       return <ProductsPage />
+    case "product-detail":
+      return <ProductDetailPage />
     case "cart":
       return <CartView />
     case "checkout":
