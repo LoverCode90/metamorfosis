@@ -1,17 +1,29 @@
 "use client"
 
+import { useState } from "react"
 import { ArrowLeft, ShoppingBag } from "lucide-react"
 import { useCart } from "../cart-context"
 import { CartLineItem } from "./cart-line-item"
 import { CartSummary } from "./cart-summary"
 import { RelatedProducts } from "./related-products"
+import { VerifyGateModal } from "../verify/verify-gate-modal"
 
 export function CartView() {
-  const { items, totals, setView } = useCart()
+  const { items, totals, setView, hasProItems, verified } = useCart()
+  const [gateOpen, setGateOpen] = useState(false)
   const isEmpty = items.length === 0
+
+  function handleCheckout() {
+    if (hasProItems && !verified) {
+      setGateOpen(true)
+      return
+    }
+    setView("checkout")
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+      <VerifyGateModal open={gateOpen} onClose={() => setGateOpen(false)} />
       {/* Header row */}
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
@@ -42,7 +54,7 @@ export function CartView() {
           <div className="order-1 lg:order-2">
             <CartSummary
               totals={totals}
-              onCheckout={() => setView("checkout")}
+              onCheckout={handleCheckout}
               onContinueShopping={() => setView("home")}
             />
           </div>
