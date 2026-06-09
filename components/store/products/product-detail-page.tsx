@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ChevronRight, Minus, Plus, ShoppingBag, Heart, ShieldCheck, AlertTriangle } from "lucide-react"
 import { getProduct, getRelated } from "@/lib/catalog"
 import { formatUSD } from "@/lib/checkout"
+import { cn } from "@/lib/utils"
 import { useCart } from "../cart-context"
 import { ProductGallery } from "./product-gallery"
 import { ColorSwatches } from "./color-swatches"
@@ -11,7 +12,7 @@ import { ProductTabs } from "./product-tabs"
 import { ProductCard } from "./product-card"
 
 export function ProductDetailPage() {
-  const { selectedProductId, setView, addToCart } = useCart()
+  const { selectedProductId, setView, addToCart, toggleWishlist, isWishlisted } = useCart()
   const product = selectedProductId ? getProduct(selectedProductId) : undefined
 
   const [qty, setQty] = useState(1)
@@ -39,6 +40,7 @@ export function ProductDetailPage() {
   const hasDiscount = item.discountPerItem > 0
   const lowStock = item.stock <= 10
   const related = getRelated(item.id)
+  const wishlisted = isWishlisted(item.id)
 
   function handleAdd() {
     const colorName = item.colorVariants?.find((c) => c.id === selectedColor)?.name
@@ -103,6 +105,37 @@ export function ProductDetailPage() {
                 selectedId={selectedColor}
                 onSelect={setSelectedColor}
               />
+
+              {/* Color chart PDF actions */}
+              <div className="mt-4 flex flex-wrap gap-2">
+                <a
+                  href="/color-chart.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-10 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                >
+                  <FileText className="h-4 w-4" strokeWidth={1.75} />
+                  Open color chart
+                </a>
+                <a
+                  href="/color-chart.pdf"
+                  download
+                  className="inline-flex h-10 items-center gap-2 rounded-md border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                >
+                  <Download className="h-4 w-4" strokeWidth={1.75} />
+                  Download PDF
+                </a>
+              </div>
+
+              {/* Professional consultation notice */}
+              <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-border bg-muted px-4 py-3">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-foreground" strokeWidth={1.75} />
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Shades shown are a digital approximation. For accurate
+                  formulation and developer ratios, consult the printed chart or a
+                  licensed professional before application.
+                </p>
+              </div>
             </div>
           )}
 
@@ -159,10 +192,21 @@ export function ProductDetailPage() {
 
             <button
               type="button"
-              aria-label="Add to wishlist"
-              className="inline-flex h-12 w-12 items-center justify-center rounded-md border border-border text-foreground transition-colors hover:bg-muted"
+              onClick={() => toggleWishlist(item)}
+              aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+              aria-pressed={wishlisted}
+              className={cn(
+                "inline-flex h-12 w-12 items-center justify-center rounded-md border transition-colors",
+                wishlisted
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border text-foreground hover:bg-muted",
+              )}
             >
-              <Heart className="h-5 w-5" strokeWidth={1.75} />
+              <Heart
+                className="h-5 w-5"
+                strokeWidth={1.75}
+                fill={wishlisted ? "currentColor" : "none"}
+              />
             </button>
           </div>
         </div>

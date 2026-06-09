@@ -9,6 +9,9 @@ import { ConfirmationView } from "./confirmation/confirmation-view"
 import { ProductsPage } from "./products/products-page"
 import { ProductDetailPage } from "./products/product-detail-page"
 import { VerifyPage } from "./verify/verify-page"
+import { WishlistView } from "./wishlist/wishlist-view"
+import { ProfileDashboard } from "./profile/profile-dashboard"
+import { TrackingView } from "./profile/tracking-view"
 
 function ActiveView() {
   const { view } = useCart()
@@ -20,6 +23,12 @@ function ActiveView() {
       return <ProductDetailPage />
     case "verify":
       return <VerifyPage />
+    case "wishlist":
+      return <WishlistView />
+    case "profile":
+      return <ProfileDashboard />
+    case "tracking":
+      return <TrackingView />
     case "cart":
       return <CartView />
     case "checkout":

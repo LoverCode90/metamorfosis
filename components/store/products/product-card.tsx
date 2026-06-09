@@ -1,15 +1,16 @@
 "use client"
 
-import { Plus } from "lucide-react"
+import { Heart, Plus } from "lucide-react"
 import { formatUSD } from "@/lib/checkout"
 import type { CatalogProduct } from "@/lib/catalog"
 import { cn } from "@/lib/utils"
 import { useCart } from "../cart-context"
 
 export function ProductCard({ product }: { product: CatalogProduct }) {
-  const { addToCart, openProduct } = useCart()
+  const { addToCart, openProduct, toggleWishlist, isWishlisted } = useCart()
   const hasDiscount = product.discountPerItem > 0
   const finalPrice = product.unitPrice - product.discountPerItem
+  const wishlisted = isWishlisted(product.id)
 
   // "New" takes visual priority over "Professional" when both apply.
   const badge = product.isNew
@@ -19,7 +20,27 @@ export function ProductCard({ product }: { product: CatalogProduct }) {
       : null
 
   return (
-    <article className="group flex flex-col">
+    <article className="group relative flex flex-col">
+      {/* Wishlist toggle */}
+      <button
+        type="button"
+        onClick={() => toggleWishlist(product)}
+        aria-label={wishlisted ? `Remove ${product.name} from wishlist` : `Save ${product.name} to wishlist`}
+        aria-pressed={wishlisted}
+        className={cn(
+          "absolute right-2.5 top-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur transition-colors",
+          wishlisted
+            ? "bg-foreground text-background"
+            : "bg-background/90 text-foreground shadow-sm hover:bg-muted",
+        )}
+      >
+        <Heart
+          className="h-4 w-4"
+          strokeWidth={1.75}
+          fill={wishlisted ? "currentColor" : "none"}
+        />
+      </button>
+
       {/* Image */}
       <button
         type="button"

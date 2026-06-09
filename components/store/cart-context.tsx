@@ -17,12 +17,34 @@ import {
   type Product,
   type StoreView,
   type Totals,
+  type UserProfile,
+  type SavedAddress,
+  type VerificationStatus,
 } from "@/lib/checkout"
+import { sendEmail } from "@/lib/email"
 
 interface OrderDetails {
   email: string
   shipName: string
   shipAddress: string
+}
+
+const INITIAL_PROFILE: UserProfile = {
+  name: "Ronald Richards",
+  email: "ronald@example.com",
+  location: "Los Angeles, CA",
+  bio: "Independent colorist focused on dimensional blondes and bond-safe lightening. Building a private studio practice.",
+  avatar: "/professional-hair-colorist-portrait.png",
+  status: "regular",
+}
+
+const INITIAL_ADDRESS: SavedAddress = {
+  fullName: "Ronald Richards",
+  line1: "8721 Sunset Blvd, Suite 4",
+  city: "Los Angeles",
+  region: "CA",
+  postalCode: "90069",
+  country: "United States",
 }
 
 interface CartContextValue {
@@ -46,10 +68,26 @@ interface CartContextValue {
   moveToWishlist: (id: string) => void
   addToCart: (product: Product, quantity?: number) => void
 
+  // Wishlist actions
+  toggleWishlist: (product: Product) => void
+  removeFromWishlist: (id: string) => void
+  isWishlisted: (id: string) => boolean
+
   // Professional license verification
   hasProItems: boolean
   verified: boolean
   setVerified: (value: boolean) => void
+
+  // Profile + verification status
+  profile: UserProfile
+  updateProfile: (patch: Partial<UserProfile>) => void
+  verificationStatus: VerificationStatus
+  submitVerification: () => void
+  approveVerification: () => void
+
+  // Address book
+  savedAddress: SavedAddress | null
+  saveAddress: (address: SavedAddress) => void
 
   // Order lifecycle
   order: Order | null
@@ -69,6 +107,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [order, setOrder] = useState<Order | null>(null)
   const [orderCanceled, setOrderCanceled] = useState(false)
   const [verified, setVerified] = useState(false)
+  const [profile, setProfile] = useState<UserProfile>(INITIAL_PROFILE)
+  const [savedAddress, setSavedAddress] = useState<SavedAddress | null>(INITIAL_ADDRESS)
 
   const openProduct = useCallback((id: string) => {
     setSelectedProductId(id)
@@ -121,10 +161,80 @@ export function CartProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  // ---- Wishlist ----
+  const toggleWishlist = useCallback((product: Product) => {
+    setWishlist((prev) =>
+      prev.some((p) => p.id === product.id)
+        ? prev.filter((p) => p.id !== product.id)
+        : [...prev, product],
+    )
+  }, [])
+
+  const removeFromWishlist = useCallback((id: string) => {
+    setWishlist((prev) => prev.filter((p) => p.id !== id))
+  }, [])
+
+  // ---- Profile + verification ----
+  const updateProfile = useCallback((patch: Partial<UserProfile>) => {
+    setProfile((prev) => {
+      const next = { ...prev, ...patch }
+      void sendEmail({
+        to: next.email,
+        template: "profile.updated",
+        data: { name: next.name },
+      })
+      return next
+    })
+  }, [])
+
+  const submitVerification = useCallback(() => {
+    setProfile((prev) => {
+      if (prev.status === "verified") return prev
+      void sendEmail({
+        to: prev.email,
+        template: "verification.pending",
+        data: { name: prev.name },
+      })
+      return { ...prev, status: "pending" }
+    })
+  }, [])
+
+  const approveVerification = useCallback(() => {
+    setVerified(true)
+    setProfile((prev) => {
+      void sendEmail({
+        to: prev.email,
+        template: "verification.approved",
+        data: { name: prev.name },
+      })
+      return { ...prev, status: "verified" }
+    })
+  }, [])
+
+  // ---- Address book ----
+  const saveAddress = useCallback((address: SavedAddress) => {
+    setSavedAddress(address)
+    setProfile((prev) => {
+      const location = `${address.city}, ${address.region}`
+      void sendEmail({
+        to: prev.email,
+        template: "address.updated",
+        data: { location },
+      })
+      return { ...prev, location }
+    })
+  }, [])
+
   const placeOrder = useCallback((details: OrderDetails) => {
     setOrderCanceled(false)
     setItems((current) => {
-      setOrder(createOrder(current, details))
+      const created = createOrder(current, details)
+      setOrder(created)
+      void sendEmail({
+        to: details.email,
+        template: "order.confirmation",
+        data: { orderNumber: created.number, total: created.totals.total },
+      })
       return current
     })
     setView("confirmation")
@@ -132,6 +242,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const cancelOrder = useCallback(() => {
     setOrderCanceled(true)
+    setOrder((current) => {
+      if (current) {
+        void sendEmail({
+          to: current.email,
+          template: "order.canceled",
+          data: { orderNumber: current.number },
+        })
+      }
+      return current
+    })
   }, [])
 
   const resetAndShop = useCallback(() => {
@@ -162,9 +282,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       moveToWishlist,
       addToCart,
+      toggleWishlist,
+      removeFromWishlist,
+      isWishlisted: (id: string) => wishlist.some((p) => p.id === id),
       hasProItems,
       verified,
       setVerified,
+      profile,
+      updateProfile,
+      verificationStatus: profile.status,
+      submitVerification,
+      approveVerification,
+      savedAddress,
+      saveAddress,
       order,
       orderCanceled,
       placeOrder,
@@ -183,8 +313,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       moveToWishlist,
       addToCart,
+      toggleWishlist,
+      removeFromWishlist,
       hasProItems,
       verified,
+      profile,
+      updateProfile,
+      submitVerification,
+      approveVerification,
+      savedAddress,
+      saveAddress,
       order,
       orderCanceled,
       placeOrder,

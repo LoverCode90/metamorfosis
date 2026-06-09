@@ -214,3 +214,59 @@ export type StoreView =
   | "checkout"
   | "confirmation"
   | "verify"
+  | "wishlist"
+  | "profile"
+  | "tracking"
+
+// ---------------------------------------------------------------------------
+// Profile / account
+// ---------------------------------------------------------------------------
+
+/**
+ * Three-state professional verification:
+ *  - "regular"  → standard shopper, uploads enabled
+ *  - "pending"  → license submitted; uploads disabled, email-notify banner
+ *  - "verified" → professional unlocked (B2B layouts + pro pricing)
+ */
+export type VerificationStatus = "regular" | "pending" | "verified"
+
+export interface SavedAddress {
+  fullName: string
+  line1: string
+  city: string
+  region: string
+  postalCode: string
+  country: string
+}
+
+export interface UserProfile {
+  name: string
+  email: string
+  location: string
+  bio: string
+  avatar: string
+  status: VerificationStatus
+}
+
+/** Per-region shipping table — drives the checkout recalculation flow. */
+export const SHIPPING_TABLE: Record<string, number> = {
+  "United States": 6,
+  Canada: 12,
+  "United Kingdom": 14,
+  Australia: 18,
+  Germany: 14,
+}
+
+export function shippingFor(country: string): number {
+  return SHIPPING_TABLE[country] ?? 15
+}
+
+/** Totals variant that accepts an explicit shipping cost (location-aware). */
+export function computeTotalsWithShipping(
+  items: CartItem[],
+  shipping: number,
+): Totals {
+  const base = computeTotals(items)
+  const total = round2(base.subtotal - base.discount + shipping + base.tax)
+  return { ...base, shipping, total }
+}

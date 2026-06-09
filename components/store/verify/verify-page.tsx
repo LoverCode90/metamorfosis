@@ -36,7 +36,7 @@ interface UploadedFile {
 }
 
 export function VerifyPage() {
-  const { setView, setVerified, hasProItems } = useCart()
+  const { setView, approveVerification, hasProItems } = useCart()
   const [step, setStep] = useState<WizardStep>("info")
   const [info, setInfo] = useState<LicenseInfo>({
     businessName: "",
@@ -58,7 +58,7 @@ export function VerifyPage() {
   }
 
   function complete() {
-    setVerified(true)
+    approveVerification()
     // After verification, send the colorist straight into checkout if items
     // remain, otherwise back to the cart.
     setView(hasProItems ? "checkout" : "cart")
