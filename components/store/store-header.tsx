@@ -67,11 +67,11 @@ export function StoreHeader() {
 
         {/* Action icons */}
         <div className="flex items-center gap-1 sm:gap-2">
-          <IconButton label="Search">
+          <IconButton label="Search" className="hidden sm:flex">
             <Search className="h-5 w-5" strokeWidth={1.75} />
           </IconButton>
 
-          <IconButton label="Wishlist" badge={wishlist.length}>
+          <IconButton label="Wishlist" badge={wishlist.length} className="hidden sm:flex">
             <Heart className="h-5 w-5" strokeWidth={1.75} />
           </IconButton>
 
@@ -84,7 +84,7 @@ export function StoreHeader() {
             <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
           </IconButton>
 
-          <IconButton label="Profile">
+          <IconButton label="Profile" className="hidden sm:flex">
             <User className="h-5 w-5" strokeWidth={1.75} />
           </IconButton>
 
@@ -141,9 +141,10 @@ interface IconButtonProps {
   badge?: number
   onClick?: () => void
   active?: boolean
+  className?: string
 }
 
-function IconButton({ label, children, badge, onClick, active }: IconButtonProps) {
+function IconButton({ label, children, badge, onClick, active, className }: IconButtonProps) {
   return (
     <button
       type="button"
@@ -154,6 +155,7 @@ function IconButton({ label, children, badge, onClick, active }: IconButtonProps
         active
           ? "bg-muted text-foreground"
           : "text-foreground hover:bg-muted",
+        className,
       )}
     >
       {children}

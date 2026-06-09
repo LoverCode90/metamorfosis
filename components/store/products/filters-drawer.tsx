@@ -64,12 +64,11 @@ export function FiltersDrawer({
         {/* Grabber + header */}
         <div className="shrink-0 border-b border-border px-5 pb-4 pt-3">
           <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border" />
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-semibold text-foreground">Filters</h2>
+          <div className="flex items-center justify-end">
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close"
+              aria-label="Close filters"
               className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <X className="h-5 w-5" strokeWidth={1.75} />

@@ -9,8 +9,7 @@
 import type { Product } from "./checkout"
 
 /** The single shared product image used across the entire catalog. */
-export const CATALOG_IMAGE =
-  "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&w=800&q=80"
+export const CATALOG_IMAGE = "/metamorfosis-product.png"
 
 export type ProductType = "standard" | "color"
 

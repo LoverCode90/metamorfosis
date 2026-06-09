@@ -59,7 +59,7 @@ export function ProductCard({ product }: { product: CatalogProduct }) {
         </button>
         <p className="mt-0.5 text-xs text-muted-foreground">{product.variant}</p>
 
-        <div className="mt-auto flex items-end justify-between gap-2 pt-3">
+        <div className="mt-auto flex flex-col items-stretch gap-2 pt-3 sm:flex-row sm:items-end sm:justify-between">
           <div className="flex items-baseline gap-1.5">
             <span className="text-sm font-semibold text-foreground tabular-nums">
               {formatUSD(finalPrice)}
@@ -74,7 +74,7 @@ export function ProductCard({ product }: { product: CatalogProduct }) {
           <button
             type="button"
             onClick={() => addToCart(product)}
-            className="inline-flex h-8 items-center gap-1 rounded-md bg-foreground px-3 text-xs font-semibold text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="inline-flex h-8 shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-md bg-foreground px-3 text-xs font-semibold text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
             Add to Bag
