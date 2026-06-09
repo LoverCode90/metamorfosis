@@ -3,10 +3,12 @@
 import { useState } from "react"
 import { ArrowLeft } from "lucide-react"
 import type { PaymentVariant, CheckoutStepId } from "@/lib/checkout"
+import { computeTotalsWithShipping, shippingFor } from "@/lib/checkout"
 import { cn } from "@/lib/utils"
 import { useCart } from "@/components/store/cart-context"
 import { CheckoutStepper } from "./checkout-stepper"
 import { OrderSummary } from "./order-summary"
+import { AddressBook } from "./address-book"
 import { PaymentSection } from "./payment-section"
 import { PaymentToast } from "./payment-toast"
 import { StepInfo, type InfoData } from "./steps/step-info"
@@ -22,7 +24,12 @@ const VARIANTS: { id: PaymentVariant; label: string }[] = [
 ]
 
 export function CheckoutClient() {
-  const { items, totals, setView, placeOrder } = useCart()
+  const { items, setView, placeOrder, savedAddress, saveAddress } = useCart()
+
+  // Location-aware totals — recomputed from the saved address country so the
+  // order summary reflects the correct shipping cost.
+  const shipping = shippingFor(savedAddress?.country ?? "United States")
+  const liveTotals = computeTotalsWithShipping(items, shipping)
 
   // Wizard step — starts at Step 2 ("info") per spec.
   const [wizardStep, setWizardStep] = useState<CheckoutStepId>("info")
@@ -56,10 +63,14 @@ export function CheckoutClient() {
     }
     placeOrder({
       email: infoData?.email ?? "you@email.com",
-      shipName: infoData
-        ? `${infoData.firstName} ${infoData.lastName}`
-        : "Valued Customer",
-      shipAddress: infoData?.address ?? "United States",
+      shipName: savedAddress?.fullName
+        ? savedAddress.fullName
+        : infoData
+          ? `${infoData.firstName} ${infoData.lastName}`
+          : "Valued Customer",
+      shipAddress: savedAddress
+        ? `${savedAddress.line1}, ${savedAddress.city}, ${savedAddress.country}`
+        : infoData?.address ?? "United States",
     })
   }
 
@@ -116,7 +127,10 @@ export function CheckoutClient() {
         {/* Left column — active step (order: 1 on mobile, 1 on desktop) */}
         <div className="order-1">
           {wizardStep === "info" && (
-            <StepInfo onContinue={handleInfoContinue} />
+            <div className="space-y-8">
+              <AddressBook address={savedAddress} onSave={saveAddress} />
+              <StepInfo onContinue={handleInfoContinue} />
+            </div>
           )}
 
           {wizardStep === "shipping" && infoData && (
@@ -136,7 +150,7 @@ export function CheckoutClient() {
         <div className="order-2">
           <OrderSummary
             items={items}
-            totals={totals}
+            totals={liveTotals}
             wizardStep={wizardStep}
             variant={variant}
             onPlaceOrder={handlePlaceOrder}

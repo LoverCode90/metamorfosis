@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronRight, Minus, Plus, ShoppingBag, Heart, ShieldCheck, AlertTriangle } from "lucide-react"
+import { ChevronRight, Minus, Plus, ShoppingBag, Heart, ShieldCheck, AlertTriangle, FileText, Download, Info } from "lucide-react"
 import { getProduct, getRelated } from "@/lib/catalog"
 import { formatUSD } from "@/lib/checkout"
 import { cn } from "@/lib/utils"

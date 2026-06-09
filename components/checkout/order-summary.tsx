@@ -25,7 +25,7 @@ export function OrderSummary({
   variant,
   onPlaceOrder,
 }: OrderSummaryProps) {
-  const { subtotal, discount, tax, total } = totals
+  const { subtotal, discount, shipping, tax, total } = totals
   const isPaymentStep = wizardStep === "payment"
   const disabled = isPaymentStep && variant === "expired"
 
@@ -101,8 +101,15 @@ export function OrderSummary({
               <Truck className="h-4 w-4" />
               Shipping
             </dt>
-            <dd className="font-medium uppercase tracking-wide text-emerald-600">
-              Free
+            <dd
+              className={cn(
+                "font-medium tabular-nums",
+                shipping === 0
+                  ? "uppercase tracking-wide text-emerald-600"
+                  : "text-foreground",
+              )}
+            >
+              {shipping === 0 ? "Free" : formatUSD(shipping)}
             </dd>
           </div>
           <div className="flex items-center justify-between">

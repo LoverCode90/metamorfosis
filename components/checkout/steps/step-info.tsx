@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
-import { Mail, MapPin, Phone, User } from "lucide-react"
+import { Mail, MapPin, User } from "lucide-react"
 import { FloatingField } from "../floating-field"
 
 interface FieldState {
@@ -28,7 +28,6 @@ export interface InfoData {
   firstName: string
   lastName: string
   email: string
-  phone: string
   address: string
 }
 
@@ -36,7 +35,6 @@ export function StepInfo({ onContinue }: StepInfoProps) {
   const [firstName, setFirstName, touchFirstName] = useField()
   const [lastName, setLastName, touchLastName] = useField()
   const [email, setEmail, touchEmail] = useField()
-  const [phone, setPhone, touchPhone] = useField()
   const [address, setAddress, touchAddress] = useField()
 
   const errors = {
@@ -48,7 +46,6 @@ export function StepInfo({ onContinue }: StepInfoProps) {
           ? "Enter a valid email"
           : "Required"
         : "",
-    phone: phone.touched && !phone.value.trim() ? "Required" : "",
     address: address.touched && !address.value.trim() ? "Required" : "",
   }
 
@@ -56,7 +53,6 @@ export function StepInfo({ onContinue }: StepInfoProps) {
     firstName.value.trim() &&
     lastName.value.trim() &&
     isValidEmail(email.value) &&
-    phone.value.trim() &&
     address.value.trim()
 
   function handleSubmit(e: FormEvent) {
@@ -64,14 +60,12 @@ export function StepInfo({ onContinue }: StepInfoProps) {
     touchFirstName()
     touchLastName()
     touchEmail()
-    touchPhone()
     touchAddress()
     if (!isValid) return
     onContinue({
       firstName: firstName.value.trim(),
       lastName: lastName.value.trim(),
       email: email.value.trim(),
-      phone: phone.value.trim(),
       address: address.value.trim(),
     })
   }
@@ -121,19 +115,6 @@ export function StepInfo({ onContinue }: StepInfoProps) {
           onBlur={touchEmail}
           error={errors.email}
           autoComplete="email"
-        />
-
-        <ControlledField
-          id="phone"
-          label="Phone number"
-          icon={Phone}
-          type="tel"
-          inputMode="tel"
-          value={phone.value}
-          onChange={(v) => setPhone(v)}
-          onBlur={touchPhone}
-          error={errors.phone}
-          autoComplete="tel"
         />
 
         <ControlledField
