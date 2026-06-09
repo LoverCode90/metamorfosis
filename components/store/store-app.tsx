@@ -8,6 +8,7 @@ import { CartView } from "./cart/cart-view"
 import { ConfirmationView } from "./confirmation/confirmation-view"
 import { ProductsPage } from "./products/products-page"
 import { ProductDetailPage } from "./products/product-detail-page"
+import { AboutPage } from "./about/about-page"
 import { VerifyPage } from "./verify/verify-page"
 import { WishlistView } from "./wishlist/wishlist-view"
 import { ProfileDashboard } from "./profile/profile-dashboard"
@@ -21,6 +22,8 @@ function ActiveView() {
       return <ProductsPage />
     case "product-detail":
       return <ProductDetailPage />
+    case "about":
+      return <AboutPage />
     case "verify":
       return <VerifyPage />
     case "wishlist":

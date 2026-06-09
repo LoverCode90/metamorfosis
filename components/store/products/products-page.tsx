@@ -48,7 +48,7 @@ export function ProductsPage() {
     filters.categories.length + filters.brands.length + (filters.search ? 1 : 0)
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-12">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-12 xl:max-w-7xl 2xl:max-w-[1600px]">
       {/* Page header */}
       <div className="flex flex-col gap-1">
         <p className="text-xs font-medium uppercase tracking-[0.3em] text-muted-foreground">
@@ -106,7 +106,7 @@ export function ProductsPage() {
 
           {/* Grid */}
           {visible.length > 0 ? (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-3 lg:gap-x-6 xl:grid-cols-4 2xl:grid-cols-4 2xl:gap-x-8">
               {visible.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

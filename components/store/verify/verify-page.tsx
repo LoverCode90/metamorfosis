@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import {
   Check,
   ChevronLeft,
@@ -11,6 +11,7 @@ import {
   HelpCircle,
   ChevronDown,
   ShieldCheck,
+  Loader2,
 } from "lucide-react"
 import { useCart } from "../cart-context"
 import { cn } from "@/lib/utils"
@@ -45,6 +46,8 @@ export function VerifyPage() {
     profession: "Cosmetologist",
   })
   const [file, setFile] = useState<UploadedFile | null>(null)
+  // Confirm interception: idle → processing (spinner) → success (then redirect).
+  const [phase, setPhase] = useState<"idle" | "processing" | "success">("idle")
 
   const stepIndex = STEPS.findIndex((s) => s.id === step)
 
@@ -58,11 +61,24 @@ export function VerifyPage() {
   }
 
   function complete() {
-    approveVerification()
-    // After verification, send the colorist straight into checkout if items
-    // remain, otherwise back to the cart.
-    setView(hasProItems ? "checkout" : "cart")
+    // Simulate document processing before approving + redirecting to checkout.
+    setPhase("processing")
   }
+
+  // Drive the processing → success → redirect sequence with timed transitions.
+  useEffect(() => {
+    if (phase === "processing") {
+      const id = setTimeout(() => setPhase("success"), 2200)
+      return () => clearTimeout(id)
+    }
+    if (phase === "success") {
+      const id = setTimeout(() => {
+        approveVerification()
+        setView(hasProItems ? "checkout" : "cart")
+      }, 1600)
+      return () => clearTimeout(id)
+    }
+  }, [phase, approveVerification, setView, hasProItems])
 
   const canContinue =
     step === "info"
@@ -125,6 +141,52 @@ export function VerifyPage() {
         )}
         {step === "summary" && <SummaryStep info={info} file={file} />}
       </main>
+
+      {phase !== "idle" && <ProcessingOverlay phase={phase} />}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Processing → success overlay shown after "Confirm" on the summary step.
+// ---------------------------------------------------------------------------
+function ProcessingOverlay({ phase }: { phase: "processing" | "success" }) {
+  return (
+    <div
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="flex w-full max-w-sm flex-col items-center rounded-2xl border border-border bg-background p-10 text-center shadow-2xl">
+        {phase === "processing" ? (
+          <>
+            <Loader2
+              className="h-12 w-12 animate-spin text-foreground"
+              strokeWidth={1.5}
+            />
+            <h2 className="mt-6 text-lg font-semibold tracking-tight text-foreground">
+              Verifying your documents
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Cross-checking your license with the cosmetology board. This only
+              takes a moment.
+            </p>
+          </>
+        ) : (
+          <>
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white duration-300 animate-in zoom-in-50">
+              <Check className="h-7 w-7" strokeWidth={2.5} />
+            </span>
+            <h2 className="mt-6 text-lg font-semibold tracking-tight text-foreground">
+              Document approved
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Your professional status is verified. Redirecting you to
+              checkout…
+            </p>
+          </>
+        )}
+      </div>
     </div>
   )
 }
@@ -232,11 +294,7 @@ function InfoStep({
               onChange={(e) => onChange({ ...info, country: e.target.value })}
               className="h-11 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground outline-none transition-colors focus:border-foreground"
             >
-              <option>United States</option>
-              <option>Canada</option>
-              <option>United Kingdom</option>
-              <option>Australia</option>
-              <option>Germany</option>
+              <option value="United States">United States</option>
             </select>
           </Field>
         </div>

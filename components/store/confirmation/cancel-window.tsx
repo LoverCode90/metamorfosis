@@ -1,8 +1,17 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Clock, ShieldCheck, X } from "lucide-react"
+import { Clock, ShieldCheck, X, AlertTriangle } from "lucide-react"
 import { CANCEL_WINDOW_MINUTES } from "@/lib/checkout"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 
 interface CancelWindowProps {
   placedAt: number
@@ -22,11 +31,17 @@ function format(ms: number) {
 export function CancelWindow({ placedAt, canceled, onCancel }: CancelWindowProps) {
   const deadline = placedAt + CANCEL_WINDOW_MINUTES * 60 * 1000
   const [remaining, setRemaining] = useState(() => deadline - Date.now())
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   useEffect(() => {
     const id = setInterval(() => setRemaining(deadline - Date.now()), 1000)
     return () => clearInterval(id)
   }, [deadline])
+
+  function confirmCancel() {
+    setConfirmOpen(false)
+    onCancel()
+  }
 
   if (canceled) {
     return (
@@ -70,7 +85,7 @@ export function CancelWindow({ placedAt, canceled, onCancel }: CancelWindowProps
               </span>
               <button
                 type="button"
-                onClick={onCancel}
+                onClick={() => setConfirmOpen(true)}
                 className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
               >
                 <X className="h-4 w-4" strokeWidth={2} />
@@ -80,6 +95,30 @@ export function CancelWindow({ placedAt, canceled, onCancel }: CancelWindowProps
           )}
         </div>
       </div>
+
+      {/* Cancellation guard — confirm before issuing the refund. */}
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+              <AlertTriangle className="h-5 w-5" strokeWidth={2} />
+            </span>
+            <DialogTitle>Do you really want to cancel your order?</DialogTitle>
+            <DialogDescription>
+              This cancels your order immediately and issues a full automated
+              refund. This action can&apos;t be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+              Keep my order
+            </Button>
+            <Button variant="destructive" onClick={confirmCancel}>
+              Yes, cancel order
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

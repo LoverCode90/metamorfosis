@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
 import {
   Heart,
   Lock,
@@ -178,9 +179,15 @@ function MobileDrawer({
   profileEmail,
   wishlistCount,
 }: MobileDrawerProps) {
-  return (
+  // Portal the drawer to <body> so it escapes the sticky header's stacking
+  // context (backdrop-blur + z-index) and overlays the page without shifting it.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  if (!mounted) return null
+
+  return createPortal(
     <div
-      className={cn("fixed inset-0 z-50 md:hidden", open ? "" : "pointer-events-none")}
+      className={cn("fixed inset-0 z-[100] md:hidden", open ? "" : "pointer-events-none")}
       aria-hidden={!open}
     >
       {/* Overlay */}
@@ -290,7 +297,8 @@ function MobileDrawer({
           </nav>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 
