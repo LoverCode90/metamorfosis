@@ -36,7 +36,7 @@ export function StoreHeader() {
             <ShoppingBag className="h-3.5 w-3.5" strokeWidth={2.25} />
           </span>
           <span className="text-sm font-semibold tracking-[0.18em] text-foreground">
-            METAMORFOSIS LAB
+            METAMORFOSIS
           </span>
         </button>
 

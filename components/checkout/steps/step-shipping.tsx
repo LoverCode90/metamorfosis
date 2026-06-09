@@ -137,14 +137,14 @@ export function StepShipping({ info, onContinue, onBack }: StepShippingProps) {
         <button
           type="button"
           onClick={handleContinue}
-          className="h-12 flex-1 rounded-md bg-foreground text-sm font-semibold text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="h-12 flex-1 rounded-md bg-foreground text-sm font-semibold text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 py-2.5"
         >
           Continue to Payment
         </button>
         <button
           type="button"
           onClick={onBack}
-          className="h-12 flex-1 rounded-md border border-border text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          className="h-12 flex-1 rounded-md border border-border text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 py-2.5"
         >
           Back to Information
         </button>
