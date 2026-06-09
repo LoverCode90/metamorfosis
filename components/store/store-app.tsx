@@ -6,11 +6,14 @@ import { StoreHeader } from "./store-header"
 import { PlaceholderPage } from "./placeholder-page"
 import { CartView } from "./cart/cart-view"
 import { ConfirmationView } from "./confirmation/confirmation-view"
+import { ProductsPage } from "./products/products-page"
 
 function ActiveView() {
   const { view } = useCart()
 
   switch (view) {
+    case "products":
+      return <ProductsPage />
     case "cart":
       return <CartView />
     case "checkout":

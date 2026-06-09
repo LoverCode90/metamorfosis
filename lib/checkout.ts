@@ -31,6 +31,8 @@ export interface Product {
   discountPerItem: number
   /** Remaining units — drives the low-stock warning. */
   stock: number
+  /** Pro-only items require license verification before checkout completes. */
+  isProfessional?: boolean
 }
 
 export interface CartItem extends Product {
@@ -47,6 +49,7 @@ export const INITIAL_CART: CartItem[] = [
     discountPerItem: 2,
     stock: 24,
     quantity: 2,
+    isProfessional: true,
   },
   {
     id: "oxidant-20",
@@ -204,8 +207,10 @@ export type PaymentVariant = "default" | "error" | "expired"
 export type StoreView =
   | "home"
   | "products"
+  | "product-detail"
   | "academy"
   | "about"
   | "cart"
   | "checkout"
   | "confirmation"
+  | "verify"

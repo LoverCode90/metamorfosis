@@ -30,6 +30,10 @@ interface CartContextValue {
   view: StoreView
   setView: (view: StoreView) => void
 
+  // Product detail navigation
+  selectedProductId: string | null
+  openProduct: (id: string) => void
+
   // Cart state
   items: CartItem[]
   wishlist: Product[]
@@ -41,6 +45,11 @@ interface CartContextValue {
   removeItem: (id: string) => void
   moveToWishlist: (id: string) => void
   addToCart: (product: Product) => void
+
+  // Professional license verification
+  hasProItems: boolean
+  verified: boolean
+  setVerified: (value: boolean) => void
 
   // Order lifecycle
   order: Order | null
@@ -54,10 +63,17 @@ const CartContext = createContext<CartContextValue | null>(null)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [view, setView] = useState<StoreView>("cart")
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const [items, setItems] = useState<CartItem[]>(INITIAL_CART)
   const [wishlist, setWishlist] = useState<Product[]>([])
   const [order, setOrder] = useState<Order | null>(null)
   const [orderCanceled, setOrderCanceled] = useState(false)
+  const [verified, setVerified] = useState(false)
+
+  const openProduct = useCallback((id: string) => {
+    setSelectedProductId(id)
+    setView("product-detail")
+  }, [])
 
   const increment = useCallback((id: string) => {
     setItems((prev) =>
@@ -122,15 +138,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems(INITIAL_CART)
     setOrder(null)
     setOrderCanceled(false)
+    setVerified(false)
     setView("home")
   }, [])
 
   const totals = useMemo(() => computeTotals(items), [items])
+  const hasProItems = useMemo(
+    () => items.some((i) => i.isProfessional),
+    [items],
+  )
 
   const value = useMemo<CartContextValue>(
     () => ({
       view,
       setView,
+      selectedProductId,
+      openProduct,
       items,
       wishlist,
       totals,
@@ -139,6 +162,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       moveToWishlist,
       addToCart,
+      hasProItems,
+      verified,
+      setVerified,
       order,
       orderCanceled,
       placeOrder,
@@ -147,6 +173,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }),
     [
       view,
+      selectedProductId,
+      openProduct,
       items,
       wishlist,
       totals,
@@ -155,6 +183,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeItem,
       moveToWishlist,
       addToCart,
+      hasProItems,
+      verified,
       order,
       orderCanceled,
       placeOrder,
