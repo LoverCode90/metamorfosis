@@ -122,6 +122,14 @@ export function StoreHeader() {
             <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
           </IconButton>
 
+          <button
+            type="button"
+            onClick={() => go("login")}
+            className="hidden items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted sm:flex"
+          >
+            Sign in
+          </button>
+
           <IconButton
             label="Profile"
             onClick={() => go("profile")}

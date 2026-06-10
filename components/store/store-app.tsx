@@ -9,6 +9,9 @@ import { ConfirmationView } from "./confirmation/confirmation-view"
 import { ProductsPage } from "./products/products-page"
 import { ProductDetailPage } from "./products/product-detail-page"
 import { AboutPage } from "./about/about-page"
+import { AuthPage } from "./auth/auth-page"
+import { HomePage } from "./home/home-page"
+import { AcademyPage } from "./academy/academy-page"
 import { VerifyPage } from "./verify/verify-page"
 import { WishlistView } from "./wishlist/wishlist-view"
 import { ProfileDashboard } from "./profile/profile-dashboard"
@@ -18,12 +21,20 @@ function ActiveView() {
   const { view } = useCart()
 
   switch (view) {
+    case "home":
+      return <HomePage />
     case "products":
       return <ProductsPage />
     case "product-detail":
       return <ProductDetailPage />
     case "about":
       return <AboutPage />
+    case "academy":
+      return <AcademyPage />
+    case "login":
+      return <AuthPage mode="login" />
+    case "signup":
+      return <AuthPage mode="signup" />
     case "verify":
       return <VerifyPage />
     case "wishlist":

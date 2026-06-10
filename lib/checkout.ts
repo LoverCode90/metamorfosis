@@ -217,6 +217,8 @@ export type StoreView =
   | "wishlist"
   | "profile"
   | "tracking"
+  | "login"
+  | "signup"
 
 // ---------------------------------------------------------------------------
 // Profile / account

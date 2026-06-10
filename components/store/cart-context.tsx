@@ -100,7 +100,7 @@ interface CartContextValue {
 const CartContext = createContext<CartContextValue | null>(null)
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [view, setView] = useState<StoreView>("cart")
+  const [view, setView] = useState<StoreView>("home")
   const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
   const [items, setItems] = useState<CartItem[]>(INITIAL_CART)
   const [wishlist, setWishlist] = useState<Product[]>([])
