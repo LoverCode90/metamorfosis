@@ -313,7 +313,7 @@ export function HomePage() {
               <button
                 type="button"
                 onClick={() => setView("academy")}
-                className="mt-10 inline-flex w-fit items-center gap-2 rounded-md bg-foreground px-7 py-3 text-base font-semibold text-background transition-opacity hover:opacity-90"
+                className="mt-8 inline-flex w-fit items-center gap-2 rounded-md bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90"
               >
                 Explorar Academia
                 <ArrowRight className="h-4 w-4" strokeWidth={2} />
@@ -330,10 +330,10 @@ export function HomePage() {
                 ].map(({ icon: Icon, label }) => (
                   <div
                     key={label}
-                    className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 px-6 py-5"
+                    className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-5 py-4"
                   >
-                    <Icon className="h-6 w-6 text-white/60" strokeWidth={1.5} />
-                    <span className="text-base font-medium text-white">{label}</span>
+                    <Icon className="h-5 w-5 text-white/60" strokeWidth={1.5} />
+                    <span className="text-sm font-medium text-white">{label}</span>
                   </div>
                 ))}
               </div>
@@ -379,7 +379,7 @@ export function HomePage() {
                     <ul className="mt-4 flex flex-col gap-2">
                       {col.links.map((link) => (
                         <li key={link}>
-                          <span className="cursor-default text-base text-muted-foreground transition-colors hover:text-foreground">
+                          <span className="cursor-default text-sm text-muted-foreground transition-colors hover:text-foreground">
                             {link}
                           </span>
                         </li>
@@ -394,8 +394,8 @@ export function HomePage() {
               {/* Contact — email + address only (no phone per spec) */}
               <div className="grid gap-8 sm:grid-cols-2">
                 <div>
-                  <p className="text-base font-semibold text-foreground">Contact us</p>
-                  <div className="mt-3 flex flex-col gap-2 text-base text-muted-foreground">
+                  <p className="text-sm font-semibold text-foreground">Contact us</p>
+                  <div className="mt-3 flex flex-col gap-1.5 text-sm text-muted-foreground">
                     <span>
                       <span className="font-semibold text-foreground">Email: </span>
                       info@metamorfosis.com
@@ -416,7 +416,7 @@ export function HomePage() {
                     <button
                       key={label}
                       type="button"
-                      className="flex h-11 items-center gap-2.5 rounded-xl border border-border px-5 text-base font-medium text-foreground transition-colors hover:bg-muted"
+                      className="flex h-9 items-center gap-2.5 rounded-md border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
                     >
                       {icon}
                       {label}

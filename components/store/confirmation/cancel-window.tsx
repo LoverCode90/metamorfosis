@@ -50,10 +50,10 @@ export function CancelWindow({ placedAt, canceled, onCancel }: CancelWindowProps
           <ShieldCheck className="h-5 w-5" strokeWidth={2} />
         </span>
         <div>
-          <p className="text-sm font-semibold text-foreground">Order canceled</p>
+          <p className="text-sm font-semibold text-foreground">Pedido cancelado</p>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            A full refund has been issued automatically. Funds return to your
-            original payment method within 3–5 business days.
+            Se ha emitido un reembolso completo de forma automática. Los fondos
+            regresan a tu método de pago original en un plazo de 3 a 5 días hábiles.
           </p>
         </div>
       </div>
@@ -70,12 +70,12 @@ export function CancelWindow({ placedAt, canceled, onCancel }: CancelWindowProps
         </span>
         <div className="flex-1">
           <p className="text-sm font-semibold text-foreground">
-            {expired ? "Cancellation window closed" : "Change your mind?"}
+            {expired ? "Ventana de cancelación cerrada" : "¿Cambiaste de opinión?"}
           </p>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {expired
-              ? "Your order is now being prepared for dispatch."
-              : "Cancel within the window for an instant, automated full refund — no questions asked."}
+              ? "Tu pedido ya está siendo preparado para su envío."
+              : "Cancela dentro del plazo para obtener un reembolso completo e inmediato, sin preguntas."}
           </p>
 
           {!expired && (
@@ -89,32 +89,32 @@ export function CancelWindow({ placedAt, canceled, onCancel }: CancelWindowProps
                 className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 px-3 py-1.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10"
               >
                 <X className="h-4 w-4" strokeWidth={2} />
-                Cancel order
+                Cancelar pedido
               </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Cancellation guard — confirm before issuing the refund. */}
+      {/* Cancellation guard — confirmation modal in Spanish before issuing refund. */}
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
           <DialogHeader>
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-destructive/10 text-destructive">
               <AlertTriangle className="h-5 w-5" strokeWidth={2} />
             </span>
-            <DialogTitle>Do you really want to cancel your order?</DialogTitle>
+            <DialogTitle>¿Estás seguro de cancelar tu orden?</DialogTitle>
             <DialogDescription>
-              This cancels your order immediately and issues a full automated
-              refund. This action can&apos;t be undone.
+              Esto cancela tu pedido de inmediato y emite un reembolso completo
+              de forma automática. Esta acción no se puede deshacer.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmOpen(false)}>
-              Keep my order
+              Mantener mi pedido
             </Button>
             <Button variant="destructive" onClick={confirmCancel}>
-              Yes, cancel order
+              Sí, cancelar pedido
             </Button>
           </DialogFooter>
         </DialogContent>
