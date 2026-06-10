@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 import { useCart } from "../cart-context"
 
-// ─── Inline SVG icons for map service buttons ──────────────────────────────
+// ─── Inline SVG icons ─────────────────────────────────────────────────────
 
 function WazeIcon() {
   return (
@@ -29,45 +29,120 @@ function AppleMapIcon() {
   )
 }
 
+function SocialButton({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      className="flex h-9 w-9 items-center justify-center rounded-md border border-border text-foreground transition-colors hover:bg-muted"
+    >
+      {children}
+    </button>
+  )
+}
+
 // ─── Data ─────────────────────────────────────────────────────────────────
 
 const BRAND_LINES = [
   {
     id: "nutrapel",
     name: "Nutrapel",
-    tagline: "Bond-strengthening care system",
+    tagline: "Bond-strengthening care system — repairs, seals and protects from within",
     category: "Bond & Repair",
     image: "/home/brand-nutrapel.png",
   },
   {
     id: "bbcos",
     name: "BBCos",
-    tagline: "Professional permanent color line",
+    tagline: "Professional permanent color line with 120+ tones and full gray coverage",
     category: "Color",
     image: "/home/brand-bbcos.png",
   },
   {
     id: "brazilian-nano",
     name: "Brazilian Nano",
-    tagline: "Premium nanoplasty treatment range",
+    tagline: "Premium nanoplasty treatment range for frizz-free, straight and hydrated hair",
     category: "Smoothing",
     image: "/home/brand-nano.png",
   },
   {
     id: "level3",
     name: "Level 3",
-    tagline: "Technical styling gel & fiber system",
+    tagline: "Technical fiber styling gel — maximum hold, flexible texture, zero residue",
     category: "Styling",
     image: "/home/brand-level3.png",
   },
 ]
 
-const KIT_CELLS = [
-  { label: "Full Colorimetry Kit", sub: "Pro-grade from start to finish", span: "col-span-2 row-span-2" },
-  { label: "Bond Care Bundle", sub: "Repair · Seal · Protect" },
-  { label: "Smoothing Trio", sub: "Pre · Nano · Finish" },
-  { label: "Starter Color Pack", sub: "12 shades + developer" },
-  { label: "Toner & Pigment Set", sub: "Cool-ash correction" },
+const KIT_CARDS = [
+  {
+    id: "colorimetry",
+    label: "Full Colorimetry Kit",
+    sub: "Pro-grade from start to finish",
+    tag: "Most Complete",
+    image: "/home/kit-color.png",
+    items: [
+      "10× BBCos permanent color tubes (60 ml each)",
+      "2× 30-vol & 20-vol developer (1 L each)",
+      "2× mixing bowls + 3 tint brushes",
+      "Full foil sheet pack (200 sheets)",
+      "Color correction formula guide booklet",
+      "Disposable gloves (20 pairs)",
+    ],
+    featured: true,
+  },
+  {
+    id: "bond",
+    label: "Bond Care Bundle",
+    sub: "Repair · Seal · Protect",
+    tag: "Bestseller",
+    image: "/home/kit-bond.png",
+    items: [
+      "Nutrapel Bond Repair Serum (120 ml)",
+      "Nutrapel Sealing Cream (200 ml)",
+      "Nutrapel Leave-in Protector (150 ml)",
+      "Heat protection mist (200 ml)",
+    ],
+  },
+  {
+    id: "smooth",
+    label: "Smoothing Trio",
+    sub: "Pre · Nano · Finish",
+    tag: "New",
+    image: "/home/kit-smooth.png",
+    items: [
+      "Brazilian Nano pre-treatment shampoo (500 ml)",
+      "Brazilian Nano solution (1 L)",
+      "Brazilian Nano finishing serum (200 ml)",
+      "Fine-tooth sectioning comb",
+    ],
+  },
+  {
+    id: "starter",
+    label: "Starter Color Pack",
+    sub: "12 shades + developer",
+    tag: "Beginner",
+    image: "/home/kit-starter.png",
+    items: [
+      "12 BBCos shade tubes (assorted levels 4–9)",
+      "1× 20-vol developer (500 ml)",
+      "Mixing bowl + applicator brush",
+      "20 pairs disposable gloves",
+    ],
+  },
+  {
+    id: "toner",
+    label: "Toner & Pigment Set",
+    sub: "Cool-ash correction",
+    tag: "Color Correction",
+    image: "/home/kit-toner.png",
+    items: [
+      "BBCos ash toner ×3 (levels 8, 9, 10)",
+      "Purple pigment concentrate drops (30 ml)",
+      "Demi-permanent glossing serum (200 ml)",
+      "Mixing bowl + fine applicator brush",
+    ],
+  },
 ]
 
 // ─── Component ─────────────────────────────────────────────────────────────
@@ -76,27 +151,34 @@ export function HomePage() {
   const { setView } = useCart()
 
   return (
-    <div className="flex flex-col">
-      {/* ── Hero ───────────────────────────────────────────────────────── */}
-      <section className="relative flex min-h-[82vh] items-end overflow-hidden bg-foreground">
+    <div className="flex flex-col gap-y-24">
+
+      {/* ── Hero ───────────────────────────────────────────────────────────── */}
+      <section className="relative flex min-h-[88vh] items-end overflow-hidden bg-foreground">
         <img
           src="/home/hero-bg.png"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 h-full w-full object-cover opacity-30 mix-blend-luminosity"
+          className="absolute inset-0 h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/70 to-transparent" />
+        {/*
+          Asymmetric overlay:
+          — Left side: very dark (foreground/90) to guarantee white text legibility
+          — Right side: near-transparent so the hero image remains visible
+          Using a horizontal gradient from left to right.
+        */}
+        <div className="absolute inset-0 bg-gradient-to-r from-foreground/92 via-foreground/60 to-foreground/10" />
 
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6">
-          <p className="text-xs font-medium uppercase tracking-[0.35em] text-white/50">
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6 xl:max-w-7xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.35em] text-white/50">
             Professional Color Lab
           </p>
-          <h1 className="mt-4 max-w-3xl text-balance text-5xl font-semibold leading-[1.08] tracking-tight text-white sm:text-6xl lg:text-7xl">
+          <h1 className="mt-4 max-w-2xl text-balance text-5xl font-semibold leading-[1.07] tracking-tight text-white sm:text-6xl lg:text-7xl">
             Salon-grade color,
             <br />
             perfected.
           </h1>
-          <p className="mt-5 max-w-xl text-pretty leading-relaxed text-white/60">
+          <p className="mt-5 max-w-lg text-pretty text-base leading-relaxed text-white/65 md:text-lg">
             Permanent crème color, bond care, and professional tools — engineered for
             colorists who refuse to compromise.
           </p>
@@ -120,13 +202,13 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* ── Brand Lines ────────────────────────────────────────────────── */}
-      <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 xl:max-w-7xl">
+      {/* ── Brand Lines ────────────────────────────────────────────────────── */}
+      <section className="mx-auto w-full max-w-6xl px-4 sm:px-6 xl:max-w-7xl">
         <div className="flex flex-col gap-1">
-          <p className="text-xs font-medium uppercase tracking-[0.3em] text-muted-foreground">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
             Our Lines
           </p>
-          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             Four pillars of professional care
           </h2>
         </div>
@@ -153,7 +235,9 @@ export function HomePage() {
                 <h3 className="mt-0.5 text-lg font-semibold text-foreground">
                   {brand.name}
                 </h3>
-                <p className="mt-0.5 text-sm text-muted-foreground">{brand.tagline}</p>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground md:text-base">
+                  {brand.tagline}
+                </p>
               </div>
               <ArrowRight
                 className="mr-1 h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1"
@@ -164,92 +248,118 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* ── Kits Bento Grid ────────────────────────────────────────────── */}
-      <section className="bg-muted/50 py-16">
+      {/* ── Kits Bento Grid ────────────────────────────────────────────────── */}
+      <section className="bg-muted/40 py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 xl:max-w-7xl">
           <div className="flex flex-col gap-1">
-            <p className="text-xs font-medium uppercase tracking-[0.3em] text-muted-foreground">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
               Curated for Professionals
             </p>
-            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               Ready-to-work kits
             </h2>
           </div>
 
-          {/* Bento grid */}
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {/* Large featured cell */}
-            <button
-              type="button"
-              onClick={() => setView("products")}
-              className="col-span-2 row-span-2 flex flex-col justify-end rounded-2xl border border-border bg-foreground p-7 text-left transition-opacity hover:opacity-90 sm:col-span-1"
-            >
-              <p className="text-[11px] font-semibold uppercase tracking-widest text-white/50">
-                Most Complete
-              </p>
-              <h3 className="mt-2 text-xl font-semibold text-white">
-                Full Colorimetry Kit
-              </h3>
-              <p className="mt-1 text-sm text-white/60">
-                Pro-grade from start to finish
-              </p>
-              <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-semibold text-white/80">
-                View kit <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
-              </span>
-            </button>
-
-            {/* Smaller cells */}
-            {[
-              { label: "Bond Care Bundle", sub: "Repair · Seal · Protect" },
-              { label: "Smoothing Trio", sub: "Pre · Nano · Finish" },
-              { label: "Starter Color Pack", sub: "12 shades + developer" },
-              { label: "Toner & Pigment Set", sub: "Cool-ash correction" },
-            ].map((cell) => (
+          {/*
+            Asymmetric bento grid:
+            — First card spans 2 columns + 2 rows on sm+ (featured large card)
+            — Remaining 4 cards fill the other slots
+          */}
+          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {KIT_CARDS.map((kit, i) => (
               <button
-                key={cell.label}
+                key={kit.id}
                 type="button"
                 onClick={() => setView("products")}
-                className="flex flex-col justify-end rounded-2xl border border-border bg-card p-5 text-left transition-colors hover:border-foreground/20 hover:bg-muted"
+                className={[
+                  "group relative flex flex-col justify-end overflow-hidden rounded-2xl text-left transition-transform duration-300 hover:scale-[1.015]",
+                  kit.featured
+                    ? "min-h-[420px] sm:col-span-2 sm:row-span-2 lg:col-span-1 lg:min-h-[520px]"
+                    : "min-h-[280px]",
+                ].join(" ")}
               >
-                <h3 className="text-sm font-semibold text-foreground">{cell.label}</h3>
-                <p className="mt-0.5 text-xs text-muted-foreground">{cell.sub}</p>
+                {/* Background image */}
+                <img
+                  src={kit.image}
+                  alt={kit.label}
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                {/* Dark gradient overlay — always-on so text is legible */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/5" />
+
+                {/* Tag badge */}
+                <span className="absolute left-4 top-4 rounded-full bg-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
+                  {kit.tag}
+                </span>
+
+                {/* Content */}
+                <div className="relative z-10 p-6">
+                  <p className="text-xs font-medium uppercase tracking-wider text-white/60">
+                    {kit.sub}
+                  </p>
+                  <h3
+                    className={[
+                      "mt-1 font-semibold tracking-tight text-white",
+                      kit.featured ? "text-2xl" : "text-lg",
+                    ].join(" ")}
+                  >
+                    {kit.label}
+                  </h3>
+
+                  {/* Item list */}
+                  <ul className="mt-3 flex flex-col gap-1">
+                    {kit.items.map((item) => (
+                      <li
+                        key={item}
+                        className="flex items-start gap-2 text-xs leading-relaxed text-white/75"
+                      >
+                        <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-white/50" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <span className="mt-5 inline-flex items-center gap-1.5 text-xs font-semibold text-white/90">
+                    View kit <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
+                  </span>
+                </div>
               </button>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Academy Teaser ─────────────────────────────────────────────── */}
-      <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 xl:max-w-7xl">
+      {/* ── Academy Teaser ─────────────────────────────────────────────────── */}
+      <section className="mx-auto w-full max-w-6xl px-4 sm:px-6 xl:max-w-7xl">
         <div className="overflow-hidden rounded-2xl border border-border bg-card">
           <div className="grid gap-0 lg:grid-cols-2">
             {/* Left — copy */}
-            <div className="flex flex-col justify-center p-8 sm:p-10">
-              <p className="text-xs font-medium uppercase tracking-[0.3em] text-muted-foreground">
+            <div className="flex flex-col justify-center p-8 sm:p-12">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
                 Education
               </p>
               <h2 className="mt-3 text-balance text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                 Tenemos clases profesionales donde te enseñamos cosas que no te
                 enseñan en otros lugares.
               </h2>
-              <p className="mt-4 text-pretty leading-relaxed text-muted-foreground">
+              <p className="mt-4 text-pretty text-base leading-relaxed text-muted-foreground md:text-lg">
                 100% presencial en nuestro salón. Sin subscripciones. Una inversión,
                 habilidades de por vida — impartidas por una maestra certificada con
                 más de 15 años de experiencia.
               </p>
 
               {/* Feature columns */}
-              <div className="mt-7 grid grid-cols-3 gap-4">
+              <div className="mt-8 grid grid-cols-3 gap-4">
                 {[
                   { icon: Scissors, label: "Corte y diseño" },
                   { icon: Palette, label: "Colorimetría" },
                   { icon: Sparkles, label: "Nanoplastia" },
                 ].map(({ icon: Icon, label }) => (
-                  <div key={label} className="flex flex-col items-start gap-2">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background">
-                      <Icon className="h-4 w-4 text-foreground" strokeWidth={1.75} />
+                  <div key={label} className="flex flex-col items-start gap-2.5">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-background">
+                      <Icon className="h-5 w-5 text-foreground" strokeWidth={1.75} />
                     </span>
-                    <span className="text-xs font-medium text-foreground">{label}</span>
+                    <span className="text-sm font-medium text-foreground">{label}</span>
                   </div>
                 ))}
               </div>
@@ -257,16 +367,16 @@ export function HomePage() {
               <button
                 type="button"
                 onClick={() => setView("academy")}
-                className="mt-8 inline-flex w-fit items-center gap-2 rounded-md bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90"
+                className="mt-8 inline-flex w-fit items-center gap-2 rounded-md bg-foreground px-6 py-3 text-sm font-semibold text-background transition-opacity hover:opacity-90"
               >
                 Explorar Academia
                 <ArrowRight className="h-4 w-4" strokeWidth={2} />
               </button>
             </div>
 
-            {/* Right — visual accent */}
-            <div className="hidden items-center justify-center bg-foreground p-8 lg:flex">
-              <div className="flex flex-col gap-4">
+            {/* Right — dark accent column */}
+            <div className="hidden items-center justify-center bg-foreground p-10 lg:flex">
+              <div className="flex flex-col gap-4 w-full max-w-xs">
                 {[
                   { icon: BookOpen, label: "3–6 Month Programs" },
                   { icon: GraduationCap, label: "Physical Certificate" },
@@ -274,10 +384,10 @@ export function HomePage() {
                 ].map(({ icon: Icon, label }) => (
                   <div
                     key={label}
-                    className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-5 py-4"
+                    className="flex items-center gap-4 rounded-xl border border-white/10 bg-white/5 px-5 py-4"
                   >
-                    <Icon className="h-5 w-5 text-white/60" strokeWidth={1.5} />
-                    <span className="text-sm font-medium text-white">{label}</span>
+                    <Icon className="h-5 w-5 shrink-0 text-white/60" strokeWidth={1.5} />
+                    <span className="text-base font-medium text-white">{label}</span>
                   </div>
                 ))}
               </div>
@@ -286,12 +396,12 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* ── Map Footer ─────────────────────────────────────────────────── */}
-      <footer className="border-t border-border bg-background">
-        <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 xl:max-w-7xl">
+      {/* ── Map Footer ─────────────────────────────────────────────────────── */}
+      <footer className="border-t border-border bg-background pb-24">
+        <div className="mx-auto max-w-6xl px-4 pt-12 sm:px-6 xl:max-w-7xl">
           <div className="grid gap-10 lg:grid-cols-2">
             {/* Left — map placeholder */}
-            <div className="flex min-h-[320px] items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted lg:min-h-[420px]">
+            <div className="flex min-h-[320px] items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted lg:min-h-[440px]">
               <div className="flex flex-col items-center gap-3 text-muted-foreground">
                 <MapPin className="h-8 w-8" strokeWidth={1.25} />
                 <span className="text-sm font-medium">Google Map Preview</span>
@@ -321,10 +431,10 @@ export function HomePage() {
                     <p className="text-xs font-semibold uppercase tracking-wider text-foreground">
                       {col.title}
                     </p>
-                    <ul className="mt-3 flex flex-col gap-1.5">
+                    <ul className="mt-3 flex flex-col gap-2">
                       {col.links.map((link) => (
                         <li key={link}>
-                          <span className="text-sm text-muted-foreground hover:text-foreground cursor-default">
+                          <span className="cursor-default text-sm text-muted-foreground hover:text-foreground">
                             {link}
                           </span>
                         </li>
@@ -334,10 +444,9 @@ export function HomePage() {
                 ))}
               </div>
 
-              {/* Divider */}
               <div className="border-t border-border" />
 
-              {/* Contact — email + address only (no phone per spec) */}
+              {/* Contact — email + address only */}
               <div className="grid gap-6 sm:grid-cols-2">
                 <div>
                   <p className="text-sm font-semibold text-foreground">Contact us</p>
@@ -356,14 +465,17 @@ export function HomePage() {
                 {/* Map action buttons */}
                 <div className="flex flex-col gap-2">
                   {[
-                    { label: "Google Map", icon: <MapPin className="h-4 w-4" strokeWidth={1.75} /> },
+                    {
+                      label: "Google Map",
+                      icon: <MapPin className="h-4 w-4" strokeWidth={1.75} />,
+                    },
                     { label: "Waze Map", icon: <WazeIcon /> },
                     { label: "Apple Map", icon: <AppleMapIcon /> },
                   ].map(({ label, icon }) => (
                     <button
                       key={label}
                       type="button"
-                      className="flex h-9 items-center gap-2.5 rounded-md border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+                      className="flex h-10 items-center gap-2.5 rounded-md border border-border px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted"
                     >
                       {icon}
                       {label}
@@ -410,18 +522,7 @@ export function HomePage() {
           </div>
         </div>
       </footer>
-    </div>
-  )
-}
 
-function SocialButton({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      className="flex h-9 w-9 items-center justify-center rounded-md border border-border text-foreground transition-colors hover:bg-muted"
-    >
-      {children}
-    </button>
+    </div>
   )
 }

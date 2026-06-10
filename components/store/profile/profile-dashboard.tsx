@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   ArrowRight,
   BadgeCheck,
@@ -324,9 +324,35 @@ function VerificationPanel({
   email: string
   onSubmit: () => void
 }) {
-  const [file, setFile] = useState<string | null>(null)
+  // Store the file name for display and a revocable object URL for preview.
+  const [fileName, setFileName] = useState<string | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const locked = status !== "regular"
+
+  // Revoke the object URL when it is replaced or the component unmounts to
+  // avoid memory leaks.
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+    }
+  }, [previewUrl])
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0]
+    if (!f) return
+    // Revoke the previous URL before creating a new one.
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setFileName(f.name)
+    setPreviewUrl(URL.createObjectURL(f))
+  }
+
+  function clearFile() {
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setFileName(null)
+    setPreviewUrl(null)
+    if (inputRef.current) inputRef.current.value = ""
+  }
 
   return (
     <section className="rounded-2xl border border-border bg-card p-6">
@@ -376,9 +402,17 @@ function VerificationPanel({
                 : "border-border hover:border-foreground/40",
             )}
           >
-            <UploadCloud className="h-8 w-8 text-muted-foreground" strokeWidth={1.5} />
+            {previewUrl && previewUrl.startsWith("blob:") ? (
+              <img
+                src={previewUrl}
+                alt="License preview"
+                className="h-20 w-20 rounded-md object-cover"
+              />
+            ) : (
+              <UploadCloud className="h-8 w-8 text-muted-foreground" strokeWidth={1.5} />
+            )}
             <span className="mt-3 text-sm font-medium text-foreground">
-              {file ? file : "Click to upload license document"}
+              {fileName ? fileName : "Click to upload license document"}
             </span>
             <span className="mt-1 text-xs text-muted-foreground">
               PDF, JPG or PNG · up to 10MB
@@ -389,21 +423,18 @@ function VerificationPanel({
             type="file"
             accept=".pdf,.jpg,.jpeg,.png"
             className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0]
-              if (f) setFile(f.name)
-            }}
+            onChange={handleFileChange}
           />
 
-          {file && (
+          {fileName && (
             <div className="mt-3 flex items-center justify-between rounded-lg border border-border bg-muted px-3 py-2.5">
               <span className="flex min-w-0 items-center gap-2 text-sm text-foreground">
                 <FileText className="h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={1.75} />
-                <span className="truncate">{file}</span>
+                <span className="truncate">{fileName}</span>
               </span>
               <button
                 type="button"
-                onClick={() => setFile(null)}
+                onClick={clearFile}
                 aria-label="Remove file"
                 className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
               >
@@ -414,7 +445,7 @@ function VerificationPanel({
 
           <button
             type="button"
-            disabled={!file}
+            disabled={!fileName}
             onClick={onSubmit}
             className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-foreground text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
           >

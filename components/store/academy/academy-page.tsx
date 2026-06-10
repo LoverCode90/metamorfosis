@@ -192,7 +192,7 @@ export function AcademyPage() {
       </section>
 
       {/* ── Instructor Card ────────────────────────────────────────────── */}
-      <section className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6">
+      <section className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
         <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-6 sm:flex-row sm:items-center sm:gap-7">
           {/* Avatar + PRO badge */}
           <div className="relative shrink-0 self-start sm:self-center">
@@ -240,7 +240,7 @@ export function AcademyPage() {
       </section>
 
       {/* ── Stats Grid ───────────────────────────────────────────────────── */}
-      <section className="mx-auto w-full max-w-4xl px-4 py-6 sm:px-6">
+      <section className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {STATS.map(({ icon: Icon, value, label }) => (
             <div
@@ -262,8 +262,8 @@ export function AcademyPage() {
       </section>
 
       {/* ── Course Sections ──────────────────────────────────────────────── */}
-      <section className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 xl:max-w-7xl">
-        <div className="flex flex-col gap-16">
+      <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 xl:max-w-7xl">
+        <div className="flex flex-col gap-24 lg:gap-32">
           {COURSES.map((course) => (
             <div
               key={course.number}
