@@ -96,23 +96,23 @@ export function HomePage() {
             <br />
             perfected.
           </h1>
-          <p className="mt-5 max-w-lg text-pretty text-lg leading-relaxed text-white/65">
+          <p className="mt-5 max-w-lg text-pretty text-sm leading-relaxed text-white/65 sm:text-base">
             Permanent crème color, bond care, and professional tools — engineered for
             colorists who refuse to compromise.
           </p>
-          <div className="mt-10 flex flex-wrap items-center gap-4">
+          <div className="mt-8 flex flex-wrap items-center gap-4">
             <button
               type="button"
               onClick={() => setView("products")}
-              className="inline-flex h-13 items-center gap-2 rounded-md bg-white px-8 text-base font-semibold text-foreground transition-opacity hover:opacity-90"
+              className="inline-flex h-11 items-center gap-2 rounded-md bg-white px-6 text-sm font-semibold text-foreground transition-opacity hover:opacity-90"
             >
               Shop the catalog
-              <ArrowRight className="h-4 w-4" strokeWidth={2.25} />
+              <ArrowRight className="h-4 w-4" strokeWidth={2} />
             </button>
             <button
               type="button"
               onClick={() => setView("academy")}
-              className="inline-flex h-13 items-center gap-2 rounded-md border border-white/25 px-8 text-base font-semibold text-white/85 transition-colors hover:border-white/50 hover:text-white"
+              className="inline-flex h-11 items-center gap-2 rounded-md border border-white/25 px-6 text-sm font-semibold text-white/85 transition-colors hover:border-white/50 hover:text-white"
             >
               Explore Academy
             </button>
@@ -126,20 +126,20 @@ export function HomePage() {
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-muted-foreground">
             Our Lines
           </p>
-          <h2 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             Four pillars of professional care
           </h2>
         </div>
 
-        <div className="mt-10 flex flex-col gap-5">
+        <div className="mt-8 flex flex-col gap-4">
           {BRAND_LINES.map((brand) => (
             <button
               key={brand.id}
               type="button"
               onClick={() => setView("products")}
-              className="group flex items-center gap-6 rounded-2xl border border-border bg-card p-6 text-left transition-colors hover:border-foreground/20 hover:bg-muted sm:gap-8"
+              className="group flex items-center gap-5 rounded-2xl border border-border bg-card p-5 text-left transition-colors hover:border-foreground/20 hover:bg-muted sm:gap-7"
             >
-              <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-border bg-background sm:h-28 sm:w-28">
+              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border bg-background sm:h-24 sm:w-24">
                 <img
                   src={brand.image}
                   alt={brand.name}
@@ -147,13 +147,13 @@ export function HomePage() {
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
                   {brand.category}
                 </p>
-                <h3 className="mt-1 text-xl font-semibold text-foreground md:text-2xl">
+                <h3 className="mt-0.5 text-lg font-semibold text-foreground">
                   {brand.name}
                 </h3>
-                <p className="mt-1 text-base text-muted-foreground">{brand.tagline}</p>
+                <p className="mt-0.5 text-sm text-muted-foreground">{brand.tagline}</p>
               </div>
               <ArrowRight
                 className="mr-1 h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1"
@@ -171,123 +171,107 @@ export function HomePage() {
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-muted-foreground">
               Curated for Professionals
             </p>
-            <h2 className="text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+            <h2 className="text-2xl font-semibold tracking-tight text-foreground">
               Ready-to-work kits
             </h2>
           </div>
 
-          {/* Asymmetric bento: 3-col grid, first cell spans 2 rows */}
-          <div className="mt-12 grid auto-rows-[220px] grid-cols-2 gap-5 sm:auto-rows-[240px] sm:grid-cols-3">
-            {/* Large featured cell — 2-row span */}
-            <button
-              type="button"
-              onClick={() => setView("products")}
-              className="group relative col-span-2 row-span-2 overflow-hidden rounded-3xl text-left transition-transform hover:scale-[1.01] sm:col-span-1"
-            >
-              <img
-                src="/home/kit-color.png"
-                alt="Full Colorimetry Kit"
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/50 to-black/10" />
-              <div className="absolute bottom-0 left-0 right-0 p-7">
-                <span className="text-xs font-bold uppercase tracking-widest text-white/55">
-                  Most Complete
+          {/* 2×2 solid-background card grid */}
+          <div className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2">
+            {[
+              {
+                tag: "Most Complete",
+                title: "Full Colorimetry Kit",
+                items: [
+                  "Developer 10 / 20 / 30 / 40 vol",
+                  "24 permanent shades",
+                  "Mixing bowls · tint brushes · foil sheets",
+                  "Nitrile gloves · laminated color chart",
+                ],
+                dark: true,
+              },
+              {
+                tag: "Bond & Repair",
+                title: "Bond Care Bundle",
+                items: [
+                  "Bond Serum 50 ml",
+                  "Repair Mask 200 ml",
+                  "Protective Spray 150 ml",
+                ],
+                dark: false,
+              },
+              {
+                tag: "Smoothing",
+                title: "Smoothing Trio",
+                items: [
+                  "Pre-cleanser 300 ml",
+                  "Nano formula 500 ml",
+                  "Finishing serum 100 ml",
+                ],
+                dark: false,
+              },
+              {
+                tag: "Color Correction",
+                title: "Toner & Pigment Set",
+                items: [
+                  "Cool-ash toner — 3 shades",
+                  "Violet pigment booster",
+                  "10 vol developer",
+                ],
+                dark: true,
+              },
+            ].map((kit) => (
+              <button
+                key={kit.title}
+                type="button"
+                onClick={() => setView("products")}
+                className={[
+                  "group flex flex-col justify-between p-8 text-left transition-opacity hover:opacity-90",
+                  kit.dark ? "bg-foreground" : "bg-card",
+                ].join(" ")}
+              >
+                <div>
+                  <span
+                    className={[
+                      "text-[11px] font-bold uppercase tracking-[0.2em]",
+                      kit.dark ? "text-white/45" : "text-muted-foreground",
+                    ].join(" ")}
+                  >
+                    {kit.tag}
+                  </span>
+                  <h3
+                    className={[
+                      "mt-3 text-xl font-semibold tracking-tight",
+                      kit.dark ? "text-white" : "text-foreground",
+                    ].join(" ")}
+                  >
+                    {kit.title}
+                  </h3>
+                  <ul className="mt-4 flex flex-col gap-1.5">
+                    {kit.items.map((item) => (
+                      <li
+                        key={item}
+                        className={[
+                          "flex items-start gap-2 text-sm",
+                          kit.dark ? "text-white/60" : "text-muted-foreground",
+                        ].join(" ")}
+                      >
+                        <span className="mt-[5px] h-1 w-1 shrink-0 rounded-full bg-current opacity-50" />
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <span
+                  className={[
+                    "mt-8 inline-flex items-center gap-1.5 text-xs font-semibold transition-gap group-hover:gap-2",
+                    kit.dark ? "text-white/70" : "text-foreground/70",
+                  ].join(" ")}
+                >
+                  View kit <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
                 </span>
-                <h3 className="mt-2 text-2xl font-semibold text-white">
-                  Full Colorimetry Kit
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-white/70">
-                  Developer 10 / 20 / 30 / 40 vol · 24 permanent shades · mixing bowls ·
-                  tint brushes · foil sheets · nitrile gloves · laminated color chart
-                </p>
-                <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-white/90">
-                  View kit <ArrowRight className="h-4 w-4" strokeWidth={2} />
-                </span>
-              </div>
-            </button>
-
-            {/* Bond Care Bundle */}
-            <button
-              type="button"
-              onClick={() => setView("products")}
-              className="group relative overflow-hidden rounded-3xl text-left transition-transform hover:scale-[1.01]"
-            >
-              <img
-                src="/home/kit-bond.png"
-                alt="Bond Care Bundle"
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/40 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-5">
-                <h3 className="text-lg font-semibold text-white">Bond Care Bundle</h3>
-                <p className="mt-1 text-sm text-white/65">
-                  Bond Serum 50 ml · Repair Mask 200 ml · Protective Spray 150 ml
-                </p>
-              </div>
-            </button>
-
-            {/* Smoothing Trio */}
-            <button
-              type="button"
-              onClick={() => setView("products")}
-              className="group relative overflow-hidden rounded-3xl text-left transition-transform hover:scale-[1.01]"
-            >
-              <img
-                src="/home/kit-smooth.png"
-                alt="Smoothing Trio"
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/40 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-5">
-                <h3 className="text-lg font-semibold text-white">Smoothing Trio</h3>
-                <p className="mt-1 text-sm text-white/65">
-                  Pre-cleanser 300 ml · Nano formula 500 ml · Finishing serum 100 ml
-                </p>
-              </div>
-            </button>
-
-            {/* Starter Color Pack */}
-            <button
-              type="button"
-              onClick={() => setView("products")}
-              className="group relative overflow-hidden rounded-3xl text-left transition-transform hover:scale-[1.01]"
-            >
-              <img
-                src="/home/kit-starter.png"
-                alt="Starter Color Pack"
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/40 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-5">
-                <h3 className="text-lg font-semibold text-white">Starter Color Pack</h3>
-                <p className="mt-1 text-sm text-white/65">
-                  12 BBCos permanent shades + 20 vol developer 500 ml
-                </p>
-              </div>
-            </button>
-
-            {/* Toner & Pigment Set */}
-            <button
-              type="button"
-              onClick={() => setView("products")}
-              className="group relative overflow-hidden rounded-3xl text-left transition-transform hover:scale-[1.01]"
-            >
-              <img
-                src="/home/kit-toner.png"
-                alt="Toner and Pigment Set"
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/40 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-5">
-                <h3 className="text-lg font-semibold text-white">
-                  Toner &amp; Pigment Set
-                </h3>
-                <p className="mt-1 text-sm text-white/65">
-                  Cool-ash toner 3 shades · violet pigment booster · 10 vol developer
-                </p>
-              </div>
-            </button>
+              </button>
+            ))}
           </div>
         </div>
       </section>
@@ -301,11 +285,11 @@ export function HomePage() {
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-muted-foreground">
                 Education
               </p>
-              <h2 className="mt-4 text-balance text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
+              <h2 className="mt-3 text-balance text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                 Tenemos clases profesionales donde te enseñamos cosas que no te
                 enseñan en otros lugares.
               </h2>
-              <p className="mt-5 text-pretty text-lg leading-relaxed text-muted-foreground">
+              <p className="mt-4 text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
                 100% presencial en nuestro salón. Sin subscripciones. Una inversión,
                 habilidades de por vida — impartidas por una maestra certificada con
                 más de 15 años de experiencia.
