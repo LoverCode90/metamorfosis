@@ -104,7 +104,7 @@ export function HomePage() {
             <button
               type="button"
               onClick={() => setView("products")}
-              className="inline-flex h-11 items-center gap-2 rounded-md bg-white px-6 text-sm font-semibold text-foreground transition-opacity hover:opacity-90"
+              className="inline-flex h-11 items-center gap-2 rounded-md bg-primary px-6 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
             >
               Shop the catalog
               <ArrowRight className="h-4 w-4" strokeWidth={2} />
@@ -112,7 +112,7 @@ export function HomePage() {
             <button
               type="button"
               onClick={() => setView("academy")}
-              className="inline-flex h-11 items-center gap-2 rounded-md border border-white/25 px-6 text-sm font-semibold text-white/85 transition-colors hover:border-white/50 hover:text-white"
+              className="inline-flex h-11 items-center gap-2 rounded-md border border-primary/30 px-6 text-sm font-semibold text-white/85 transition-colors hover:border-primary/60 hover:text-white"
             >
               Explore Academy
             </button>
@@ -137,9 +137,9 @@ export function HomePage() {
               key={brand.id}
               type="button"
               onClick={() => setView("products")}
-              className="group flex items-center gap-5 rounded-2xl border border-border bg-card p-5 text-left transition-colors hover:border-foreground/20 hover:bg-muted sm:gap-7"
+              className="group flex items-center gap-5 rounded-2xl border-2 border-primary/20 bg-card p-5 text-left transition-all hover:border-primary/50 hover:bg-primary/5 sm:gap-7"
             >
-              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-border bg-background sm:h-24 sm:w-24">
+              <div className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 border-secondary/30 bg-background sm:h-24 sm:w-24">
                 <img
                   src={brand.image}
                   alt={brand.name}
@@ -147,16 +147,16 @@ export function HomePage() {
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <p className="inline-flex rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-widest text-primary">
                   {brand.category}
                 </p>
-                <h3 className="mt-0.5 text-lg font-semibold text-foreground">
+                <h3 className="mt-1 text-lg font-semibold text-foreground">
                   {brand.name}
                 </h3>
                 <p className="mt-0.5 text-sm text-muted-foreground">{brand.tagline}</p>
               </div>
               <ArrowRight
-                className="mr-1 h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-1"
+                className="mr-1 h-5 w-5 shrink-0 text-primary transition-transform group-hover:translate-x-1"
                 strokeWidth={1.75}
               />
             </button>
@@ -164,11 +164,11 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* ── Kits Bento Grid (large-scale, background images, detailed copy) ── */}
-      <section className="bg-muted/40 py-20">
+      {/* ── Kits Section: Enhanced with Brand Colors ── */}
+      <section className="bg-gradient-to-b from-secondary/5 to-transparent py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 xl:max-w-7xl">
           <div className="flex flex-col gap-2">
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-muted-foreground">
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-secondary">
               Curated for Professionals
             </p>
             <h2 className="text-2xl font-semibold tracking-tight text-foreground">
@@ -176,8 +176,8 @@ export function HomePage() {
             </h2>
           </div>
 
-          {/* 2×2 solid-background card grid */}
-          <div className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2">
+          {/* 2×2 solid-background card grid with vibrant accents */}
+          <div className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-secondary/20 bg-secondary/10 sm:grid-cols-2">
             {[
               {
                 tag: "Most Complete",
@@ -226,15 +226,17 @@ export function HomePage() {
                 type="button"
                 onClick={() => setView("products")}
                 className={[
-                  "group flex flex-col justify-between p-8 text-left transition-opacity hover:opacity-90",
-                  kit.dark ? "bg-foreground" : "bg-card",
+                  "group flex flex-col justify-between p-8 text-left transition-all hover:shadow-lg",
+                  kit.dark ? "bg-gradient-to-br from-foreground to-foreground/95" : "bg-gradient-to-br from-card to-card/50",
                 ].join(" ")}
               >
                 <div>
                   <span
                     className={[
-                      "text-[11px] font-bold uppercase tracking-[0.2em]",
-                      kit.dark ? "text-white/45" : "text-muted-foreground",
+                      "inline-flex w-fit rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.2em]",
+                      kit.dark
+                        ? "bg-secondary/30 text-secondary-foreground"
+                        : "bg-primary/10 text-primary",
                     ].join(" ")}
                   >
                     {kit.tag}
@@ -253,10 +255,13 @@ export function HomePage() {
                         key={item}
                         className={[
                           "flex items-start gap-2 text-sm",
-                          kit.dark ? "text-white/60" : "text-muted-foreground",
+                          kit.dark ? "text-white/70" : "text-muted-foreground",
                         ].join(" ")}
                       >
-                        <span className="mt-[5px] h-1 w-1 shrink-0 rounded-full bg-current opacity-50" />
+                        <span className={[
+                          "mt-[5px] h-1 w-1 shrink-0 rounded-full",
+                          kit.dark ? "bg-secondary/50" : "bg-primary/40"
+                        ].join(" ")} />
                         {item}
                       </li>
                     ))}
@@ -264,8 +269,8 @@ export function HomePage() {
                 </div>
                 <span
                   className={[
-                    "mt-8 inline-flex items-center gap-1.5 text-xs font-semibold transition-gap group-hover:gap-2",
-                    kit.dark ? "text-white/70" : "text-foreground/70",
+                    "mt-8 inline-flex items-center gap-1.5 text-xs font-semibold transition-all group-hover:gap-2",
+                    kit.dark ? "text-secondary/70 group-hover:text-secondary" : "text-primary/70 group-hover:text-primary",
                   ].join(" ")}
                 >
                   View kit <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
@@ -302,10 +307,10 @@ export function HomePage() {
                   { icon: Sparkles, label: "Nanoplastia" },
                 ].map(({ icon: Icon, label }) => (
                   <div key={label} className="flex flex-col items-start gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-background">
-                      <Icon className="h-5 w-5 text-foreground" strokeWidth={1.75} />
+                    <span className="flex h-11 w-11 items-center justify-center rounded-xl border-2 border-primary/30 bg-primary/10">
+                      <Icon className="h-5 w-5 text-primary" strokeWidth={1.75} />
                     </span>
-                    <span className="text-sm font-medium text-foreground">{label}</span>
+                    <span className="text-sm font-semibold text-foreground">{label}</span>
                   </div>
                 ))}
               </div>
@@ -313,15 +318,15 @@ export function HomePage() {
               <button
                 type="button"
                 onClick={() => setView("academy")}
-                className="mt-8 inline-flex w-fit items-center gap-2 rounded-md bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90"
+                className="mt-8 inline-flex w-fit items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
               >
                 Explorar Academia
                 <ArrowRight className="h-4 w-4" strokeWidth={2} />
               </button>
             </div>
 
-            {/* Right — visual accent */}
-            <div className="hidden items-center justify-center bg-foreground p-10 lg:flex">
+            {/* Right — visual accent with brand colors */}
+            <div className="hidden items-center justify-center bg-gradient-to-br from-primary to-primary/90 p-10 lg:flex">
               <div className="flex flex-col gap-5">
                 {[
                   { icon: BookOpen, label: "3–6 Month Programs" },
@@ -330,9 +335,9 @@ export function HomePage() {
                 ].map(({ icon: Icon, label }) => (
                   <div
                     key={label}
-                    className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/5 px-5 py-4"
+                    className="flex items-center gap-3 rounded-xl border border-secondary/30 bg-secondary/20 px-5 py-4"
                   >
-                    <Icon className="h-5 w-5 text-white/60" strokeWidth={1.5} />
+                    <Icon className="h-5 w-5 text-secondary" strokeWidth={1.5} />
                     <span className="text-sm font-medium text-white">{label}</span>
                   </div>
                 ))}
@@ -342,14 +347,14 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* ── Map Footer ─────────────────────────────────────────────────── */}
-      <footer className="border-t border-border bg-background pb-20">
+      {/* ── Map Footer with Brand Colors ─────────────────────────────── */}
+      <footer className="border-t-2 border-primary/20 bg-gradient-to-b from-secondary/5 to-background pb-20">
         <div className="mx-auto max-w-6xl px-4 pt-16 sm:px-6 xl:max-w-7xl">
           <div className="grid gap-12 lg:grid-cols-2">
             {/* Left — simulated Google Map placeholder */}
-            <div className="flex min-h-[360px] items-center justify-center overflow-hidden rounded-3xl border border-border bg-muted lg:min-h-[460px]">
+            <div className="flex min-h-[360px] items-center justify-center overflow-hidden rounded-3xl border-2 border-primary/20 bg-muted lg:min-h-[460px]">
               <div className="flex flex-col items-center gap-3 text-muted-foreground">
-                <MapPin className="h-10 w-10" strokeWidth={1.25} />
+                <MapPin className="h-10 w-10 text-primary" strokeWidth={1.25} />
                 <span className="text-base font-medium">Google Map Preview</span>
                 <span className="text-sm">Los Angeles, CA</span>
               </div>
