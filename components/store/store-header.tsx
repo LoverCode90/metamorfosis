@@ -20,7 +20,6 @@ import { useCart } from "./cart-context"
 const NAV_LINKS: { id: StoreView; label: string }[] = [
   { id: "home", label: "Home" },
   { id: "products", label: "Products" },
-  { id: "academy", label: "Academy" },
   { id: "about", label: "About" },
 ]
 
@@ -55,7 +54,7 @@ export function StoreHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+    <header className="border-border bg-background/85 supports-[backdrop-filter]:bg-background/70 sticky top-0 z-40 border-b backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         {/* Brand */}
         <button
@@ -64,10 +63,10 @@ export function StoreHeader() {
           className="flex shrink-0 items-center gap-2"
           aria-label="Metamorfosis Lab home"
         >
-          <span className="flex h-7 w-7 items-center justify-center rounded-sm bg-foreground text-background">
+          <span className="bg-foreground text-background flex h-7 w-7 items-center justify-center rounded-sm">
             <ShoppingBag className="h-3.5 w-3.5" strokeWidth={2.25} />
           </span>
-          <span className="text-sm font-semibold tracking-[0.18em] text-foreground">
+          <span className="text-foreground text-sm font-semibold tracking-[0.18em]">
             METAMORFOSIS
           </span>
         </button>
@@ -84,13 +83,13 @@ export function StoreHeader() {
                 className={cn(
                   "relative text-sm transition-colors",
                   active
-                    ? "font-medium text-foreground"
+                    ? "text-foreground font-medium"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {link.label}
                 {active && (
-                  <span className="absolute -bottom-[21px] left-0 h-px w-full bg-foreground" />
+                  <span className="bg-foreground absolute -bottom-[21px] left-0 h-px w-full" />
                 )}
               </button>
             )
@@ -125,7 +124,7 @@ export function StoreHeader() {
           <button
             type="button"
             onClick={() => go("login")}
-            className="hidden items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted sm:flex"
+            className="border-border text-foreground hover:bg-muted hidden items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors sm:flex"
           >
             Sign in
           </button>
@@ -145,7 +144,7 @@ export function StoreHeader() {
             onClick={() => setMobileOpen(true)}
             aria-label="Open menu"
             aria-expanded={mobileOpen}
-            className="ml-1 flex h-9 w-9 items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted md:hidden"
+            className="text-foreground hover:bg-muted ml-1 flex h-9 w-9 items-center justify-center rounded-md transition-colors md:hidden"
           >
             <Menu className="h-5 w-5" strokeWidth={1.75} />
           </button>
@@ -190,12 +189,19 @@ function MobileDrawer({
   // Portal the drawer to <body> so it escapes the sticky header's stacking
   // context (backdrop-blur + z-index) and overlays the page without shifting it.
   const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    // Portal target must exist before render; defer to next frame.
+    const frame = requestAnimationFrame(() => setMounted(true))
+    return () => cancelAnimationFrame(frame)
+  }, [])
   if (!mounted) return null
 
   return createPortal(
     <div
-      className={cn("fixed inset-0 z-[100] md:hidden", open ? "" : "pointer-events-none")}
+      className={cn(
+        "fixed inset-0 z-[100] md:hidden",
+        open ? "" : "pointer-events-none",
+      )}
       aria-hidden={!open}
     >
       {/* Overlay */}
@@ -204,7 +210,7 @@ function MobileDrawer({
         aria-label="Close menu"
         onClick={onClose}
         className={cn(
-          "absolute inset-0 bg-foreground/40 backdrop-blur-sm transition-opacity duration-300",
+          "bg-foreground/40 absolute inset-0 backdrop-blur-sm transition-opacity duration-300",
           open ? "opacity-100" : "opacity-0",
         )}
       />
@@ -215,20 +221,20 @@ function MobileDrawer({
         aria-modal="true"
         aria-label="Menu"
         className={cn(
-          "absolute right-0 top-0 flex h-dvh w-[84%] max-w-sm flex-col bg-background shadow-2xl transition-transform duration-300 ease-out",
+          "bg-background absolute top-0 right-0 flex h-dvh w-[84%] max-w-sm flex-col shadow-2xl transition-transform duration-300 ease-out",
           open ? "translate-x-0" : "translate-x-full",
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <span className="text-sm font-semibold tracking-[0.18em] text-foreground">
+        <div className="border-border flex items-center justify-between border-b px-5 py-4">
+          <span className="text-foreground text-sm font-semibold tracking-[0.18em]">
             MENU
           </span>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="flex h-9 w-9 items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted"
+            className="text-foreground hover:bg-muted flex h-9 w-9 items-center justify-center rounded-md transition-colors"
           >
             <X className="h-5 w-5" strokeWidth={1.75} />
           </button>
@@ -239,16 +245,16 @@ function MobileDrawer({
           <button
             type="button"
             onClick={() => go("profile")}
-            className="flex w-full items-center gap-3 border-b border-border px-5 py-4 text-left transition-colors hover:bg-muted"
+            className="border-border hover:bg-muted flex w-full items-center gap-3 border-b px-5 py-4 text-left transition-colors"
           >
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-foreground text-background">
+            <span className="bg-foreground text-background flex h-11 w-11 items-center justify-center rounded-full">
               <User className="h-5 w-5" strokeWidth={1.75} />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-semibold text-foreground">
+              <span className="text-foreground block truncate text-sm font-semibold">
                 {profileName}
               </span>
-              <span className="block truncate text-xs text-muted-foreground">
+              <span className="text-muted-foreground block truncate text-xs">
                 {profileEmail}
               </span>
             </span>
@@ -256,7 +262,7 @@ function MobileDrawer({
 
           {/* Primary nav */}
           <nav className="px-3 py-3">
-            <p className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <p className="text-muted-foreground px-2 pb-1.5 text-[11px] font-semibold tracking-wider uppercase">
               Browse
             </p>
             <ul className="flex flex-col">
@@ -270,7 +276,7 @@ function MobileDrawer({
                       className={cn(
                         "w-full rounded-md px-3 py-3 text-left text-sm transition-colors",
                         active
-                          ? "bg-muted font-medium text-foreground"
+                          ? "bg-muted text-foreground font-medium"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
@@ -283,8 +289,8 @@ function MobileDrawer({
           </nav>
 
           {/* Account shortcuts */}
-          <nav className="border-t border-border px-3 py-3">
-            <p className="px-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <nav className="border-border border-t px-3 py-3">
+            <p className="text-muted-foreground px-2 pb-1.5 text-[11px] font-semibold tracking-wider uppercase">
               My Account
             </p>
             <ul className="flex flex-col">
@@ -298,7 +304,11 @@ function MobileDrawer({
               </li>
               {ACCOUNT_SHORTCUTS.map((s) => (
                 <li key={s.id}>
-                  <DrawerRow icon={s.icon} label={s.label} onClick={() => go(s.view)} />
+                  <DrawerRow
+                    icon={s.icon}
+                    label={s.label}
+                    onClick={() => go(s.view)}
+                  />
                 </li>
               ))}
             </ul>
@@ -325,12 +335,12 @@ function DrawerRow({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm text-foreground transition-colors hover:bg-muted"
+      className="text-foreground hover:bg-muted flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm transition-colors"
     >
-      <Icon className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
+      <Icon className="text-muted-foreground h-4 w-4" strokeWidth={1.75} />
       <span className="flex-1">{label}</span>
       {badge !== undefined && badge > 0 && (
-        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1.5 text-[10px] font-semibold text-background">
+        <span className="bg-foreground text-background flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-semibold">
           {badge}
         </span>
       )}
@@ -347,7 +357,14 @@ interface IconButtonProps {
   className?: string
 }
 
-function IconButton({ label, children, badge, onClick, active, className }: IconButtonProps) {
+function IconButton({
+  label,
+  children,
+  badge,
+  onClick,
+  active,
+  className,
+}: IconButtonProps) {
   return (
     <button
       type="button"
@@ -361,7 +378,7 @@ function IconButton({ label, children, badge, onClick, active, className }: Icon
     >
       {children}
       {badge !== undefined && badge > 0 && (
-        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-semibold text-background">
+        <span className="bg-foreground text-background absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold">
           {badge}
         </span>
       )}

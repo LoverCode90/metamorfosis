@@ -11,7 +11,6 @@ import { ProductDetailPage } from "./products/product-detail-page"
 import { AboutPage } from "./about/about-page"
 import { AuthPage } from "./auth/auth-page"
 import { HomePage } from "./home/home-page"
-import { AcademyPage } from "./academy/academy-page"
 import { VerifyPage } from "./verify/verify-page"
 import { WishlistView } from "./wishlist/wishlist-view"
 import { ProfileDashboard } from "./profile/profile-dashboard"
@@ -29,8 +28,6 @@ function ActiveView() {
       return <ProductDetailPage />
     case "about":
       return <AboutPage />
-    case "academy":
-      return <AcademyPage />
     case "login":
       return <AuthPage mode="login" />
     case "signup":
@@ -57,7 +54,7 @@ function ActiveView() {
 export function StoreApp() {
   return (
     <CartProvider>
-      <div className="flex min-h-dvh flex-col bg-background">
+      <div className="bg-background flex min-h-dvh flex-col">
         <StoreHeader />
         <main className="flex-1">
           <ActiveView />

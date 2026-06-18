@@ -208,7 +208,6 @@ export type StoreView =
   | "home"
   | "products"
   | "product-detail"
-  | "academy"
   | "about"
   | "cart"
   | "checkout"
