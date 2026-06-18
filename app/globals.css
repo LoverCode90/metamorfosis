@@ -1,130 +1,211 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
-@import 'shadcn/tailwind.css';
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  --font-heading: var(--font-sans);
-  --font-sans: var(--font-geist-sans), 'Geist Fallback';
-  --font-mono: var(--font-geist-mono), 'Geist Mono Fallback';
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --color-foreground: var(--foreground);
-  --color-background: var(--background);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-}
-
+/* ─────────────────────────────────────────────────────────────
+   Metamorfosis Design Tokens — Dark Premium Minimal
+   All colors use oklch() for perceptual uniformity.
+   App is dark-only for v1 — no .dark toggle needed.
+───────────────────────────────────────────────────────────── */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* ── Backgrounds — layered depth ──────────────────────────── */
+  --bg-base: oklch(0.16 0.005 280); /* page bg — near-black, purple undertone */
+  --bg-surface: oklch(0.2 0.005 280); /* cards, elevated panels */
+  --bg-surface-2: oklch(0.24 0.005 280); /* hovered cards, popovers */
+  --bg-inset: oklch(0.13 0.005 280); /* inputs, deeper panels */
+
+  /* ── Foreground — refined whites ──────────────────────────── */
+  --fg-primary: oklch(0.97 0.005 280); /* primary text */
+  --fg-secondary: oklch(0.72 0.01 280); /* secondary / meta text */
+  --fg-tertiary: oklch(0.52 0.01 280); /* placeholders, disabled */
+
+  /* ── Borders ───────────────────────────────────────────────── */
+  --border-subtle: oklch(0.28 0.005 280);
+  --border-strong: oklch(0.36 0.005 280);
+
+  /* ── Accent palette ────────────────────────────────────────── */
+  /* One dominant accent per page section. Never mix > 2 in one viewport. */
+  --accent-violet: oklch(0.68 0.18 290); /* primary brand accent */
+  --accent-amber: oklch(0.78 0.15 75); /* warm highlights */
+  --accent-emerald: oklch(0.72 0.14 160); /* success, pro discount */
+  --accent-rose: oklch(0.7 0.18 15); /* destructive, alerts */
+  --accent-sand: oklch(0.82 0.06 80); /* warm neutrals, badges */
+
+  /* ── Semantic aliases ──────────────────────────────────────── */
+  --success: var(--accent-emerald);
+  --warning: var(--accent-amber);
+  --danger: var(--accent-rose);
+  --info: var(--accent-violet);
+
+  /* ── Radii ─────────────────────────────────────────────────── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+
+  /* ── Shadows — soft, dark ──────────────────────────────────── */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.35);
+  --shadow-lg: 0 16px 40px -8px rgb(0 0 0 / 0.45);
+  --shadow-glow:
+    0 0 0 1px oklch(0.68 0.18 290 / 0.2),
+    0 8px 30px -4px oklch(0.68 0.18 290 / 0.25);
+
+  /* ── Shadcn/Base-UI semantic bridge ────────────────────────── */
+  /* Maps the existing semantic var names to Metamorfosis tokens  */
+  /* so v0 pages inherit dark styling without per-file edits.     */
+  --background: var(--bg-base);
+  --foreground: var(--fg-primary);
+
+  --card: var(--bg-surface);
+  --card-foreground: var(--fg-primary);
+
+  --popover: var(--bg-surface-2);
+  --popover-foreground: var(--fg-primary);
+
+  --primary: var(--fg-primary); /* white CTA background (§4.2) */
+  --primary-foreground: var(--bg-base); /* dark text on white btn  */
+
+  --secondary: var(--bg-surface);
+  --secondary-foreground: var(--fg-primary);
+
+  --muted: var(--bg-surface-2);
+  --muted-foreground: var(--fg-secondary);
+
+  --accent: var(--bg-surface-2);
+  --accent-foreground: var(--fg-primary);
+
+  --destructive: var(--danger);
+  --destructive-foreground: var(--fg-primary);
+
+  --border: var(--border-subtle);
+  --input: var(--bg-inset);
+  --ring: var(--accent-violet);
+
+  /* Radius — use md (10px) as base to match §4.5 */
+  --radius: var(--radius-md);
+
+  /* Sidebar — unused in v1 but kept to avoid shadcn import errors */
+  --sidebar: var(--bg-surface);
+  --sidebar-foreground: var(--fg-primary);
+  --sidebar-primary: var(--fg-primary);
+  --sidebar-primary-foreground: var(--bg-base);
+  --sidebar-accent: var(--bg-surface-2);
+  --sidebar-accent-foreground: var(--fg-primary);
+  --sidebar-border: var(--border-subtle);
+  --sidebar-ring: var(--accent-violet);
 }
 
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+/* ─────────────────────────────────────────────────────────────
+   Tailwind @theme — exposes Metamorfosis utilities as classes
+   e.g. bg-bg-base, text-fg-secondary, border-border-subtle
+───────────────────────────────────────────────────────────── */
+@theme inline {
+  /* Backgrounds */
+  --color-bg-base: var(--bg-base);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-surface-2: var(--bg-surface-2);
+  --color-bg-inset: var(--bg-inset);
+
+  /* Foregrounds */
+  --color-fg-primary: var(--fg-primary);
+  --color-fg-secondary: var(--fg-secondary);
+  --color-fg-tertiary: var(--fg-tertiary);
+
+  /* Borders */
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+
+  /* Accents */
+  --color-accent-violet: var(--accent-violet);
+  --color-accent-amber: var(--accent-amber);
+  --color-accent-emerald: var(--accent-emerald);
+  --color-accent-rose: var(--accent-rose);
+  --color-accent-sand: var(--accent-sand);
+
+  /* Semantic */
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+
+  /* Shadcn bridge — keep existing utility names working */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Fonts */
+  --font-sans: var(--font-geist-sans), "Geist Fallback";
+  --font-mono: var(--font-geist-mono), "Geist Mono Fallback";
+  --font-display: var(--font-instrument-serif), "Georgia", serif;
+  --font-heading: var(--font-display);
+
+  /* Radii */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: calc(var(--radius-xl) * 1.27);
+
+  /* Shadows */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-glow: var(--shadow-glow);
+
+  /* Sidebar (shadcn compat) */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* ─────────────────────────────────────────────────────────────
+   Base layer — global defaults
+───────────────────────────────────────────────────────────── */
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border-subtle outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-bg-base text-fg-primary font-sans antialiased;
   }
+
+  /* Instrument Serif only for large display headings (§4.3) */
+  h1,
+  h2 {
+    @apply font-display tracking-tight;
+  }
+
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-sans tracking-tight;
+  }
+
+  /* Smooth scrolling */
   html {
-    @apply font-sans;
+    scroll-behavior: smooth;
   }
 }
