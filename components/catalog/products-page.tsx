@@ -3,10 +3,10 @@
 import { useMemo, useState } from "react"
 import { SlidersHorizontal } from "lucide-react"
 import {
-  CATALOG,
   EMPTY_FILTERS,
-  filterCatalog,
+  filterCatalogCards,
   type ActiveFilters,
+  type CatalogCard,
 } from "@/lib/catalog"
 import { ProductCard } from "./product-card"
 import { FiltersPanel } from "./filters-panel"
@@ -15,12 +15,28 @@ import { Pagination } from "./pagination"
 
 const PER_PAGE = 20
 
-export function ProductsPage() {
-  const [filters, setFilters] = useState<ActiveFilters>(EMPTY_FILTERS)
+interface ProductsPageProps {
+  products: CatalogCard[]
+  categories: string[]
+  maxPrice: number
+}
+
+export function ProductsPage({
+  products,
+  categories,
+  maxPrice,
+}: ProductsPageProps) {
+  const [filters, setFilters] = useState<ActiveFilters>({
+    ...EMPTY_FILTERS,
+    maxPrice,
+  })
   const [page, setPage] = useState(1)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
-  const filtered = useMemo(() => filterCatalog(CATALOG, filters), [filters])
+  const filtered = useMemo(
+    () => filterCatalogCards(products, filters),
+    [products, filters],
+  )
   const pageCount = Math.max(1, Math.ceil(filtered.length / PER_PAGE))
   const safePage = Math.min(page, pageCount)
   const start = (safePage - 1) * PER_PAGE
@@ -32,7 +48,7 @@ export function ProductsPage() {
   }
 
   function clearFilters() {
-    setFilters(EMPTY_FILTERS)
+    setFilters({ ...EMPTY_FILTERS, maxPrice })
     setPage(1)
   }
 
@@ -43,8 +59,7 @@ export function ProductsPage() {
     }
   }
 
-  const activeCount =
-    filters.categories.length + filters.brands.length + (filters.search ? 1 : 0)
+  const activeCount = filters.categories.length + (filters.search ? 1 : 0)
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-12 xl:max-w-7xl 2xl:max-w-[1600px]">
@@ -62,6 +77,8 @@ export function ProductsPage() {
           <div className="sticky top-24">
             <FiltersPanel
               filters={filters}
+              categories={categories}
+              maxPrice={maxPrice}
               onChange={updateFilters}
               onClear={clearFilters}
             />
@@ -100,8 +117,8 @@ export function ProductsPage() {
 
           {visible.length > 0 ? (
             <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-3 lg:gap-x-6 xl:grid-cols-4 2xl:grid-cols-4 2xl:gap-x-8">
-              {visible.map((product) => (
-                <ProductCard key={product.id} product={product} />
+              {visible.map((card) => (
+                <ProductCard key={card.squareProductId} product={card} />
               ))}
             </div>
           ) : (
@@ -138,6 +155,8 @@ export function ProductsPage() {
       >
         <FiltersPanel
           filters={filters}
+          categories={categories}
+          maxPrice={maxPrice}
           onChange={updateFilters}
           onClear={clearFilters}
         />

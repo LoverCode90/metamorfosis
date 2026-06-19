@@ -1,50 +1,34 @@
+/**
+ * Catalog public API — re-exports types and pure client-safe helpers.
+ * Server-only queries live in lib/catalog/queries.ts.
+ */
+
 export type {
+  CatalogCard,
   CatalogProduct,
-  ColorVariant,
-  ProductType,
+  CatalogVariation,
   ActiveFilters,
-} from "./mock-data"
-export {
-  CATALOG,
-  CATEGORIES,
-  BRANDS,
-  CATALOG_IMAGE,
-  PRICE_CEILING,
-  EMPTY_FILTERS,
-} from "./mock-data"
+  ColorFamily,
+} from "./types"
+export { EMPTY_FILTERS, LOW_STOCK_THRESHOLD } from "./types"
 
-import type { ActiveFilters, CatalogProduct } from "./mock-data"
-import { CATALOG } from "./mock-data"
+import type { ActiveFilters, CatalogCard } from "./types"
 
-export function getProduct(id: string): CatalogProduct | undefined {
-  return CATALOG.find((p) => p.id === id)
-}
-
-export function getRelated(id: string, count = 4): CatalogProduct[] {
-  const current = getProduct(id)
-  return CATALOG.filter(
-    (p) => p.id !== id && (!current || p.category === current.category),
-  ).slice(0, count)
-}
-
-export function filterCatalog(
-  products: CatalogProduct[],
+export function filterCatalogCards(
+  cards: CatalogCard[],
   f: ActiveFilters,
-): CatalogProduct[] {
+): CatalogCard[] {
   const q = f.search.trim().toLowerCase()
-  return products.filter((p) => {
-    if (q && !p.name.toLowerCase().includes(q)) return false
-    if (f.categories.length && !f.categories.includes(p.category)) return false
-    if (f.brands.length && !f.brands.includes(p.brand)) return false
-    if (p.unitPrice > f.maxPrice) return false
+  return cards.filter((p) => {
+    if (q && !p.nameEn.toLowerCase().includes(q)) return false
+    if (
+      f.categories.length > 0 &&
+      !f.categories.some((cat) =>
+        p.categoriesHierarchy.toLowerCase().startsWith(cat.toLowerCase()),
+      )
+    )
+      return false
+    if (Number.isFinite(f.maxPrice) && p.minPrice > f.maxPrice) return false
     return true
   })
-}
-
-export function countByCategory(category: string): number {
-  return CATALOG.filter((p) => p.category === category).length
-}
-
-export function countByBrand(brand: string): number {
-  return CATALOG.filter((p) => p.brand === brand).length
 }

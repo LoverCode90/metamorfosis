@@ -2,13 +2,15 @@
 "use client"
 
 import { LayoutGrid, List, ShoppingBag, Trash2 } from "lucide-react"
-import type { CatalogProduct } from "@/lib/catalog"
 import { formatUSD } from "@/lib/utils/format"
 import type { Product } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
-export type WishItem = Product &
-  Partial<Pick<CatalogProduct, "category" | "brand" | "isProfessional">>
+export type WishItem = Product & {
+  category?: string
+  brand?: string
+  isProfessional?: boolean
+}
 
 export function WishlistCard({
   item,

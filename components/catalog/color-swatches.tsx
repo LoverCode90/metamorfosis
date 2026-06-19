@@ -1,40 +1,43 @@
 "use client"
 
 import { Check } from "lucide-react"
-import type { ColorVariant } from "@/lib/catalog"
+import type { CatalogVariation } from "@/lib/catalog"
 import { cn } from "@/lib/utils"
 
 interface ColorSwatchesProps {
-  variants: ColorVariant[]
+  variations: CatalogVariation[]
   selectedId: string
   onSelect: (id: string) => void
 }
 
 export function ColorSwatches({
-  variants,
+  variations,
   selectedId,
   onSelect,
 }: ColorSwatchesProps) {
-  const selected = variants.find((v) => v.id === selectedId) ?? variants[0]
+  const selected = variations.find((v) => v.id === selectedId) ?? variations[0]
 
   return (
     <div>
       <div className="flex items-center justify-between">
         <span className="text-foreground text-sm font-medium">Tonality</span>
-        <span className="text-muted-foreground text-sm">{selected?.name}</span>
+        <span className="text-muted-foreground text-sm">
+          {selected?.shadeNumber ?? selected?.nameEn}
+        </span>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2.5">
-        {variants.map((variant) => {
-          const isSelected = variant.id === selectedId
+        {variations.map((variation) => {
+          const isSelected = variation.id === selectedId
+          const hex = variation.hexColor ?? "#888888"
           return (
             <button
-              key={variant.id}
+              key={variation.id}
               type="button"
-              onClick={() => onSelect(variant.id)}
-              aria-label={variant.name}
+              onClick={() => onSelect(variation.id)}
+              aria-label={variation.shadeNumber ?? variation.nameEn}
               aria-pressed={isSelected}
-              title={variant.name}
+              title={variation.shadeNumber ?? variation.nameEn}
               className={cn(
                 "ring-offset-background focus-visible:ring-ring relative flex h-9 w-9 items-center justify-center rounded-full ring-offset-2 transition-all focus-visible:ring-2 focus-visible:outline-none",
                 isSelected
@@ -44,7 +47,7 @@ export function ColorSwatches({
             >
               <span
                 className="h-7 w-7 rounded-full"
-                style={{ backgroundColor: variant.hex }}
+                style={{ backgroundColor: hex }}
               />
               {isSelected && (
                 <Check

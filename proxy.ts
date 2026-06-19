@@ -75,8 +75,9 @@ export const config = {
      * - favicon.ico, robots.txt, sitemap.xml
      * - /auth/callback (Supabase OAuth handler)
      * - /api/auth/* (auth API routes)
+     * - /api/webhooks/* (third-party webhooks — no session needed)
      * - any path containing a file extension (e.g. .png, .jpg)
      */
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|auth/callback|api/auth|[^/]+\\.[^/]+$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|auth/callback|api/auth|api/webhooks|[^/]+\\.[^/]+$).*)",
   ],
 }

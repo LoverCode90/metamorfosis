@@ -1,25 +1,15 @@
 /**
- * Backward-compat barrel — all catalog logic has moved to lib/catalog/index.ts
- * Imports from "@/lib/catalog" still resolve during Phase 2 migration.
+ * Barrel re-export — points to the real catalog module (Phase 4+).
  */
 export type {
+  CatalogCard,
   CatalogProduct,
-  ColorVariant,
-  ProductType,
+  CatalogVariation,
   ActiveFilters,
-} from "./catalog/mock-data"
+  ColorFamily,
+} from "./catalog/index"
 export {
-  CATALOG,
-  CATEGORIES,
-  BRANDS,
-  CATALOG_IMAGE,
-  PRICE_CEILING,
   EMPTY_FILTERS,
-} from "./catalog/mock-data"
-export {
-  getProduct,
-  getRelated,
-  filterCatalog,
-  countByCategory,
-  countByBrand,
+  LOW_STOCK_THRESHOLD,
+  filterCatalogCards,
 } from "./catalog/index"
