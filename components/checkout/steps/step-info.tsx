@@ -2,7 +2,6 @@
 
 import { useState, type FormEvent } from "react"
 import { Mail, MapPin, User } from "lucide-react"
-import { FloatingField } from "../floating-field"
 
 interface FieldState {
   value: string
@@ -10,7 +9,10 @@ interface FieldState {
 }
 
 function useField(initial = ""): [FieldState, (v: string) => void, () => void] {
-  const [state, setState] = useState<FieldState>({ value: initial, touched: false })
+  const [state, setState] = useState<FieldState>({
+    value: initial,
+    touched: false,
+  })
   const set = (v: string) => setState({ value: v, touched: true })
   const touch = () => setState((s) => ({ ...s, touched: true }))
   return [state, set, touch]
@@ -73,10 +75,10 @@ export function StepInfo({ onContinue }: StepInfoProps) {
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-8">
       <header className="space-y-1">
-        <h2 className="text-lg font-semibold tracking-tight text-foreground">
+        <h2 className="text-foreground text-lg font-semibold tracking-tight">
           Contact Information
         </h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           We&apos;ll use this to keep you updated on your order.
         </p>
       </header>
@@ -131,7 +133,7 @@ export function StepInfo({ onContinue }: StepInfoProps) {
 
       <button
         type="submit"
-        className="h-12 w-full rounded-md bg-foreground text-sm font-semibold text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        className="bg-foreground text-background focus-visible:ring-ring h-12 w-full rounded-md text-sm font-semibold transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
       >
         Continue to Shipping
       </button>
@@ -177,7 +179,7 @@ function ControlledField({
   return (
     <div className={cn("relative", className)}>
       <Icon
-        className="pointer-events-none absolute left-0 top-3.5 h-4 w-4 text-muted-foreground"
+        className="text-muted-foreground pointer-events-none absolute top-3.5 left-0 h-4 w-4"
         strokeWidth={1.75}
       />
       <input
@@ -190,15 +192,17 @@ function ControlledField({
         onBlur={onBlur}
         placeholder=" "
         className={cn(
-          "peer h-12 w-full border-b bg-transparent pl-6 pr-2 pt-3 text-sm text-foreground",
-          "outline-none transition-colors placeholder:text-transparent",
-          error ? "border-destructive" : "border-border focus:border-foreground",
+          "peer text-foreground h-12 w-full border-b bg-transparent pt-3 pr-2 pl-6 text-sm",
+          "transition-colors outline-none placeholder:text-transparent",
+          error
+            ? "border-destructive"
+            : "border-border focus:border-foreground",
         )}
       />
       <label
         htmlFor={id}
         className={cn(
-          "pointer-events-none absolute left-6 text-sm text-muted-foreground transition-all",
+          "text-muted-foreground pointer-events-none absolute left-6 text-sm transition-all",
           hasValue
             ? "top-0 text-xs"
             : "top-3.5 peer-focus:top-0 peer-focus:text-xs",
@@ -206,9 +210,7 @@ function ControlledField({
       >
         {label}
       </label>
-      {error && (
-        <p className="mt-1 text-xs text-destructive">{error}</p>
-      )}
+      {error && <p className="text-destructive mt-1 text-xs">{error}</p>}
     </div>
   )
 }

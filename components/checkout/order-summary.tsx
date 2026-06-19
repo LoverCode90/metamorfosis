@@ -1,9 +1,9 @@
+/* eslint-disable @next/next/no-img-element */
 import { Tag, Truck } from "lucide-react"
 import {
   formatUSD,
   type CartItem,
   type CheckoutStepId,
-  type PaymentVariant,
   type Totals,
 } from "@/lib/checkout"
 import { Badge } from "@/components/ui/badge"
@@ -14,7 +14,6 @@ interface OrderSummaryProps {
   items: CartItem[]
   totals: Totals
   wizardStep: CheckoutStepId
-  variant: PaymentVariant
   onPlaceOrder: () => void
 }
 
@@ -22,46 +21,39 @@ export function OrderSummary({
   items,
   totals,
   wizardStep,
-  variant,
   onPlaceOrder,
 }: OrderSummaryProps) {
   const { subtotal, discount, shipping, tax, total } = totals
   const isPaymentStep = wizardStep === "payment"
-  const disabled = isPaymentStep && variant === "expired"
-
-  const ctaLabel = isPaymentStep
-    ? disabled
-      ? "Update Card to Continue"
-      : "Place Secure Order"
-    : null // No CTA until payment step
+  const ctaLabel = isPaymentStep ? "Place Secure Order" : null
 
   return (
     <aside className="lg:sticky lg:top-24">
-      <div className="rounded-xl border border-border bg-card p-5 sm:p-6">
+      <div className="border-border bg-card rounded-xl border p-5 sm:p-6">
         {/* Product rows */}
         <ul className="space-y-5">
           {items.map((item) => (
             <li key={item.id} className="flex gap-4">
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
+              <div className="border-border bg-muted relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border">
                 <img
                   src={item.image || "/placeholder.svg"}
                   alt={item.name}
                   className="h-full w-full object-cover"
                 />
-                <span className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-[11px] font-semibold text-background">
+                <span className="bg-foreground text-background absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold">
                   {item.quantity}
                 </span>
               </div>
               <div className="flex min-w-0 flex-1 items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
+                  <p className="text-foreground truncate text-sm font-medium">
                     {item.name}
                   </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
+                  <p className="text-muted-foreground mt-0.5 text-xs">
                     {item.variant}
                   </p>
                 </div>
-                <p className="text-sm font-semibold text-foreground tabular-nums">
+                <p className="text-foreground text-sm font-semibold tabular-nums">
                   {formatUSD(item.unitPrice * item.quantity)}
                 </p>
               </div>
@@ -84,7 +76,7 @@ export function OrderSummary({
         <dl className="space-y-3 text-sm">
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Subtotal</dt>
-            <dd className="font-medium text-foreground tabular-nums">
+            <dd className="text-foreground font-medium tabular-nums">
               {formatUSD(subtotal)}
             </dd>
           </div>
@@ -97,7 +89,7 @@ export function OrderSummary({
             </div>
           )}
           <div className="flex items-center justify-between">
-            <dt className="flex items-center gap-1.5 text-muted-foreground">
+            <dt className="text-muted-foreground flex items-center gap-1.5">
               <Truck className="h-4 w-4" />
               Shipping
             </dt>
@@ -105,7 +97,7 @@ export function OrderSummary({
               className={cn(
                 "font-medium tabular-nums",
                 shipping === 0
-                  ? "uppercase tracking-wide text-emerald-600"
+                  ? "tracking-wide text-emerald-600 uppercase"
                   : "text-foreground",
               )}
             >
@@ -114,7 +106,7 @@ export function OrderSummary({
           </div>
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Estimated tax</dt>
-            <dd className="font-medium text-foreground tabular-nums">
+            <dd className="text-foreground font-medium tabular-nums">
               {formatUSD(tax)}
             </dd>
           </div>
@@ -123,8 +115,8 @@ export function OrderSummary({
         <Separator className="my-5" />
 
         <div className="flex items-end justify-between">
-          <span className="text-sm font-medium text-foreground">Total</span>
-          <span className="text-2xl font-semibold tracking-tight text-foreground tabular-nums">
+          <span className="text-foreground text-sm font-medium">Total</span>
+          <span className="text-foreground text-2xl font-semibold tracking-tight tabular-nums">
             {formatUSD(total)}
           </span>
         </div>
@@ -133,18 +125,13 @@ export function OrderSummary({
           <button
             type="button"
             onClick={onPlaceOrder}
-            disabled={disabled}
-            className={cn(
-              "mt-5 h-12 w-full rounded-md bg-foreground text-sm font-semibold text-background transition-opacity",
-              "hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-              disabled && "cursor-not-allowed opacity-40 hover:opacity-40",
-            )}
+            className="bg-foreground text-background focus-visible:ring-ring mt-5 h-12 w-full rounded-md text-sm font-semibold transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
           >
             {ctaLabel}
           </button>
         )}
 
-        <p className="mt-3 text-center text-xs text-muted-foreground">
+        <p className="text-muted-foreground mt-3 text-center text-xs">
           Powered by METAMORFOSIS LAB · 256-bit SSL secured
         </p>
       </div>

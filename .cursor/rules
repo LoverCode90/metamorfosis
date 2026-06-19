@@ -1,0 +1,39 @@
+# Metamorfosis LLC — Cursor Rules
+
+## Always read first
+
+Before any task, read the relevant docs in /docs/ based on what you're working on.
+Never start coding without a written plan approved by the user.
+
+## Tech stack
+
+Next.js 16, React 19, TypeScript strict, Supabase, Square (production), Shippo, Zustand, TanStack Query, react-hook-form + Zod, Tailwind 4, shadcn/ui
+
+## Code rules
+
+- Max 200 lines per file. Split if bigger.
+- No `any` types. No magic numbers. No inline business logic in JSX.
+- All API routes: Zod `.strict()` validation first, then logic.
+- Naming: kebab-case files, PascalCase components, camelCase functions, SCREAMING_SNAKE constants.
+- Comments and code in English only.
+
+## Git
+
+- Never commit to main. Always branch: feat/, fix/, refactor/
+- Commit messages present-tense: "add Square sync engine"
+- No console.log, no commented-out code, no unused imports in commits.
+
+## Design
+
+- Dark mode only. Base bg: oklch(0.16 0.005 280)
+- Accents: violet, amber, emerald, rose, sand — max 2 in one viewport.
+- `<img loading="lazy">` for all product images. `<Image>` from next/image for heroes only (max 50 total).
+- Square CDN images: use `getSquareImageUrl(url, width)` utility — never fetch original.
+
+## Critical rules
+
+- Square is PRODUCTION. Payment mode is test during dev (NEXT_PUBLIC_PAYMENT_MODE=test).
+- Never invent SKUs, prices, weights, or data.
+- Image fallback: variation.imageUrl → parent.imageUrl → <PlaceholderImage />
+- No external placeholder services (Unsplash, Picsum, etc.)
+- Domain-dependent config is deferred. Don't block on it.
