@@ -69,9 +69,9 @@ export function StepPayment({
   }
 
   useEffect(() => {
-    const src = isTest
-      ? "https://sandbox.web.squarecdn.com/v1/square.js"
-      : "https://web.squarecdn.com/v1/square.js"
+    // Production credentials require the production SDK URL.
+    // NEXT_PUBLIC_PAYMENT_MODE=test skips the real charge on the server.
+    const src = "https://web.squarecdn.com/v1/square.js"
 
     if (window.Square) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -124,9 +124,8 @@ export function StepPayment({
 
       {isTest && (
         <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-400">
-          Test mode — use Square test card{" "}
-          <span className="font-mono font-semibold">4111 1111 1111 1111</span>,
-          any future expiry and CVV.
+          Test mode — no charge will occur. Use any valid card format to
+          complete checkout.
         </div>
       )}
 

@@ -3,18 +3,11 @@ import "server-only"
 import { SquareClient, SquareEnvironment } from "square"
 import crypto from "crypto"
 
-/**
- * Square Payments client.
- * Uses production credentials but NEXT_PUBLIC_PAYMENT_MODE=test
- * so the Square SDK routes through the test payment path — no real charges.
- */
+/** Production Square credentials — always use Production API. */
 function createPaymentsClient() {
   return new SquareClient({
     token: process.env.SQUARE_ACCESS_TOKEN!,
-    environment:
-      process.env.NEXT_PUBLIC_PAYMENT_MODE === "test"
-        ? SquareEnvironment.Sandbox
-        : SquareEnvironment.Production,
+    environment: SquareEnvironment.Production,
   })
 }
 
@@ -40,6 +33,16 @@ export async function chargeCard(
   locationId: string,
   note?: string,
 ): Promise<ChargeResult | ChargeError> {
+  // Dev/staging: tokenize via production Web Payments SDK but skip the charge.
+  if (process.env.NEXT_PUBLIC_PAYMENT_MODE === "test") {
+    return {
+      ok: true,
+      paymentId: `test-${crypto.randomUUID()}`,
+      squareOrderId: "",
+      receiptUrl: null,
+    }
+  }
+
   const client = createPaymentsClient()
   const idempotencyKey = crypto.randomUUID()
 
