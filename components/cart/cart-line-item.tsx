@@ -11,6 +11,8 @@ const LOW_STOCK_THRESHOLD = 5
 
 export function CartLineItem({ item }: { item: CartItem }) {
   const { increment, decrement, removeItem, moveToWishlist } = useCart()
+  // Cart is keyed by variationId when present; fall back to squareProductId.
+  const itemKey = item.variationId ?? item.id
   const lineTotal = item.unitPrice * item.quantity
   const lowStock = item.stock <= LOW_STOCK_THRESHOLD
   const hasDiscount = item.discountPerItem > 0
@@ -39,7 +41,7 @@ export function CartLineItem({ item }: { item: CartItem }) {
 
             <button
               type="button"
-              onClick={() => moveToWishlist(item.id)}
+              onClick={() => moveToWishlist(itemKey)}
               className="text-muted-foreground hover:text-foreground flex shrink-0 items-center gap-1 text-xs font-medium transition-colors sm:gap-1.5"
             >
               <Heart className="h-4 w-4" strokeWidth={1.75} />
@@ -80,13 +82,13 @@ export function CartLineItem({ item }: { item: CartItem }) {
             <div className="flex items-center gap-1.5 sm:gap-2">
               <QtyStepper
                 value={item.quantity}
-                onIncrement={() => increment(item.id)}
-                onDecrement={() => decrement(item.id)}
+                onIncrement={() => increment(itemKey)}
+                onDecrement={() => decrement(itemKey)}
                 max={item.stock}
               />
               <button
                 type="button"
-                onClick={() => removeItem(item.id)}
+                onClick={() => removeItem(itemKey)}
                 aria-label={`Remove ${item.name}`}
                 className="border-border text-muted-foreground hover:border-destructive/40 hover:text-destructive flex h-8 w-8 items-center justify-center rounded-md border transition-colors sm:h-9 sm:w-9"
               >

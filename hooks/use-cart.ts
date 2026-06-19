@@ -1,26 +1,36 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect } from "react"
 import { useCartStore } from "@/stores/cart"
 import { useWishlistStore } from "@/stores/wishlist"
 import { useUser } from "@/hooks/use-user"
 import type { Product } from "@/lib/types"
 
 /**
+ * Module-level set — tracks which user IDs have already had their guest cart
+ * merged into Supabase this browser session.
+ *
+ * Using a module-level variable (not a ref) ensures only ONE component instance
+ * triggers the sync even when many components call useCart() simultaneously
+ * (e.g. SiteHeader, ProductCard, CartView). A ref is per-instance and would
+ * cause each mounted component to fire an independent merge, accumulating qty.
+ */
+const _syncedUsers = new Set<string>()
+
+/**
  * Unified cart + wishlist hook.
- * Handles Supabase cart sync for authenticated users, guest localStorage for guests.
- * Merge-on-login is triggered once when user transitions from null → authenticated.
+ * Guest: persisted in localStorage via Zustand persist middleware.
+ * Auth: merged to Supabase on login, synced on every mutation.
  */
 export function useCart() {
   const cart = useCartStore()
   const wishlist = useWishlistStore()
   const { user } = useUser()
-  const mergedRef = useRef(false)
 
-  // ── Merge guest cart → Supabase on login ───────────────────────────────────
+  // ── Merge guest cart → Supabase exactly once per login session ────────────
   useEffect(() => {
-    if (!user || mergedRef.current) return
-    mergedRef.current = true
+    if (!user || _syncedUsers.has(user.id)) return
+    _syncedUsers.add(user.id)
 
     const guestItems = cart.items
       .filter((i) => i.variationId)
@@ -41,23 +51,23 @@ export function useCart() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
 
-  // ── Reset merge flag on logout ─────────────────────────────────────────────
+  // ── Clear the session guard on logout ─────────────────────────────────────
   useEffect(() => {
     if (!user) {
-      mergedRef.current = false
+      _syncedUsers.clear()
     }
   }, [user])
 
-  // ── addToCart with Supabase side-effect for auth users ─────────────────────
+  // ── addToCart ─────────────────────────────────────────────────────────────
   function addToCart(product: Product, quantity = 1) {
     cart.addToCart(product, quantity)
     if (user && product.variationId) {
-      const existing = cart.items.find(
-        (i) => i.variationId === product.variationId,
-      )
-      const newQty = existing
-        ? Math.min(existing.quantity + quantity, product.stock)
-        : Math.min(quantity, product.stock)
+      // Read the post-update quantity directly from the store (not the stale
+      // closure snapshot) to send the correct value to the server.
+      const stored = useCartStore
+        .getState()
+        .items.find((i) => (i.variationId ?? i.id) === product.variationId)
+      const newQty = stored?.quantity ?? Math.min(quantity, product.stock)
       fetch("/api/cart/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -129,14 +139,12 @@ export function useCart() {
   }
 
   return {
-    // Cart state
     items: cart.items,
     totals: cart.totals,
     hasProItems: cart.hasProItems,
     hasUnavailableItems: cart.hasUnavailableItems,
     isAuthenticated: !!user,
 
-    // Cart actions
     addToCart,
     increment,
     decrement,
@@ -146,7 +154,6 @@ export function useCart() {
     markUnavailable: cart.markUnavailable,
     loadFromDb: cart.loadFromDb,
 
-    // Wishlist
     wishlist: wishlist.items,
     isWishlisted: wishlist.isWishlisted,
     toggleWishlist: wishlist.toggle,

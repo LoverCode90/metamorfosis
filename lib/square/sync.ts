@@ -19,8 +19,8 @@ export interface SyncStats {
 }
 
 /**
- * Full catalog sync: fetch all Square ITEM / ITEM_VARIATION objects, upsert
- * into Supabase, translate with DeepL only when EN text changed.
+ * Full catalog sync: fetch all Square ITEM / ITEM_VARIATION / IMAGE / CATEGORY
+ * objects, upsert into Supabase, translate with DeepL only when EN text changed.
  *
  * Call this from the Square webhook handler or the admin manual-trigger route.
  */
@@ -28,14 +28,35 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
   const square = createSquareClient()
   const supabase = createAdminClient()
 
-  // ── 1. Fetch all catalog objects ─────────────────────────────────────────
+  // ── 1. Fetch all catalog objects (ITEM, ITEM_VARIATION, IMAGE, CATEGORY) ──
   const allObjects: CatalogObject[] = []
   for await (const obj of await square.catalog.list({
-    types: "ITEM,ITEM_VARIATION",
+    types: "ITEM,ITEM_VARIATION,IMAGE,CATEGORY",
   })) {
     allObjects.push(obj)
   }
 
+  // ── 2. Build lookup maps from the raw objects ─────────────────────────────
+
+  // imageId → CDN URL (from CatalogObject type=IMAGE)
+  // CatalogObjectImage has an `imageData` field (not `catalogImageData`).
+  const imageUrlMap = new Map<string, string>()
+  for (const obj of allObjects) {
+    if (obj.type === "IMAGE") {
+      const url = obj.imageData?.url
+      if (obj.id && url) imageUrlMap.set(obj.id, url)
+    }
+  }
+
+  // categoryId → display name (from CatalogObject type=CATEGORY)
+  const categoryNameMap = new Map<string, string>()
+  for (const obj of allObjects) {
+    if (obj.type === "CATEGORY" && obj.id && obj.categoryData?.name) {
+      categoryNameMap.set(obj.id, obj.categoryData.name)
+    }
+  }
+
+  // items and their variations
   const items = allObjects.filter(
     (o): o is CatalogObject & { type: "ITEM" } => o.type === "ITEM",
   )
@@ -43,7 +64,6 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
     string,
     (CatalogObject & { type: "ITEM_VARIATION" })[]
   >()
-
   for (const obj of allObjects) {
     if (obj.type !== "ITEM_VARIATION") continue
     const v = obj as CatalogObject & { type: "ITEM_VARIATION" }
@@ -53,12 +73,12 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
     variationMap.get(parentId)!.push(v)
   }
 
-  // ── 2. Fetch inventory counts ─────────────────────────────────────────────
+  // ── 3. Fetch inventory counts ─────────────────────────────────────────────
   const allVariationSquareIds = [...variationMap.values()]
     .flat()
     .map((v) => v.id)
 
-  const inventoryCountMap = new Map<string, number>() // square_variation_id → count
+  const inventoryCountMap = new Map<string, number>()
   if (allVariationSquareIds.length > 0) {
     const locationId = process.env.SQUARE_LOCATION_ID
     for await (const count of await square.inventory.batchGetCounts({
@@ -79,7 +99,7 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
     }
   }
 
-  // ── 3. Fetch existing EN text for change detection ────────────────────────
+  // ── 4. Fetch existing EN text for DeepL change detection ─────────────────
   const { data: existingProducts } = await supabase
     .from("product_translations")
     .select("square_product_id, name_en, description_en")
@@ -95,7 +115,7 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
     })
   }
 
-  // ── 4. Upsert active items ────────────────────────────────────────────────
+  // ── 5. Upsert active items ────────────────────────────────────────────────
   let itemCount = 0
   let variationCount = 0
 
@@ -123,16 +143,29 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
       descriptionEs = translated.descriptionEs
     }
 
-    // Derive categories_hierarchy from Square category data
-    // CatalogItem.categories is an array of CatalogItemCategory objects
+    // ── Resolve category names ─────────────────────────────────────────────
+    // d.categories is CatalogItemCategory[] — each has `.id` which is the
+    // CatalogObject.id of the corresponding CATEGORY object.
+    // The name lives on the CATEGORY object, not inline here.
     const categories = d.categories ?? []
     const categoryNames: string[] = []
     for (const cat of categories) {
-      const n = cat.categoryData?.name
-      if (n) categoryNames.push(n)
+      // cat.id is the category CatalogObject ID
+      const catId = cat.id
+      if (!catId) continue
+      const name = categoryNameMap.get(catId)
+      if (name) categoryNames.push(name)
     }
     const categoriesHierarchy =
       categoryNames.length > 0 ? categoryNames.join(" > ") : "Uncategorized"
+
+    // ── Resolve product image URL ──────────────────────────────────────────
+    // item.imageId (on CatalogObjectBase) is the primary image ID.
+    // Falls back to d.imageIds[0] (the first of the ordered image list).
+    const primaryImageId = item.imageId ?? d.imageIds?.[0] ?? null
+    const imageUrl = primaryImageId
+      ? (imageUrlMap.get(primaryImageId) ?? null)
+      : null
 
     const productRow = {
       square_product_id: item.id,
@@ -143,6 +176,7 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
         ? { description_es: descriptionEs }
         : {}),
       categories_hierarchy: categoriesHierarchy,
+      image_url: imageUrl,
       is_professional: getBoolAttr(attrs, "is_professional") ?? false,
       is_returnable: getBoolAttr(attrs, "is_returnable") ?? true,
       package_class: getPackageClass(attrs),
@@ -173,6 +207,8 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
       if (!vd) continue
 
       const varNameEn = vd.name ?? ""
+
+      // priceMoney.amount is a BigInt in the Square SDK
       const priceCents =
         typeof vd.priceMoney?.amount === "bigint"
           ? Number(vd.priceMoney.amount)
@@ -184,18 +220,27 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
       const weightLb = getNumberAttr(vAttrs, "weight_lb")
       const inventoryCount = inventoryCountMap.get(v.id) ?? 0
 
+      // Variation-level image: v.imageId is the primary image on the CatalogObject.
+      // Falls back to the parent item's primary image so the card always has art.
+      const varImageId = v.imageId ?? null
+      const varImageUrl =
+        (varImageId ? imageUrlMap.get(varImageId) : undefined) ??
+        imageUrl ??
+        null
+
       const varRow = {
         square_variation_id: v.id,
         square_product_id: item.id,
         sku: vd.sku ?? null,
         name_en: varNameEn,
-        name_es: varNameEn, // Variation names are typically shade codes — not worth translating
+        name_es: varNameEn,
         price_cents: priceCents,
         weight_lb: weightLb,
         inventory_count: inventoryCount,
         hex_color: hexColor,
         shade_number: shadeNumber,
         size_label: !hexColor && !shadeNumber ? varNameEn : null,
+        image_url: varImageUrl,
         is_active: true,
       }
 
@@ -207,7 +252,7 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
     }
   }
 
-  // ── 5. Soft-delete items marked is_deleted by Square ─────────────────────
+  // ── 6. Soft-delete items marked is_deleted by Square ─────────────────────
   const deletedIds = allObjects
     .filter((o) => o.type === "ITEM" && o.isDeleted)
     .map((o) => o.id)
