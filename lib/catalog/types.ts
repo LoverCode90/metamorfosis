@@ -7,8 +7,6 @@ export interface CatalogVariation {
   sku: string | null
   nameEn: string
   priceCents: number
-  /** Price in dollars */
-  price: number
   weightLb: number | null
   inventoryCount: number
   hexColor: string | null
@@ -29,9 +27,10 @@ export interface CatalogProduct {
   colorFamily: ColorFamily | null
   colorChartPdfUrl: string | null
   imageUrl: string | null
+  imageUrls: string[]
   isActive: boolean
-  /** Min price in dollars across all active variations */
-  minPrice: number
+  /** Min price in cents across all active variations */
+  minPriceCents: number
   /** Total inventory across all active variations */
   totalStock: number
   variations: CatalogVariation[]
@@ -46,7 +45,8 @@ export interface CatalogCard {
   isProfessional: boolean
   isColorProduct: boolean
   imageUrl: string | null
-  minPrice: number
+  /** Min price in cents (cheapest active variation) */
+  minPriceCents: number
   totalStock: number
   /** product_variations.id of the cheapest active variation */
   defaultVariationId: string | null
@@ -57,6 +57,7 @@ export interface CatalogCard {
 export interface ActiveFilters {
   search: string
   categories: string[]
+  /** Maximum price filter in cents */
   maxPrice: number
 }
 

@@ -4,7 +4,9 @@ import type { CatalogObject } from "square"
 import { createSquareClient } from "./client"
 import {
   getBoolAttr,
+  getColorChartPdfUrl,
   getColorFamily,
+  getHexColorAttr,
   getNumberAttr,
   getPackageClass,
   getStringAttr,
@@ -18,6 +20,86 @@ export interface SyncStats {
   deactivated: number
 }
 
+interface CategoryNode {
+  id: string
+  name: string
+  parentId: string | null
+}
+
+/**
+ * Square priceMoney.amount is always in the smallest currency unit (cents for USD).
+ * Store this integer directly in product_variations.price_cents.
+ */
+export function parseSquarePriceCents(
+  amount: bigint | number | undefined | null,
+): number {
+  if (amount == null) return 0
+  const cents = typeof amount === "bigint" ? Number(amount) : amount
+  return Math.round(cents)
+}
+
+function resolveImageUrls(
+  imageIds: string[],
+  imageUrlMap: Map<string, string>,
+): string[] {
+  const seen = new Set<string>()
+  const urls: string[] = []
+  for (const id of imageIds) {
+    const url = imageUrlMap.get(id)
+    if (!url || seen.has(url)) continue
+    seen.add(url)
+    urls.push(url)
+  }
+  return urls
+}
+
+function buildCategoryHierarchy(
+  categoryId: string,
+  categoryMap: Map<string, CategoryNode>,
+): string | null {
+  const node = categoryMap.get(categoryId)
+  if (!node) return null
+
+  if (node.parentId) {
+    const parent = categoryMap.get(node.parentId)
+    if (parent) {
+      return `${parent.name} > ${node.name}`
+    }
+  }
+
+  return node.name
+}
+
+function resolveItemCategoryHierarchy(
+  itemData: {
+    categories?: { id?: string }[] | null
+    categoryId?: string | null
+    reportingCategory?: { id?: string } | null
+  },
+  categoryMap: Map<string, CategoryNode>,
+): string {
+  const categoryIds: string[] = []
+
+  for (const cat of itemData.categories ?? []) {
+    if (cat.id) categoryIds.push(cat.id)
+  }
+
+  if (categoryIds.length === 0 && itemData.categoryId) {
+    categoryIds.push(itemData.categoryId)
+  }
+
+  if (categoryIds.length === 0 && itemData.reportingCategory?.id) {
+    categoryIds.push(itemData.reportingCategory.id)
+  }
+
+  const hierarchies = categoryIds
+    .map((id) => buildCategoryHierarchy(id, categoryMap))
+    .filter((h): h is string => Boolean(h))
+
+  if (hierarchies.length === 0) return "Uncategorized"
+  return hierarchies[0]
+}
+
 /**
  * Full catalog sync: fetch all Square ITEM / ITEM_VARIATION / IMAGE / CATEGORY
  * objects, upsert into Supabase, translate with DeepL only when EN text changed.
@@ -27,6 +109,18 @@ export interface SyncStats {
 export async function runFullCatalogSync(): Promise<SyncStats> {
   const square = createSquareClient()
   const supabase = createAdminClient()
+
+  const { error: imageUrlsProbeError } = await supabase
+    .from("product_translations")
+    .select("image_urls")
+    .limit(1)
+  const hasImageUrlsColumn = !imageUrlsProbeError
+
+  if (!hasImageUrlsColumn) {
+    console.warn(
+      "[sync] product_translations.image_urls column missing — run docs/migrations/20260619_catalog_sync_fixes.sql",
+    )
+  }
 
   // ── 1. Fetch all catalog objects (ITEM, ITEM_VARIATION, IMAGE, CATEGORY) ──
   const allObjects: CatalogObject[] = []
@@ -38,8 +132,6 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
 
   // ── 2. Build lookup maps from the raw objects ─────────────────────────────
 
-  // imageId → CDN URL (from CatalogObject type=IMAGE)
-  // CatalogObjectImage has an `imageData` field (not `catalogImageData`).
   const imageUrlMap = new Map<string, string>()
   for (const obj of allObjects) {
     if (obj.type === "IMAGE") {
@@ -48,15 +140,16 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
     }
   }
 
-  // categoryId → display name (from CatalogObject type=CATEGORY)
-  const categoryNameMap = new Map<string, string>()
+  const categoryMap = new Map<string, CategoryNode>()
   for (const obj of allObjects) {
-    if (obj.type === "CATEGORY" && obj.id && obj.categoryData?.name) {
-      categoryNameMap.set(obj.id, obj.categoryData.name)
-    }
+    if (obj.type !== "CATEGORY" || !obj.id || !obj.categoryData?.name) continue
+    categoryMap.set(obj.id, {
+      id: obj.id,
+      name: obj.categoryData.name,
+      parentId: obj.categoryData.parentCategory?.id ?? null,
+    })
   }
 
-  // items and their variations
   const items = allObjects.filter(
     (o): o is CatalogObject & { type: "ITEM" } => o.type === "ITEM",
   )
@@ -77,6 +170,7 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
   const allVariationSquareIds = [...variationMap.values()]
     .flat()
     .map((v) => v.id)
+    .filter((id): id is string => Boolean(id))
 
   const inventoryCountMap = new Map<string, number>()
   if (allVariationSquareIds.length > 0) {
@@ -120,7 +214,7 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
   let variationCount = 0
 
   for (const item of items) {
-    if (item.isDeleted) continue
+    if (item.isDeleted || !item.id) continue
     const d = item.itemData
     if (!d) continue
 
@@ -143,29 +237,14 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
       descriptionEs = translated.descriptionEs
     }
 
-    // ── Resolve category names ─────────────────────────────────────────────
-    // d.categories is CatalogItemCategory[] — each has `.id` which is the
-    // CatalogObject.id of the corresponding CATEGORY object.
-    // The name lives on the CATEGORY object, not inline here.
-    const categories = d.categories ?? []
-    const categoryNames: string[] = []
-    for (const cat of categories) {
-      // cat.id is the category CatalogObject ID
-      const catId = cat.id
-      if (!catId) continue
-      const name = categoryNameMap.get(catId)
-      if (name) categoryNames.push(name)
-    }
-    const categoriesHierarchy =
-      categoryNames.length > 0 ? categoryNames.join(" > ") : "Uncategorized"
+    const categoriesHierarchy = resolveItemCategoryHierarchy(d, categoryMap)
 
-    // ── Resolve product image URL ──────────────────────────────────────────
-    // item.imageId (on CatalogObjectBase) is the primary image ID.
-    // Falls back to d.imageIds[0] (the first of the ordered image list).
-    const primaryImageId = item.imageId ?? d.imageIds?.[0] ?? null
-    const imageUrl = primaryImageId
-      ? (imageUrlMap.get(primaryImageId) ?? null)
-      : null
+    const imageIds = [
+      ...(item.imageId ? [item.imageId] : []),
+      ...(d.imageIds ?? []),
+    ]
+    const imageUrls = resolveImageUrls(imageIds, imageUrlMap)
+    const imageUrl = imageUrls[0] ?? null
 
     const productRow = {
       square_product_id: item.id,
@@ -177,16 +256,16 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
         : {}),
       categories_hierarchy: categoriesHierarchy,
       image_url: imageUrl,
+      ...(hasImageUrlsColumn ? { image_urls: imageUrls } : {}),
       is_professional: getBoolAttr(attrs, "is_professional") ?? false,
       is_returnable: getBoolAttr(attrs, "is_returnable") ?? true,
       package_class: getPackageClass(attrs),
       is_color_product: getBoolAttr(attrs, "is_color_product") ?? false,
       color_family: getColorFamily(attrs),
-      color_chart_pdf_url: getStringAttr(attrs, "color_chart_pdf_url"),
+      color_chart_pdf_url: getColorChartPdfUrl(attrs),
       is_active: true,
     }
 
-    // For new rows we must include name_es / description_es (non-null columns)
     const insertRow = {
       ...productRow,
       name_es: nameEs ?? nameEn,
@@ -199,29 +278,21 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
 
     itemCount++
 
-    // ── Upsert variations for this item ──────────────────────────────────────
     const vars = variationMap.get(item.id) ?? []
     for (const v of vars) {
-      if (v.isDeleted) continue
+      if (v.isDeleted || !v.id) continue
       const vd = v.itemVariationData
       if (!vd) continue
 
       const varNameEn = vd.name ?? ""
-
-      // priceMoney.amount is a BigInt in the Square SDK
-      const priceCents =
-        typeof vd.priceMoney?.amount === "bigint"
-          ? Number(vd.priceMoney.amount)
-          : ((vd.priceMoney?.amount as number | undefined) ?? 0)
+      const priceCents = parseSquarePriceCents(vd.priceMoney?.amount)
 
       const vAttrs = v.customAttributeValues
-      const hexColor = getStringAttr(vAttrs, "hex_color")
+      const hexColor = getHexColorAttr(vAttrs, "hex_color")
       const shadeNumber = getStringAttr(vAttrs, "shade_number")
       const weightLb = getNumberAttr(vAttrs, "weight_lb")
       const inventoryCount = inventoryCountMap.get(v.id) ?? 0
 
-      // Variation-level image: v.imageId is the primary image on the CatalogObject.
-      // Falls back to the parent item's primary image so the card always has art.
       const varImageId = v.imageId ?? null
       const varImageUrl =
         (varImageId ? imageUrlMap.get(varImageId) : undefined) ??
@@ -254,8 +325,8 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
 
   // ── 6. Soft-delete items marked is_deleted by Square ─────────────────────
   const deletedIds = allObjects
-    .filter((o) => o.type === "ITEM" && o.isDeleted)
-    .map((o) => o.id)
+    .filter((o) => o.type === "ITEM" && o.isDeleted && o.id)
+    .map((o) => o.id!)
 
   let deactivated = 0
   if (deletedIds.length > 0) {

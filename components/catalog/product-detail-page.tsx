@@ -52,7 +52,7 @@ export function ProductDetailPage({ product, related }: Props) {
   const stock = selectedVariation?.inventoryCount ?? 0
   const lowStock = stock > 0 && stock <= LOW_STOCK_THRESHOLD
   const outOfStock = stock === 0
-  const price = selectedVariation?.price ?? product.minPrice
+  const priceCents = selectedVariation?.priceCents ?? product.minPriceCents
   const wishlisted = isWishlisted(product.squareProductId)
 
   // Image fallback chain: variation → parent → placeholder
@@ -70,7 +70,7 @@ export function ProductDetailPage({ product, related }: Props) {
           selectedVariation?.nameEn ??
           "",
         image: rawImageUrl ?? "",
-        unitPrice: price,
+        unitPrice: priceCents / 100,
         discountPerItem: 0,
         stock,
         isProfessional: product.isProfessional,
@@ -85,7 +85,7 @@ export function ProductDetailPage({ product, related }: Props) {
       name: product.nameEn,
       variant: selectedVariation?.nameEn ?? "",
       image: rawImageUrl ?? "",
-      unitPrice: price,
+      unitPrice: priceCents / 100,
       discountPerItem: 0,
       stock,
       isProfessional: product.isProfessional,
@@ -145,7 +145,7 @@ export function ProductDetailPage({ product, related }: Props) {
           {/* Price */}
           <div className="flex items-baseline gap-2">
             <span className="text-foreground text-2xl font-bold tabular-nums">
-              {formatUSD(price)}
+              {formatUSD(priceCents)}
             </span>
             {!product.isReturnable && (
               <span className="text-muted-foreground text-xs">Final sale</span>

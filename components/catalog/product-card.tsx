@@ -19,7 +19,7 @@ function toProduct(card: CatalogCard): Product {
     name: card.nameEn,
     variant: card.categoriesHierarchy,
     image: card.imageUrl ?? "",
-    unitPrice: card.minPrice,
+    unitPrice: card.minPriceCents / 100,
     discountPerItem: 0,
     stock: card.totalStock,
     isProfessional: card.isProfessional,
@@ -130,7 +130,7 @@ export function ProductCard({ product: card }: { product: CatalogCard }) {
                   Out of stock
                 </span>
               ) : (
-                `From ${formatUSD(card.minPrice)}`
+                `From ${formatUSD(card.minPriceCents)}`
               )}
             </span>
 

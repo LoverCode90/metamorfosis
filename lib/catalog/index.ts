@@ -28,7 +28,8 @@ export function filterCatalogCards(
       )
     )
       return false
-    if (Number.isFinite(f.maxPrice) && p.minPrice > f.maxPrice) return false
+    if (Number.isFinite(f.maxPrice) && p.minPriceCents > f.maxPrice)
+      return false
     return true
   })
 }

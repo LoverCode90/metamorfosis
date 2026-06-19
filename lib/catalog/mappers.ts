@@ -18,6 +18,7 @@ export interface DbProductRow {
   color_family: string | null
   color_chart_pdf_url: string | null
   image_url: string | null
+  image_urls: string[] | null
   is_active: boolean
   recommended_skus: string[]
 }
@@ -38,6 +39,13 @@ export interface DbVariationRow {
   is_active: boolean
 }
 
+function parseImageUrls(value: string[] | null | undefined): string[] {
+  if (!value || !Array.isArray(value)) return []
+  return value.filter(
+    (url): url is string => typeof url === "string" && url.length > 0,
+  )
+}
+
 /* ── Mappers ─────────────────────────────────────────────────────────────── */
 
 export function mapVariation(row: DbVariationRow): CatalogVariation {
@@ -48,7 +56,6 @@ export function mapVariation(row: DbVariationRow): CatalogVariation {
     sku: row.sku,
     nameEn: row.name_en,
     priceCents: row.price_cents,
-    price: row.price_cents / 100,
     weightLb: row.weight_lb,
     inventoryCount: row.inventory_count,
     hexColor: row.hex_color,
@@ -65,8 +72,10 @@ export function mapProduct(
 ): CatalogProduct {
   const activeVars = variations.filter((v) => v.is_active).map(mapVariation)
   const prices = activeVars.map((v) => v.priceCents)
-  const minPrice = prices.length > 0 ? Math.min(...prices) / 100 : 0
+  const minPriceCents = prices.length > 0 ? Math.min(...prices) : 0
   const totalStock = activeVars.reduce((s, v) => s + v.inventoryCount, 0)
+  const imageUrls = parseImageUrls(row.image_urls)
+  const imageUrl = row.image_url ?? imageUrls[0] ?? null
 
   return {
     squareProductId: row.square_product_id,
@@ -78,9 +87,10 @@ export function mapProduct(
     isColorProduct: row.is_color_product,
     colorFamily: row.color_family as ColorFamily | null,
     colorChartPdfUrl: row.color_chart_pdf_url,
-    imageUrl: row.image_url,
+    imageUrl,
+    imageUrls: imageUrls.length > 0 ? imageUrls : imageUrl ? [imageUrl] : [],
     isActive: row.is_active,
-    minPrice,
+    minPriceCents,
     totalStock,
     variations: activeVars,
     recommendedSkus: row.recommended_skus ?? [],
@@ -102,7 +112,7 @@ export function mapCard(
     isProfessional: row.is_professional,
     isColorProduct: row.is_color_product,
     imageUrl: row.image_url,
-    minPrice: (row.min_price_cents ?? 0) / 100,
+    minPriceCents: row.min_price_cents ?? 0,
     totalStock: row.total_stock ?? 0,
     defaultVariationId: row.default_variation_id ?? null,
     defaultSquareVariationId: row.default_square_variation_id ?? null,

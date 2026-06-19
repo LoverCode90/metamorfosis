@@ -21,6 +21,7 @@ const PRODUCT_COLS = `
   color_family,
   color_chart_pdf_url,
   image_url,
+  image_urls,
   is_active,
   recommended_skus
 `.trim()
@@ -235,7 +236,7 @@ export async function getFilterFacets(): Promise<{
 
   return {
     categories: [...categorySet].sort(),
-    maxPrice: maxPriceCents / 100,
+    maxPrice: maxPriceCents,
   }
 }
 

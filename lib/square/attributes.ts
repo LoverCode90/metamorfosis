@@ -10,7 +10,33 @@ type AttrMap = Record<string, CatalogCustomAttributeValue> | undefined
 export function getStringAttr(attrs: AttrMap, key: string): string | null {
   if (!attrs) return null
   const entry = findAttr(attrs, key)
-  return entry?.stringValue ?? null
+  if (!entry) return null
+  return entry.stringValue?.trim() ?? null
+}
+
+/**
+ * Read a hex color custom attribute, normalizing to #RRGGBB when possible.
+ */
+export function getHexColorAttr(
+  attrs: AttrMap,
+  key = "hex_color",
+): string | null {
+  const raw = getStringAttr(attrs, key)
+  if (!raw) return null
+  if (/^#[0-9A-Fa-f]{3,8}$/.test(raw)) return raw.toUpperCase()
+  if (/^[0-9A-Fa-f]{3,8}$/.test(raw)) return `#${raw.toUpperCase()}`
+  return raw
+}
+
+/**
+ * ITEM-level color chart PDF URL — tries common Square attribute key variants.
+ */
+export function getColorChartPdfUrl(attrs: AttrMap): string | null {
+  for (const key of ["color_chart_pdf_url", "color_chart_pdf", "color_chart"]) {
+    const value = getStringAttr(attrs, key)
+    if (value) return value
+  }
+  return null
 }
 
 /**
@@ -23,17 +49,9 @@ export function getBoolAttr(attrs: AttrMap, key: string): boolean | null {
   const entry = findAttr(attrs, key)
   if (!entry) return null
   if (entry.booleanValue != null) return entry.booleanValue
-  // SELECTION type: selectionUidValues contains the chosen uid; the definition
-  // maps uid → display name "true" / "false". We also try stringValue.
   const sv = entry.stringValue?.toLowerCase()
   if (sv === "true") return true
   if (sv === "false") return false
-  // Some stores use selectionUidValues — check the key name as proxy
-  const uids = entry.selectionUidValues
-  if (uids && uids.length > 0) {
-    // We can't resolve UIDs without the definition, so fall back to presence
-    return null
-  }
   return null
 }
 
@@ -56,18 +74,28 @@ export function getNumberAttr(attrs: AttrMap, key: string): number | null {
 }
 
 /**
- * Case-insensitive lookup — handles both plain keys ("is_professional")
- * and app-prefixed keys ("abcd1234:is_professional").
+ * Case-insensitive lookup — handles plain keys ("is_professional"),
+ * app-prefixed keys ("abcd1234:is_professional"), and matches on entry.name.
  */
 function findAttr(
   attrs: Record<string, CatalogCustomAttributeValue>,
   key: string,
 ): CatalogCustomAttributeValue | undefined {
   const lower = key.toLowerCase()
+
   for (const [k, v] of Object.entries(attrs)) {
     const bare = k.includes(":") ? k.split(":").pop()! : k
     if (bare.toLowerCase() === lower) return v
+    if (v.name?.toLowerCase() === lower) return v
+    if (v.key?.toLowerCase() === lower) return v
+    if (
+      v.key?.includes(":") &&
+      v.key.split(":").pop()?.toLowerCase() === lower
+    ) {
+      return v
+    }
   }
+
   return undefined
 }
 

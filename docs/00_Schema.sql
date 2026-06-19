@@ -172,7 +172,8 @@ create table public.product_translations (
   details_keywords_en     text[] not null default '{}',
   details_keywords_es     text[] not null default '{}',
   recommended_skus        text[] not null default '{}', -- for "You may also like" section
-  image_url               text,
+  image_url               text,                       -- primary image (first of image_urls)
+  image_urls              jsonb not null default '[]'::jsonb, -- all Square ITEM image CDN URLs
   is_active               boolean default true not null,
   updated_at              timestamptz default now() not null
 );
