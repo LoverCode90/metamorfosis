@@ -88,7 +88,12 @@ export function mapProduct(
 }
 
 export function mapCard(
-  row: DbProductRow & { min_price_cents?: number; total_stock?: number },
+  row: DbProductRow & {
+    min_price_cents?: number
+    total_stock?: number
+    default_variation_id?: string | null
+    default_square_variation_id?: string | null
+  },
 ): CatalogCard {
   return {
     squareProductId: row.square_product_id,
@@ -99,5 +104,7 @@ export function mapCard(
     imageUrl: row.image_url,
     minPrice: (row.min_price_cents ?? 0) / 100,
     totalStock: row.total_stock ?? 0,
+    defaultVariationId: row.default_variation_id ?? null,
+    defaultSquareVariationId: row.default_square_variation_id ?? null,
   }
 }

@@ -48,6 +48,10 @@ export interface CatalogCard {
   imageUrl: string | null
   minPrice: number
   totalStock: number
+  /** product_variations.id of the cheapest active variation */
+  defaultVariationId: string | null
+  /** Square ITEM_VARIATION ID for the cheapest active variation */
+  defaultSquareVariationId: string | null
 }
 
 export interface ActiveFilters {

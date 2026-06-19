@@ -11,12 +11,12 @@ import { VerifyGateModal } from "@/components/profile/verify-gate-modal"
 
 export function CartView() {
   const router = useRouter()
-  const { items, totals, hasProItems, verified } = useCart()
+  const { items, totals, hasProItems } = useCart()
   const [gateOpen, setGateOpen] = useState(false)
   const isEmpty = items.length === 0
 
   function handleCheckout() {
-    if (hasProItems && !verified) {
+    if (hasProItems) {
       setGateOpen(true)
       return
     }

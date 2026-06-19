@@ -4,8 +4,6 @@
 import { ArrowLeft, Check, MapPin, Package, Truck } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { formatUSD } from "@/lib/utils/format"
-import { useCartStore } from "@/stores/cart"
-
 const STAGES = [
   { id: "placed", label: "Order placed", icon: Check },
   { id: "processing", label: "Processing", icon: Package },
@@ -15,7 +13,8 @@ const STAGES = [
 
 export function TrackingView() {
   const router = useRouter()
-  const order = useCartStore((s) => s.order)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const order: any = null // Orders now fetched from DB in Phase 5
 
   const currentStage = order ? 2 : 0
 
@@ -149,30 +148,40 @@ export function TrackingView() {
               Items in this order
             </h3>
             <ul className="divide-border mt-4 flex flex-col divide-y">
-              {order.items.map((item) => (
-                <li key={item.id} className="flex items-center gap-3 py-3">
-                  <div className="border-border bg-muted h-12 w-12 shrink-0 overflow-hidden rounded-md border">
-                    <img
-                      src={item.image || "/placeholder.svg"}
-                      alt={item.name}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-foreground truncate text-sm font-medium">
-                      {item.name}
-                    </p>
-                    <p className="text-muted-foreground text-xs">
-                      Qty {item.quantity}
-                    </p>
-                  </div>
-                  <span className="text-foreground text-sm font-semibold tabular-nums">
-                    {formatUSD(
-                      (item.unitPrice - item.discountPerItem) * item.quantity,
-                    )}
-                  </span>
-                </li>
-              ))}
+              {(order?.items ?? []).map(
+                (item: {
+                  id: string
+                  image: string
+                  name: string
+                  variant: string
+                  quantity: number
+                  unitPrice: number
+                  discountPerItem: number
+                }) => (
+                  <li key={item.id} className="flex items-center gap-3 py-3">
+                    <div className="border-border bg-muted h-12 w-12 shrink-0 overflow-hidden rounded-md border">
+                      <img
+                        src={item.image || "/placeholder.svg"}
+                        alt={item.name}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-foreground truncate text-sm font-medium">
+                        {item.name}
+                      </p>
+                      <p className="text-muted-foreground text-xs">
+                        Qty {item.quantity}
+                      </p>
+                    </div>
+                    <span className="text-foreground text-sm font-semibold tabular-nums">
+                      {formatUSD(
+                        (item.unitPrice - item.discountPerItem) * item.quantity,
+                      )}
+                    </span>
+                  </li>
+                ),
+              )}
             </ul>
           </section>
         </>

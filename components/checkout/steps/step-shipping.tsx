@@ -1,165 +1,137 @@
 "use client"
 
-import { useState } from "react"
-import { Check, Package, Truck, Zap } from "lucide-react"
-import type { InfoData } from "./step-info"
+import { useEffect, useState } from "react"
+import { ArrowLeft, Check } from "lucide-react"
+import type { ShippingMethod, ShippingRate } from "@/lib/checkout/types"
 import { cn } from "@/lib/utils"
 
-export interface ShippingMethod {
-  id: string
-  label: string
-  description: string
-  price: string
-  eta: string
-  icon: typeof Truck
-}
-
-const METHODS: ShippingMethod[] = [
-  {
-    id: "free",
-    label: "Standard Shipping",
-    description: "Tracked delivery via USPS",
-    price: "Free",
-    eta: "5–7 business days",
-    icon: Truck,
-  },
-  {
-    id: "express",
-    label: "Express Shipping",
-    description: "Priority handling + tracking",
-    price: "$12.00",
-    eta: "2–3 business days",
-    icon: Zap,
-  },
-  {
-    id: "overnight",
-    label: "Overnight",
-    description: "Next-day guaranteed by 12 PM",
-    price: "$28.00",
-    eta: "Next business day",
-    icon: Package,
-  },
-]
-
 interface StepShippingProps {
-  info: InfoData
-  onContinue: (method: ShippingMethod) => void
+  subtotalCents: number
+  onContinue: (method: ShippingMethod, amountCents: number) => void
   onBack: () => void
 }
 
-export function StepShipping({ info, onContinue, onBack }: StepShippingProps) {
-  const [selected, setSelected] = useState(METHODS[0].id)
+export function StepShipping({
+  subtotalCents,
+  onContinue,
+  onBack,
+}: StepShippingProps) {
+  const [rates, setRates] = useState<ShippingRate[]>([])
+  const [freeNote, setFreeNote] = useState<string | undefined>()
+  const [selected, setSelected] = useState<ShippingMethod>("standard")
+  const [loading, setLoading] = useState(true)
 
-  function handleContinue() {
-    const method = METHODS.find((m) => m.id === selected)!
-    onContinue(method)
-  }
+  useEffect(() => {
+    let cancelled = false
+    fetch("/api/checkout/shipping-rates", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ subtotalCents }),
+    })
+      .then((r) => r.json())
+      .then(({ rates: r, freeThresholdNote }) => {
+        if (cancelled) return
+        setRates(r ?? [])
+        setFreeNote(freeThresholdNote)
+        setLoading(false)
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error(err)
+          setLoading(false)
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [subtotalCents])
+
+  const selectedRate = rates.find((r) => r.method === selected)
 
   return (
-    <div className="space-y-8">
-      <header className="space-y-1">
-        <h2 className="text-lg font-semibold tracking-tight text-foreground">
-          Shipping Method
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Delivering to <span className="font-medium text-foreground">{info.address}</span>
-        </p>
-      </header>
+    <div className="space-y-6">
+      <h2 className="text-foreground text-lg font-semibold">Shipping</h2>
 
-      {/* Summary row */}
-      <div className="divide-y divide-border rounded-lg border border-border">
-        <SummaryRow label="Contact" value={info.email} />
-        <SummaryRow label="Ship to" value={`${info.firstName} ${info.lastName} · ${info.address}`} />
-      </div>
-
-      {/* Method selector */}
-      <fieldset className="space-y-3">
-        <legend className="sr-only">Choose a shipping method</legend>
-        {METHODS.map((method) => {
-          const Icon = method.icon
-          const isSelected = selected === method.id
-          return (
-            <label
-              key={method.id}
-              htmlFor={`ship-${method.id}`}
+      {loading ? (
+        <div className="space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-muted h-16 animate-pulse rounded-lg" />
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {rates.map((rate) => (
+            <button
+              key={rate.method}
+              type="button"
+              onClick={() => setSelected(rate.method)}
               className={cn(
-                "flex cursor-pointer items-center gap-4 rounded-lg border p-4 transition-colors",
-                isSelected
-                  ? "border-foreground bg-foreground/[0.03]"
+                "flex w-full items-center justify-between rounded-lg border px-4 py-4 text-left transition-colors",
+                selected === rate.method
+                  ? "border-foreground bg-foreground/5"
                   : "border-border hover:border-foreground/40",
               )}
             >
-              <input
-                id={`ship-${method.id}`}
-                type="radio"
-                name="shipping-method"
-                value={method.id}
-                checked={isSelected}
-                onChange={() => setSelected(method.id)}
-                className="sr-only"
-              />
-
-              {/* Custom radio ring */}
-              <span
-                className={cn(
-                  "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-                  isSelected ? "border-foreground bg-foreground" : "border-border",
-                )}
-              >
-                {isSelected && <Check className="h-3 w-3 text-background" strokeWidth={3} />}
-              </span>
-
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40">
-                <Icon className="h-4 w-4 text-foreground" strokeWidth={1.75} />
-              </span>
-
-              <span className="flex-1">
-                <span className="block text-sm font-medium text-foreground">{method.label}</span>
-                <span className="block text-xs text-muted-foreground">
-                  {method.description} · {method.eta}
+              <div className="flex items-center gap-3">
+                <span
+                  className={cn(
+                    "flex h-4 w-4 items-center justify-center rounded-full border transition-colors",
+                    selected === rate.method
+                      ? "border-foreground bg-foreground"
+                      : "border-border",
+                  )}
+                >
+                  {selected === rate.method && (
+                    <Check
+                      className="text-background h-2.5 w-2.5"
+                      strokeWidth={3}
+                    />
+                  )}
                 </span>
-              </span>
-
+                <div>
+                  <p className="text-foreground text-sm font-medium">
+                    {rate.label}
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    {rate.description}
+                  </p>
+                </div>
+              </div>
               <span
                 className={cn(
                   "text-sm font-semibold tabular-nums",
-                  method.id === "free" ? "text-emerald-600" : "text-foreground",
+                  rate.amountCents === 0 ? "text-green-500" : "text-foreground",
                 )}
               >
-                {method.price}
+                {rate.display}
               </span>
-            </label>
-          )
-        })}
-      </fieldset>
+            </button>
+          ))}
+        </div>
+      )}
 
-      <div className="flex flex-col gap-3 sm:flex-row-reverse">
-        <button
-          type="button"
-          onClick={handleContinue}
-          className="h-12 flex-1 rounded-md bg-foreground text-sm font-semibold text-background transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 py-2.5"
-        >
-          Continue to Payment
-        </button>
+      {freeNote && <p className="text-muted-foreground text-xs">{freeNote}</p>}
+
+      <div className="flex gap-3 pt-2">
         <button
           type="button"
           onClick={onBack}
-          className="h-12 flex-1 rounded-md border border-border text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 py-2.5"
+          className="border-border text-foreground hover:bg-muted flex h-12 items-center gap-2 rounded-md border px-5 text-sm font-medium transition-colors"
         >
-          Back to Information
+          <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
+          Back
+        </button>
+        <button
+          type="button"
+          disabled={!selectedRate}
+          onClick={() =>
+            selectedRate && onContinue(selected, selectedRate.amountCents)
+          }
+          className="bg-foreground text-background flex h-12 flex-1 items-center justify-center rounded-md text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          Continue to Payment
         </button>
       </div>
-    </div>
-  )
-}
-
-function SummaryRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-start gap-4 px-4 py-3">
-      <span className="w-20 shrink-0 text-xs font-medium text-muted-foreground">
-        {label}
-      </span>
-      <span className="text-sm text-foreground">{value}</span>
     </div>
   )
 }

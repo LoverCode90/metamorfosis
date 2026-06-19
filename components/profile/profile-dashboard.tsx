@@ -13,7 +13,6 @@ import { useRouter } from "next/navigation"
 import type { VerificationStatus } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { useUser } from "@/hooks/use-user"
-import { useCartStore } from "@/stores/cart"
 import { CompletionRing } from "./completion-ring"
 import { EditableField } from "./editable-field"
 import { VerificationPanel } from "./verification-panel"
@@ -27,7 +26,8 @@ export function ProfileDashboard() {
     submitVerification,
     savedAddress,
   } = useUser()
-  const order = useCartStore((s) => s.order)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const order: any = null // Orders are now fetched from DB in Phase 5
 
   const checklist = [
     {

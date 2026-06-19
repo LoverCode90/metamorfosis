@@ -25,6 +25,7 @@ export type VerificationStatus = "regular" | "pending" | "verified" | "rejected"
 // ── Catalog / Product ─────────────────────────────────────────────────────────
 
 export interface Product {
+  /** squareProductId — used for catalog page links */
   id: string
   name: string
   variant: string
@@ -36,10 +37,27 @@ export interface Product {
   stock: number
   /** Pro-only items require license verification before checkout completes. */
   isProfessional?: boolean
+  /** product_variations.id UUID — required for checkout; optional on legacy paths */
+  variationId?: string
+  /** Square ITEM_VARIATION ID — optional on legacy paths */
+  squareVariationId?: string
+  /** Whether this item is a color product — drives the $2 professional discount */
+  isColorProduct?: boolean
 }
 
 export interface CartItem extends Product {
   quantity: number
+  /**
+   * product_variations.id (our UUID) — required for checkout and DB cart_items.
+   * Guests: stored in localStorage. Auth users: FK into cart_items.variation_id.
+   */
+  variationId: string
+  /** Square ITEM_VARIATION ID — passed to Square Payments API. */
+  squareVariationId: string
+  /** Whether this item is a color product — drives the $2 professional discount. */
+  isColorProduct?: boolean
+  /** Set to true when the variation is no longer is_active — blocks checkout. */
+  unavailable?: boolean
 }
 
 // ── Cart Totals ───────────────────────────────────────────────────────────────

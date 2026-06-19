@@ -38,7 +38,7 @@ export async function fetchCatalogCards(): Promise<CatalogCard[]> {
     .select(
       `
       ${PRODUCT_COLS},
-      product_variations!inner(price_cents, inventory_count, is_active)
+      product_variations!inner(id, square_variation_id, price_cents, inventory_count, is_active)
     `,
     )
     .eq("is_active", true)
@@ -49,9 +49,11 @@ export async function fetchCatalogCards(): Promise<CatalogCard[]> {
     return []
   }
 
-  // Group variations per product and compute min price + total stock
+  // Group variations per product and compute min price + total stock + default variation
   const rows = (data ?? []) as unknown as (DbProductRow & {
     product_variations: {
+      id: string
+      square_variation_id: string
       price_cents: number
       inventory_count: number
       is_active: boolean
@@ -60,10 +62,20 @@ export async function fetchCatalogCards(): Promise<CatalogCard[]> {
 
   return rows.map((row) => {
     const vars = row.product_variations ?? []
-    const min_price_cents =
-      vars.length > 0 ? Math.min(...vars.map((v) => v.price_cents)) : 0
-    const total_stock = vars.reduce((s, v) => s + v.inventory_count, 0)
-    return mapCard({ ...row, min_price_cents, total_stock })
+    const cheapest =
+      vars.length > 0
+        ? vars.reduce(
+            (min, v) => (v.price_cents < min.price_cents ? v : min),
+            vars[0],
+          )
+        : null
+    return mapCard({
+      ...row,
+      min_price_cents: cheapest?.price_cents ?? 0,
+      total_stock: vars.reduce((s, v) => s + v.inventory_count, 0),
+      default_variation_id: cheapest?.id ?? null,
+      default_square_variation_id: cheapest?.square_variation_id ?? null,
+    })
   })
 }
 

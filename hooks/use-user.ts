@@ -24,6 +24,8 @@ const DEFAULT_PROFILE: UserProfile = {
 interface UseUserResult {
   user: User | null
   profile: UserProfile
+  /** Raw Supabase profile row — used by checkout and other server-aware clients. */
+  dbProfile: DbProfile | null
   savedAddress: SavedAddress | null
   verificationStatus: VerificationStatus
   isVerified: boolean
@@ -42,6 +44,7 @@ export function useUser(): UseUserResult {
   const { savedAddress, saveAddress, clearAddress } = useAddressStore()
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE)
+  const [dbProfile, setDbProfile] = useState<DbProfile | null>(null)
   const [verificationStatus, setVerificationStatus] =
     useState<VerificationStatus>("regular")
   const [isLoading, setIsLoading] = useState(true)
@@ -55,6 +58,7 @@ export function useUser(): UseUserResult {
         .single<DbProfile>()
 
       if (data) {
+        setDbProfile(data)
         setProfile(mapDbProfile(data))
         setVerificationStatus(mapVerificationStatus(data.verification_status))
       }
@@ -79,6 +83,7 @@ export function useUser(): UseUserResult {
         if (u) {
           fetchProfile(u.id)
         } else {
+          setDbProfile(null)
           setProfile(DEFAULT_PROFILE)
           setVerificationStatus("regular")
           clearAddress()
@@ -102,6 +107,7 @@ export function useUser(): UseUserResult {
         .single<DbProfile>()
 
       if (data) {
+        setDbProfile(data)
         setProfile(mapDbProfile(data))
         setVerificationStatus(mapVerificationStatus(data.verification_status))
       }
@@ -119,6 +125,7 @@ export function useUser(): UseUserResult {
       .single<DbProfile>()
 
     if (data) {
+      setDbProfile(data)
       setProfile(mapDbProfile(data))
       setVerificationStatus("pending")
     }
@@ -131,6 +138,7 @@ export function useUser(): UseUserResult {
   return {
     user,
     profile,
+    dbProfile,
     savedAddress,
     verificationStatus,
     isVerified: verificationStatus === "verified",

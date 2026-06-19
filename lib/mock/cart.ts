@@ -1,5 +1,5 @@
 /**
- * TEMPORARY MOCK DATA — replaced in Phase 4 with real Square catalog.
+ * TEMPORARY MOCK DATA — replaced in Phase 4/5 with real Square catalog.
  * Do not use for pricing or inventory truth.
  */
 import type { CartItem, Product } from "@/lib/types"
@@ -7,6 +7,8 @@ import type { CartItem, Product } from "@/lib/types"
 export const MOCK_INITIAL_CART: CartItem[] = [
   {
     id: "lab-noir-7n",
+    variationId: "mock-var-lab-noir-7n",
+    squareVariationId: "mock-sq-lab-noir-7n",
     name: "Lab Noir — Permanent Crème",
     variant: "Shade 7N · Natural Blonde",
     image: "/hair-color-product.png",
@@ -18,6 +20,8 @@ export const MOCK_INITIAL_CART: CartItem[] = [
   },
   {
     id: "oxidant-20",
+    variationId: "mock-var-oxidant-20",
+    squareVariationId: "mock-sq-oxidant-20",
     name: "Oxidant Activator",
     variant: "20 Vol · 1000ml",
     image: "/products/oxidant-activator.png",
@@ -28,6 +32,8 @@ export const MOCK_INITIAL_CART: CartItem[] = [
   },
   {
     id: "bond-serum",
+    variationId: "mock-var-bond-serum",
+    squareVariationId: "mock-sq-bond-serum",
     name: "Bond Repair Serum",
     variant: "Step 1 · 100ml",
     image: "/products/bond-repair-serum.png",

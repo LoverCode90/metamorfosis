@@ -1,216 +1,200 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
-import { Mail, MapPin, User } from "lucide-react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { FloatingField } from "@/components/checkout/floating-field"
+import { US_STATES } from "@/lib/constants"
+import type { CheckoutAddress } from "@/lib/checkout/types"
 
-interface FieldState {
-  value: string
-  touched: boolean
-}
+const schema = z.object({
+  fullName: z.string().min(2, "Full name required"),
+  email: z.string().email("Enter a valid email"),
+  phone: z
+    .string()
+    .min(10, "Phone number required")
+    .regex(/^[\d\s\-\(\)\+]+$/, "Invalid phone number"),
+  streetLine1: z.string().min(3, "Street address required"),
+  streetLine2: z.string().optional(),
+  city: z.string().min(2, "City required"),
+  state: z.string().length(2, "Select a state"),
+  zip: z.string().regex(/^\d{5}(-\d{4})?$/, "Enter a valid US ZIP code"),
+  termsAccepted: z.boolean().optional(),
+})
 
-function useField(initial = ""): [FieldState, (v: string) => void, () => void] {
-  const [state, setState] = useState<FieldState>({
-    value: initial,
-    touched: false,
-  })
-  const set = (v: string) => setState({ value: v, touched: true })
-  const touch = () => setState((s) => ({ ...s, touched: true }))
-  return [state, set, touch]
-}
-
-function isValidEmail(v: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())
-}
+type InfoFormValues = z.infer<typeof schema>
 
 interface StepInfoProps {
-  onContinue: (data: InfoData) => void
+  hasNonReturnable: boolean
+  defaultValues?: Partial<InfoFormValues>
+  onContinue: (data: CheckoutAddress, termsAccepted: boolean) => void
 }
 
-export interface InfoData {
-  firstName: string
-  lastName: string
-  email: string
-  address: string
-}
+export function StepInfo({
+  hasNonReturnable,
+  defaultValues,
+  onContinue,
+}: StepInfoProps) {
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<InfoFormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { state: "", ...defaultValues },
+  })
 
-export function StepInfo({ onContinue }: StepInfoProps) {
-  const [firstName, setFirstName, touchFirstName] = useField()
-  const [lastName, setLastName, touchLastName] = useField()
-  const [email, setEmail, touchEmail] = useField()
-  const [address, setAddress, touchAddress] = useField()
+  const termsAccepted = watch("termsAccepted")
 
-  const errors = {
-    firstName: firstName.touched && !firstName.value.trim() ? "Required" : "",
-    lastName: lastName.touched && !lastName.value.trim() ? "Required" : "",
-    email:
-      email.touched && !isValidEmail(email.value)
-        ? email.value.trim()
-          ? "Enter a valid email"
-          : "Required"
-        : "",
-    address: address.touched && !address.value.trim() ? "Required" : "",
-  }
-
-  const isValid =
-    firstName.value.trim() &&
-    lastName.value.trim() &&
-    isValidEmail(email.value) &&
-    address.value.trim()
-
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    touchFirstName()
-    touchLastName()
-    touchEmail()
-    touchAddress()
-    if (!isValid) return
-    onContinue({
-      firstName: firstName.value.trim(),
-      lastName: lastName.value.trim(),
-      email: email.value.trim(),
-      address: address.value.trim(),
-    })
+  function onSubmit(values: InfoFormValues) {
+    if (hasNonReturnable && !values.termsAccepted) return
+    onContinue(
+      {
+        fullName: values.fullName,
+        email: values.email,
+        phone: values.phone,
+        streetLine1: values.streetLine1,
+        streetLine2: values.streetLine2 ?? "",
+        city: values.city,
+        state: values.state,
+        zip: values.zip,
+        country: "US",
+      },
+      !!values.termsAccepted,
+    )
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-8">
-      <header className="space-y-1">
-        <h2 className="text-foreground text-lg font-semibold tracking-tight">
-          Contact Information
-        </h2>
-        <p className="text-muted-foreground text-sm">
-          We&apos;ll use this to keep you updated on your order.
-        </p>
-      </header>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+      <h2 className="text-foreground text-lg font-semibold">
+        Contact & Address
+      </h2>
 
-      <div className="space-y-6">
-        <div className="grid grid-cols-2 gap-5">
-          <ControlledField
-            id="first-name"
-            label="First name"
-            icon={User}
-            value={firstName.value}
-            onChange={(v) => setFirstName(v)}
-            onBlur={touchFirstName}
-            error={errors.firstName}
-            autoComplete="given-name"
+      <div className="grid gap-4 sm:grid-cols-2">
+        <FloatingField
+          label="Full name"
+          error={errors.fullName?.message}
+          required
+        >
+          <input
+            {...register("fullName")}
+            className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
+            placeholder="Full name"
           />
-          <ControlledField
-            id="last-name"
-            label="Last name"
-            icon={User}
-            value={lastName.value}
-            onChange={(v) => setLastName(v)}
-            onBlur={touchLastName}
-            error={errors.lastName}
-            autoComplete="family-name"
+        </FloatingField>
+        <FloatingField label="Phone" error={errors.phone?.message} required>
+          <input
+            {...register("phone")}
+            type="tel"
+            className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
+            placeholder="Phone"
           />
-        </div>
-
-        <ControlledField
-          id="email"
-          label="Email address"
-          icon={Mail}
-          type="email"
-          value={email.value}
-          onChange={(v) => setEmail(v)}
-          onBlur={touchEmail}
-          error={errors.email}
-          autoComplete="email"
-        />
-
-        <ControlledField
-          id="address"
-          label="Shipping address"
-          icon={MapPin}
-          value={address.value}
-          onChange={(v) => setAddress(v)}
-          onBlur={touchAddress}
-          error={errors.address}
-          autoComplete="street-address"
-        />
+        </FloatingField>
       </div>
+
+      <FloatingField label="Email" error={errors.email?.message} required>
+        <input
+          {...register("email")}
+          type="email"
+          className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
+          placeholder="Email"
+        />
+      </FloatingField>
+
+      <FloatingField
+        label="Street address"
+        error={errors.streetLine1?.message}
+        required
+      >
+        <input
+          {...register("streetLine1")}
+          className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
+          placeholder="Street address"
+        />
+      </FloatingField>
+
+      <FloatingField
+        label="Apartment, suite, unit (optional)"
+        error={undefined}
+      >
+        <input
+          {...register("streetLine2")}
+          className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
+          placeholder="Apartment, suite, unit"
+        />
+      </FloatingField>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="sm:col-span-1">
+          <FloatingField label="City" error={errors.city?.message} required>
+            <input
+              {...register("city")}
+              className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
+              placeholder="City"
+            />
+          </FloatingField>
+        </div>
+        <div>
+          <label className="text-muted-foreground mb-1 block text-xs font-medium">
+            State <span className="text-destructive">*</span>
+          </label>
+          <select
+            {...register("state")}
+            className="border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 py-2.5 text-sm outline-none"
+          >
+            <option value="">Select state</option>
+            {US_STATES.map((s) => (
+              <option key={s.code} value={s.code}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+          {errors.state && (
+            <p className="text-destructive mt-1 text-xs">
+              {errors.state.message}
+            </p>
+          )}
+        </div>
+        <div>
+          <FloatingField label="ZIP code" error={errors.zip?.message} required>
+            <input
+              {...register("zip")}
+              className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
+              placeholder="ZIP"
+            />
+          </FloatingField>
+        </div>
+      </div>
+
+      <p className="text-muted-foreground text-xs">
+        We only ship within the United States.
+      </p>
+
+      {hasNonReturnable && (
+        <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-4">
+          <input
+            {...register("termsAccepted")}
+            type="checkbox"
+            className="accent-foreground mt-0.5 h-4 w-4 shrink-0"
+          />
+          <span className="text-foreground text-sm">
+            I understand that{" "}
+            <span className="font-medium">
+              chemical products (bleach, developer, permanent color)
+            </span>{" "}
+            cannot be returned once shipped.
+          </span>
+        </label>
+      )}
 
       <button
         type="submit"
-        className="bg-foreground text-background focus-visible:ring-ring h-12 w-full rounded-md text-sm font-semibold transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+        disabled={hasNonReturnable && !termsAccepted}
+        className="bg-foreground text-background flex h-12 w-full items-center justify-center rounded-md text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         Continue to Shipping
       </button>
     </form>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// Controlled variant of FloatingField that accepts external value + callbacks
-// and renders an inline error message.
-// ---------------------------------------------------------------------------
-import type { LucideIcon } from "lucide-react"
-import { cn } from "@/lib/utils"
-
-interface ControlledFieldProps {
-  id: string
-  label: string
-  icon: LucideIcon
-  value: string
-  onChange: (v: string) => void
-  onBlur: () => void
-  error?: string
-  type?: string
-  inputMode?: React.InputHTMLAttributes<HTMLInputElement>["inputMode"]
-  autoComplete?: string
-  className?: string
-}
-
-function ControlledField({
-  id,
-  label,
-  icon: Icon,
-  value,
-  onChange,
-  onBlur,
-  error,
-  type = "text",
-  inputMode,
-  autoComplete,
-  className,
-}: ControlledFieldProps) {
-  const hasValue = value.length > 0
-  return (
-    <div className={cn("relative", className)}>
-      <Icon
-        className="text-muted-foreground pointer-events-none absolute top-3.5 left-0 h-4 w-4"
-        strokeWidth={1.75}
-      />
-      <input
-        id={id}
-        type={type}
-        inputMode={inputMode}
-        autoComplete={autoComplete}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onBlur={onBlur}
-        placeholder=" "
-        className={cn(
-          "peer text-foreground h-12 w-full border-b bg-transparent pt-3 pr-2 pl-6 text-sm",
-          "transition-colors outline-none placeholder:text-transparent",
-          error
-            ? "border-destructive"
-            : "border-border focus:border-foreground",
-        )}
-      />
-      <label
-        htmlFor={id}
-        className={cn(
-          "text-muted-foreground pointer-events-none absolute left-6 text-sm transition-all",
-          hasValue
-            ? "top-0 text-xs"
-            : "top-3.5 peer-focus:top-0 peer-focus:text-xs",
-        )}
-      >
-        {label}
-      </label>
-      {error && <p className="text-destructive mt-1 text-xs">{error}</p>}
-    </div>
   )
 }
