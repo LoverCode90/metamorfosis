@@ -22,6 +22,7 @@ const PRODUCT_COLS = `
   color_chart_pdf_url,
   image_url,
   image_urls,
+  package_class,
   is_active,
   recommended_skus
 `.trim()
@@ -207,7 +208,7 @@ export async function fetchRelatedProducts(
  * Used to populate the filter panel dynamically.
  */
 export async function getFilterFacets(): Promise<{
-  categories: string[]
+  categoryGroups: { parent: string; children: string[] }[]
   maxPrice: number
 }> {
   const supabase = await createClient()
@@ -217,12 +218,17 @@ export async function getFilterFacets(): Promise<{
     .select("categories_hierarchy, product_variations(price_cents, is_active)")
     .eq("is_active", true)
 
-  const categorySet = new Set<string>()
+  const parentChildMap = new Map<string, Set<string>>()
   let maxPriceCents = 0
 
   for (const row of data ?? []) {
-    const top = (row.categories_hierarchy as string).split(" > ")[0]?.trim()
-    if (top) categorySet.add(top)
+    const hier = row.categories_hierarchy as string
+    const parts = hier.split(" > ")
+    const parent = parts[0]?.trim()
+    if (parent && parent !== "Uncategorized") {
+      if (!parentChildMap.has(parent)) parentChildMap.set(parent, new Set())
+      if (parts[1]) parentChildMap.get(parent)!.add(parts[1].trim())
+    }
 
     for (const v of (row.product_variations as {
       price_cents: number
@@ -234,10 +240,14 @@ export async function getFilterFacets(): Promise<{
     }
   }
 
-  return {
-    categories: [...categorySet].sort(),
-    maxPrice: maxPriceCents,
-  }
+  const categoryGroups = [...parentChildMap.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([parent, childSet]) => ({
+      parent,
+      children: [...childSet].sort(),
+    }))
+
+  return { categoryGroups, maxPrice: maxPriceCents }
 }
 
 /**

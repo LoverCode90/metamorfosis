@@ -19,6 +19,7 @@ export interface DbProductRow {
   color_chart_pdf_url: string | null
   image_url: string | null
   image_urls: string[] | null
+  package_class: string | null
   is_active: boolean
   recommended_skus: string[]
 }
@@ -89,6 +90,7 @@ export function mapProduct(
     colorChartPdfUrl: row.color_chart_pdf_url,
     imageUrl,
     imageUrls: imageUrls.length > 0 ? imageUrls : imageUrl ? [imageUrl] : [],
+    packageClass: row.package_class,
     isActive: row.is_active,
     minPriceCents,
     totalStock,
@@ -112,6 +114,7 @@ export function mapCard(
     isProfessional: row.is_professional,
     isColorProduct: row.is_color_product,
     imageUrl: row.image_url,
+    imageUrls: parseImageUrls(row.image_urls),
     minPriceCents: row.min_price_cents ?? 0,
     totalStock: row.total_stock ?? 0,
     defaultVariationId: row.default_variation_id ?? null,

@@ -70,7 +70,7 @@ export function ProductDetailPage({ product, related }: Props) {
           selectedVariation?.nameEn ??
           "",
         image: rawImageUrl ?? "",
-        unitPrice: priceCents / 100,
+        unitPrice: priceCents,
         discountPerItem: 0,
         stock,
         isProfessional: product.isProfessional,
@@ -85,7 +85,7 @@ export function ProductDetailPage({ product, related }: Props) {
       name: product.nameEn,
       variant: selectedVariation?.nameEn ?? "",
       image: rawImageUrl ?? "",
-      unitPrice: priceCents / 100,
+      unitPrice: priceCents,
       discountPerItem: 0,
       stock,
       isProfessional: product.isProfessional,
@@ -298,7 +298,7 @@ export function ProductDetailPage({ product, related }: Props) {
       </div>
 
       {/* Product tabs */}
-      <ProductTabs product={product} />
+      <ProductTabs product={product} selectedVariation={selectedVariation} />
 
       {/* Related products */}
       {related.length > 0 && (
@@ -306,9 +306,14 @@ export function ProductDetailPage({ product, related }: Props) {
           <h2 className="text-foreground text-lg font-semibold tracking-tight">
             You may also like
           </h2>
-          <div className="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 lg:gap-x-6">
+          <div className="mt-6 flex snap-x snap-mandatory [scrollbar-width:none] gap-4 overflow-x-auto pb-4 [-ms-overflow-style:none] sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 lg:grid-cols-4 lg:gap-x-6 [&::-webkit-scrollbar]:hidden">
             {related.map((card) => (
-              <ProductCard key={card.squareProductId} product={card} />
+              <div
+                key={card.squareProductId}
+                className="w-[70%] shrink-0 snap-start sm:w-auto"
+              >
+                <ProductCard product={card} />
+              </div>
             ))}
           </div>
         </section>

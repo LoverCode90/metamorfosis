@@ -1,13 +1,14 @@
 "use client"
 
-import { Search } from "lucide-react"
+import { useState } from "react"
+import { ChevronDown, Search } from "lucide-react"
 import type { ActiveFilters } from "@/lib/catalog"
 import { formatUSD } from "@/lib/utils/format"
 import { cn } from "@/lib/utils"
 
 interface FiltersPanelProps {
   filters: ActiveFilters
-  categories: string[]
+  categoryGroups: { parent: string; children: string[] }[]
   maxPrice: number
   onChange: (next: ActiveFilters) => void
   onClear: () => void
@@ -15,15 +16,25 @@ interface FiltersPanelProps {
 
 export function FiltersPanel({
   filters,
-  categories,
+  categoryGroups,
   maxPrice,
   onChange,
   onClear,
 }: FiltersPanelProps) {
-  function toggleCategory(category: string) {
-    const next = filters.categories.includes(category)
-      ? filters.categories.filter((c) => c !== category)
-      : [...filters.categories, category]
+  const [openParents, setOpenParents] = useState<Set<string>>(new Set())
+
+  function toggleParentOpen(parent: string) {
+    setOpenParents((prev) => {
+      const next = new Set(prev)
+      next.has(parent) ? next.delete(parent) : next.add(parent)
+      return next
+    })
+  }
+
+  function toggleCategory(cat: string) {
+    const next = filters.categories.includes(cat)
+      ? filters.categories.filter((c) => c !== cat)
+      : [...filters.categories, cat]
     onChange({ ...filters, categories: next })
   }
 
@@ -49,6 +60,7 @@ export function FiltersPanel({
         )}
       </div>
 
+      {/* Search */}
       <div>
         <label className="relative block">
           <Search
@@ -65,6 +77,7 @@ export function FiltersPanel({
         </label>
       </div>
 
+      {/* Price slider */}
       {maxPrice > 0 && (
         <div>
           <h3 className="text-foreground text-xs font-semibold tracking-wide uppercase">
@@ -96,81 +109,144 @@ export function FiltersPanel({
         </div>
       )}
 
-      {categories.length > 0 && (
-        <FilterGroup title="Category">
-          {categories.map((c) => (
-            <CheckRow
-              key={c}
-              label={c}
-              checked={filters.categories.includes(c)}
-              onToggle={() => toggleCategory(c)}
-            />
-          ))}
-        </FilterGroup>
+      {/* Category accordion */}
+      {categoryGroups.length > 0 && (
+        <div>
+          <h3 className="text-foreground mb-3 text-xs font-semibold tracking-wide uppercase">
+            Category
+          </h3>
+          <ul className="flex flex-col gap-0.5">
+            {categoryGroups.map(({ parent, children }) => {
+              const isOpen = openParents.has(parent)
+              const parentChecked = filters.categories.includes(parent)
+              const someChildChecked = children.some((c) =>
+                filters.categories.includes(`${parent} > ${c}`),
+              )
+
+              return (
+                <li key={parent}>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => toggleCategory(parent)}
+                      className="hover:text-foreground flex flex-1 items-center gap-2.5 rounded-md py-1.5 text-left text-sm transition-colors"
+                    >
+                      <span
+                        className={cn(
+                          "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
+                          parentChecked
+                            ? "border-foreground bg-foreground text-background"
+                            : someChildChecked
+                              ? "border-foreground bg-foreground/20"
+                              : "border-border",
+                        )}
+                      >
+                        {parentChecked && (
+                          <svg
+                            viewBox="0 0 12 12"
+                            className="h-3 w-3"
+                            fill="none"
+                          >
+                            <path
+                              d="M2.5 6.5l2.5 2.5 4.5-5"
+                              stroke="currentColor"
+                              strokeWidth="1.75"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        )}
+                        {!parentChecked && someChildChecked && (
+                          <span className="bg-foreground block h-1.5 w-1.5 rounded-sm" />
+                        )}
+                      </span>
+                      <span
+                        className={cn(
+                          "font-medium",
+                          parentChecked || someChildChecked
+                            ? "text-foreground"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        {parent}
+                      </span>
+                    </button>
+
+                    {children.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => toggleParentOpen(parent)}
+                        aria-label={isOpen ? "Collapse" : "Expand"}
+                        className="text-muted-foreground hover:text-foreground flex h-7 w-7 shrink-0 items-center justify-center rounded transition-colors"
+                      >
+                        <ChevronDown
+                          className={cn(
+                            "h-3.5 w-3.5 transition-transform duration-200",
+                            isOpen && "rotate-180",
+                          )}
+                          strokeWidth={1.75}
+                        />
+                      </button>
+                    )}
+                  </div>
+
+                  {isOpen && children.length > 0 && (
+                    <ul className="mt-0.5 ml-6 flex flex-col gap-0.5">
+                      {children.map((child) => {
+                        const key = `${parent} > ${child}`
+                        const checked = filters.categories.includes(key)
+                        return (
+                          <li key={child}>
+                            <button
+                              type="button"
+                              onClick={() => toggleCategory(key)}
+                              className="hover:text-foreground flex w-full items-center gap-2.5 rounded-md py-1.5 text-left text-sm transition-colors"
+                            >
+                              <span
+                                className={cn(
+                                  "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
+                                  checked
+                                    ? "border-foreground bg-foreground text-background"
+                                    : "border-border",
+                                )}
+                              >
+                                {checked && (
+                                  <svg
+                                    viewBox="0 0 12 12"
+                                    className="h-3 w-3"
+                                    fill="none"
+                                  >
+                                    <path
+                                      d="M2.5 6.5l2.5 2.5 4.5-5"
+                                      stroke="currentColor"
+                                      strokeWidth="1.75"
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                )}
+                              </span>
+                              <span
+                                className={cn(
+                                  checked
+                                    ? "text-foreground"
+                                    : "text-muted-foreground",
+                                )}
+                              >
+                                {child}
+                              </span>
+                            </button>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+        </div>
       )}
     </div>
-  )
-}
-
-function FilterGroup({
-  title,
-  children,
-}: {
-  title: string
-  children: React.ReactNode
-}) {
-  return (
-    <div>
-      <h3 className="text-foreground text-xs font-semibold tracking-wide uppercase">
-        {title}
-      </h3>
-      <ul className="mt-3 flex flex-col gap-0.5">{children}</ul>
-    </div>
-  )
-}
-
-function CheckRow({
-  label,
-  checked,
-  onToggle,
-}: {
-  label: string
-  checked: boolean
-  onToggle: () => void
-}) {
-  return (
-    <li>
-      <button
-        type="button"
-        onClick={onToggle}
-        className="hover:text-foreground flex w-full items-center gap-2.5 rounded-md py-1.5 text-left text-sm transition-colors"
-      >
-        <span
-          className={cn(
-            "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
-            checked
-              ? "border-foreground bg-foreground text-background"
-              : "border-border",
-          )}
-        >
-          {checked && (
-            <svg viewBox="0 0 12 12" className="h-3 w-3" fill="none">
-              <path
-                d="M2.5 6.5l2.5 2.5 4.5-5"
-                stroke="currentColor"
-                strokeWidth="1.75"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          )}
-        </span>
-        <span
-          className={cn(checked ? "text-foreground" : "text-muted-foreground")}
-        >
-          {label}
-        </span>
-      </button>
-    </li>
   )
 }

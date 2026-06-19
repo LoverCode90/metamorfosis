@@ -28,6 +28,7 @@ export interface CatalogProduct {
   colorChartPdfUrl: string | null
   imageUrl: string | null
   imageUrls: string[]
+  packageClass: string | null
   isActive: boolean
   /** Min price in cents across all active variations */
   minPriceCents: number
@@ -45,6 +46,7 @@ export interface CatalogCard {
   isProfessional: boolean
   isColorProduct: boolean
   imageUrl: string | null
+  imageUrls: string[]
   /** Min price in cents (cheapest active variation) */
   minPriceCents: number
   totalStock: number

@@ -17,7 +17,7 @@ export default async function Products() {
   return (
     <ProductsPage
       products={products}
-      categories={facets.categories}
+      categoryGroups={facets.categoryGroups}
       maxPrice={facets.maxPrice}
     />
   )

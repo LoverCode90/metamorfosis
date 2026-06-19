@@ -17,13 +17,13 @@ const PER_PAGE = 20
 
 interface ProductsPageProps {
   products: CatalogCard[]
-  categories: string[]
+  categoryGroups: { parent: string; children: string[] }[]
   maxPrice: number
 }
 
 export function ProductsPage({
   products,
-  categories,
+  categoryGroups,
   maxPrice,
 }: ProductsPageProps) {
   const [filters, setFilters] = useState<ActiveFilters>({
@@ -77,7 +77,7 @@ export function ProductsPage({
           <div className="sticky top-24">
             <FiltersPanel
               filters={filters}
-              categories={categories}
+              categoryGroups={categoryGroups}
               maxPrice={maxPrice}
               onChange={updateFilters}
               onClear={clearFilters}
@@ -155,7 +155,7 @@ export function ProductsPage({
       >
         <FiltersPanel
           filters={filters}
-          categories={categories}
+          categoryGroups={categoryGroups}
           maxPrice={maxPrice}
           onChange={updateFilters}
           onClear={clearFilters}

@@ -2,7 +2,7 @@
 "use client"
 
 import { useState } from "react"
-import { Heart, Plus } from "lucide-react"
+import { ChevronLeft, ChevronRight, Heart, Plus } from "lucide-react"
 import Link from "next/link"
 import { formatUSD } from "@/lib/utils/format"
 import { squareImageUrl } from "@/lib/utils/square-image"
@@ -35,6 +35,7 @@ export function ProductCard({ product: card }: { product: CatalogCard }) {
   const lowStock = card.totalStock > 0 && card.totalStock <= LOW_STOCK_THRESHOLD
   const outOfStock = card.totalStock === 0
   const [showWishlistModal, setShowWishlistModal] = useState(false)
+  const [imgIdx, setImgIdx] = useState(0)
 
   const badge = card.isProfessional
     ? {
@@ -43,7 +44,15 @@ export function ProductCard({ product: card }: { product: CatalogCard }) {
       }
     : null
 
-  const imgSrc = squareImageUrl(card.imageUrl, 600) ?? "/placeholder.svg"
+  const images =
+    card.imageUrls.length > 0
+      ? card.imageUrls
+      : card.imageUrl
+        ? [card.imageUrl]
+        : []
+  const hasMultiple = images.length > 1
+  const imgSrc =
+    squareImageUrl(images[imgIdx] ?? card.imageUrl, 600) ?? "/placeholder.svg"
 
   function handleAdd() {
     if (outOfStock) return
@@ -84,15 +93,24 @@ export function ProductCard({ product: card }: { product: CatalogCard }) {
           />
         </button>
 
-        <Link
-          href={`/products/${card.squareProductId}`}
-          className="border-border bg-muted focus-visible:ring-ring relative aspect-square w-full overflow-hidden rounded-lg border focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-          aria-label={`View ${card.nameEn}`}
-        >
+        <div className="border-border bg-muted group/img relative aspect-square w-full overflow-hidden rounded-lg border">
+          <Link
+            href={`/products/${card.squareProductId}`}
+            className="focus-visible:ring-ring absolute inset-0 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+            aria-label={`View ${card.nameEn}`}
+          >
+            <img
+              src={imgSrc}
+              alt={card.nameEn}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+          </Link>
+
           {badge && (
             <span
               className={cn(
-                "absolute top-2.5 left-2.5 z-10 rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-wide uppercase",
+                "pointer-events-none absolute top-2.5 left-2.5 z-10 rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-wide uppercase",
                 badge.className,
               )}
             >
@@ -100,17 +118,49 @@ export function ProductCard({ product: card }: { product: CatalogCard }) {
             </span>
           )}
           {lowStock && !outOfStock && (
-            <span className="absolute bottom-2.5 left-2.5 z-10 rounded-full bg-amber-500/90 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-white uppercase">
+            <span className="pointer-events-none absolute bottom-2.5 left-2.5 z-10 rounded-full bg-amber-500/90 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-white uppercase">
               Low stock
             </span>
           )}
-          <img
-            src={imgSrc}
-            alt={card.nameEn}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          />
-        </Link>
+
+          {hasMultiple && (
+            <>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setImgIdx((i) => (i > 0 ? i - 1 : images.length - 1))
+                }}
+                aria-label="Previous image"
+                className="bg-background/80 absolute top-1/2 left-1.5 z-10 -translate-y-1/2 rounded-full p-1 opacity-0 shadow-sm backdrop-blur transition-opacity group-hover/img:opacity-100"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  setImgIdx((i) => (i + 1) % images.length)
+                }}
+                aria-label="Next image"
+                className="bg-background/80 absolute top-1/2 right-1.5 z-10 -translate-y-1/2 rounded-full p-1 opacity-0 shadow-sm backdrop-blur transition-opacity group-hover/img:opacity-100"
+              >
+                <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
+              </button>
+              <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1 opacity-0 transition-opacity group-hover/img:opacity-100">
+                {images.map((_, i) => (
+                  <span
+                    key={i}
+                    className={cn(
+                      "h-1 w-1 rounded-full transition-colors",
+                      i === imgIdx ? "bg-white" : "bg-white/50",
+                    )}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
 
         <div className="flex flex-1 flex-col pt-3">
           <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">

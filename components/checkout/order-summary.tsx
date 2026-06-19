@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+import Link from "next/link"
 import { Tag, Truck } from "lucide-react"
 import {
   formatUSD,
@@ -46,9 +47,12 @@ export function OrderSummary({
               </div>
               <div className="flex min-w-0 flex-1 items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-foreground truncate text-sm font-medium">
+                  <Link
+                    href={`/products/${item.id}`}
+                    className="text-foreground block truncate text-sm font-medium hover:underline"
+                  >
                     {item.name}
-                  </p>
+                  </Link>
                   <p className="text-muted-foreground mt-0.5 text-xs">
                     {item.variant}
                   </p>
