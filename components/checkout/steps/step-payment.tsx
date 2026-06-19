@@ -36,13 +36,26 @@ export function StepPayment({
   const [submitting, setSubmitting] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
 
-  const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID!
-  const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID!
+  // Support both key names — older builds use NEXT_PUBLIC_SQUARE_APP_ID
+  const appId =
+    process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID ??
+    process.env.NEXT_PUBLIC_SQUARE_APP_ID ??
+    ""
+  const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID ?? ""
   const isTest = process.env.NEXT_PUBLIC_PAYMENT_MODE === "test"
 
   // ── Load Square Web Payments SDK ───────────────────────────────────────────
   async function initCard() {
     if (!window.Square || !cardContainerRef.current) return
+
+    if (!appId || !locationId) {
+      setSdkError(
+        "Square credentials are missing. " +
+          "Set NEXT_PUBLIC_SQUARE_APPLICATION_ID and NEXT_PUBLIC_SQUARE_LOCATION_ID in .env.local and restart the server.",
+      )
+      return
+    }
+
     try {
       const payments = window.Square.payments(appId, locationId)
       const card = await payments.card()
