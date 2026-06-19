@@ -3,7 +3,7 @@
 
 import Link from "next/link"
 import { Package, Truck, CheckCircle, Clock, XCircle } from "lucide-react"
-import type { DbOrder } from "@/lib/orders/queries"
+import type { DbOrder } from "@/lib/orders/types"
 import { cn } from "@/lib/utils"
 
 interface OrdersListProps {

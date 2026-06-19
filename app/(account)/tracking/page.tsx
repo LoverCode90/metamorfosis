@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getUserOrder } from "@/lib/orders/queries"
 import { TrackingView } from "@/components/profile/tracking-view"
-import type { DbOrder } from "@/lib/orders/queries"
+import type { DbOrder } from "@/lib/orders/types"
 
 export const metadata = { title: "Track Order — Metamorfosis Beauty" }
 

@@ -3,8 +3,8 @@
 
 import { ArrowLeft, Check, MapPin, Package, Truck, XCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
-import type { DbOrder } from "@/lib/orders/queries"
-import { orderStatusToStageIndex } from "@/lib/orders/queries"
+import type { DbOrder } from "@/lib/orders/types"
+import { orderStatusToStageIndex } from "@/lib/orders/types"
 import { cn } from "@/lib/utils"
 
 const STAGES = [

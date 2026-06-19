@@ -12,7 +12,7 @@ const PROTECTED_ROUTES = ["/profile", "/checkout", "/cart/verify", "/admin"]
  */
 const AUTH_ROUTES = ["/login", "/signup"]
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const response = NextResponse.next({
     request: { headers: request.headers },
   })
