@@ -20,7 +20,7 @@ const STEP_ORDER: WizardStep[] = ["info", "upload", "summary"]
 
 export function VerifyPage() {
   const router = useRouter()
-  const { approveVerification } = useUser()
+  const { submitVerification } = useUser()
   const hasProItems = useCartStore((s) => s.hasProItems)
 
   const [step, setStep] = useState<WizardStep>("info")
@@ -57,12 +57,12 @@ export function VerifyPage() {
     }
     if (phase === "success") {
       const id = setTimeout(() => {
-        approveVerification()
+        void submitVerification()
         router.push(hasProItems ? "/checkout" : "/cart")
       }, 1600)
       return () => clearTimeout(id)
     }
-  }, [phase, approveVerification, router, hasProItems])
+  }, [phase, submitVerification, router, hasProItems])
 
   return (
     <div className="bg-muted/40 min-h-[calc(100dvh-4rem)]">

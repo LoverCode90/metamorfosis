@@ -99,18 +99,18 @@ export function ProfileDashboard() {
           <EditableField
             label="Display name"
             value={profile.name}
-            onSave={(v) => updateProfile({ name: v })}
+            onSave={(v) => updateProfile({ full_name: v })}
           />
           <EditableField
             label="Email address"
             value={profile.email}
             type="email"
-            onSave={(v) => updateProfile({ email: v })}
+            readOnly
           />
           <EditableField
-            label="Location"
+            label="Location / business name"
             value={profile.location}
-            onSave={(v) => updateProfile({ location: v })}
+            onSave={(v) => updateProfile({ business_name: v })}
           />
           <EditableField
             label="Bio"

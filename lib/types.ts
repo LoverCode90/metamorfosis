@@ -105,3 +105,29 @@ export interface UserProfile {
   avatar: string
   status: VerificationStatus
 }
+
+// ── Database row shapes (Supabase) ──────────────────────────────────────────────
+
+/** Verification state as stored in the DB `pro_verification_status` enum. */
+export type DbVerificationStatus =
+  | "not_applicable"
+  | "pending_review"
+  | "approved"
+  | "rejected"
+
+/**
+ * Subset of the `public.profiles` row that the storefront reads.
+ * Mirrors docs/00_Schema.sql section 3.1.
+ */
+export interface DbProfile {
+  id: string
+  email: string
+  full_name: string
+  phone_number: string | null
+  bio: string | null
+  role: UserRole
+  verification_status: DbVerificationStatus
+  business_name: string | null
+  created_at: string
+  updated_at: string
+}

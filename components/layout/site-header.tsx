@@ -8,8 +8,8 @@ import { Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCartStore } from "@/stores/cart"
 import { useWishlistStore } from "@/stores/wishlist"
-import { useProfileStore } from "@/stores/profile"
 import { useUiStore } from "@/stores/ui"
+import { useUser } from "@/hooks/use-user"
 import { MobileNav } from "./mobile-nav"
 
 const NAV_LINKS = [
@@ -23,7 +23,7 @@ export function SiteHeader() {
   const router = useRouter()
   const cartTotals = useCartStore((s) => s.totals)
   const wishlistCount = useWishlistStore((s) => s.items.length)
-  const profile = useProfileStore((s) => s.profile)
+  const { user, profile } = useUser()
   const { mobileNavOpen, openMobileNav, closeMobileNav } = useUiStore()
 
   useEffect(() => {
@@ -99,21 +99,23 @@ export function SiteHeader() {
             <ShoppingBag className="h-5 w-5" strokeWidth={1.75} />
           </HeaderIconButton>
 
-          <Link
-            href="/login"
-            className="border-border text-foreground hover:bg-muted hidden items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors sm:flex"
-          >
-            Sign in
-          </Link>
-
-          <HeaderIconButton
-            label="Profile"
-            onClick={() => router.push("/profile")}
-            active={pathname.startsWith("/profile")}
-            className="hidden sm:flex"
-          >
-            <User className="h-5 w-5" strokeWidth={1.75} />
-          </HeaderIconButton>
+          {user ? (
+            <HeaderIconButton
+              label="Profile"
+              onClick={() => router.push("/profile")}
+              active={pathname.startsWith("/profile")}
+              className="hidden sm:flex"
+            >
+              <User className="h-5 w-5" strokeWidth={1.75} />
+            </HeaderIconButton>
+          ) : (
+            <Link
+              href="/login"
+              className="border-border text-foreground hover:bg-muted hidden items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors sm:flex"
+            >
+              Sign in
+            </Link>
+          )}
 
           <button
             type="button"

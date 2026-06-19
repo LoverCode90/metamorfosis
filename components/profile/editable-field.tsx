@@ -9,12 +9,14 @@ export function EditableField({
   onSave,
   type = "text",
   multiline,
+  readOnly = false,
 }: {
   label: string
   value: string
-  onSave: (v: string) => void
+  onSave?: (v: string) => void
   type?: string
   multiline?: boolean
+  readOnly?: boolean
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
@@ -24,7 +26,7 @@ export function EditableField({
     setEditing(true)
   }
   function save() {
-    if (draft.trim()) onSave(draft.trim())
+    if (draft.trim()) onSave?.(draft.trim())
     setEditing(false)
   }
 
@@ -41,7 +43,7 @@ export function EditableField({
             </p>
           )}
         </div>
-        {!editing && (
+        {!editing && !readOnly && (
           <button
             type="button"
             onClick={start}
