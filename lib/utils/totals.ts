@@ -2,17 +2,17 @@ import type { CartItem, Totals } from "@/lib/types"
 
 export const TAX_RATE = 0.0975 // CA sales tax — rounded estimate; server uses Square's exact calc
 
-/** Per-region flat shipping rates in USD (legacy; Phase 6 replaces with Shippo). */
+/** Per-region flat shipping rates in cents (legacy; Phase 6 replaces with Shippo). */
 export const SHIPPING_TABLE: Record<string, number> = {
-  "United States": 7,
-  Canada: 12,
-  "United Kingdom": 14,
-  Australia: 18,
-  Germany: 14,
+  "United States": 700,
+  Canada: 1200,
+  "United Kingdom": 1400,
+  Australia: 1800,
+  Germany: 1400,
 }
 
 export function shippingFor(country: string): number {
-  return SHIPPING_TABLE[country] ?? 15
+  return SHIPPING_TABLE[country] ?? 1500
 }
 
 /** Free Standard Shipping threshold in cents. */
@@ -21,8 +21,8 @@ export const FREE_SHIPPING_THRESHOLD_CENTS = parseInt(
   10,
 )
 
-/** Professional discount per color product, in dollars. */
-export const PRO_DISCOUNT_PER_ITEM = 2
+/** Professional discount per color product, in cents. */
+export const PRO_DISCOUNT_PER_ITEM = 200
 
 const round2 = (n: number) => Math.round(n * 100) / 100
 
@@ -48,7 +48,7 @@ export function computeTotalsWithShipping(
   shippingCents: number,
 ): Totals {
   const base = computeTotals(items)
-  const shipping = shippingCents / 100
+  const shipping = shippingCents
   const total = round2(base.subtotal - base.discount + shipping + base.tax)
   return { ...base, shipping, total }
 }

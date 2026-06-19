@@ -19,7 +19,7 @@ function toProduct(card: CatalogCard): Product {
     name: card.nameEn,
     variant: card.categoriesHierarchy,
     image: card.imageUrl ?? "",
-    unitPrice: card.minPriceCents / 100,
+    unitPrice: card.minPriceCents,
     discountPerItem: 0,
     stock: card.totalStock,
     isProfessional: card.isProfessional,

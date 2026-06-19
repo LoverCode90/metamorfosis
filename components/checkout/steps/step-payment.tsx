@@ -173,7 +173,7 @@ export function StepPayment({
           <Lock className="h-4 w-4" strokeWidth={1.75} />
           {submitting
             ? "Processing…"
-            : `Place Order — ${formatUSD(totalCents / 100)}`}
+            : `Place Order — ${formatUSD(totalCents)}`}
         </button>
       </div>
 

@@ -85,7 +85,7 @@ export async function loadCartFromDb(userId: string): Promise<CartItem[]> {
         name: p?.name_en ?? v.name_en,
         variant: v.shade_number ?? v.size_label ?? v.name_en,
         image: v.image_url ?? p?.image_url ?? "",
-        unitPrice: v.price_cents / 100,
+        unitPrice: v.price_cents,
         discountPerItem: 0,
         stock: v.inventory_count,
         quantity: row.quantity,
@@ -163,16 +163,14 @@ export async function mergeGuestCart(
     if (existing) {
       await supabase
         .from("cart_items")
-        .update({ quantity: existing.quantity + item.quantity })
+        .update({ quantity: Math.max(existing.quantity, item.quantity) })
         .eq("id", existing.id)
     } else {
-      await supabase
-        .from("cart_items")
-        .insert({
-          cart_id: cartId,
-          variation_id: item.variationId,
-          quantity: item.quantity,
-        })
+      await supabase.from("cart_items").insert({
+        cart_id: cartId,
+        variation_id: item.variationId,
+        quantity: item.quantity,
+      })
     }
   }
 }
