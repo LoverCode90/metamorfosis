@@ -1,8 +1,10 @@
 "use client"
 
+import { useEffect, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { CheckCircle, Pencil } from "lucide-react"
 import { FloatingField } from "@/components/checkout/floating-field"
 import { US_STATES } from "@/lib/constants"
 import type { CheckoutAddress } from "@/lib/checkout/types"
@@ -26,24 +28,62 @@ type InfoFormValues = z.infer<typeof schema>
 
 interface StepInfoProps {
   hasNonReturnable: boolean
+  /** Initial values from the user's profile (name, email, phone) */
   defaultValues?: Partial<InfoFormValues>
+  /** Whether the user is authenticated — determines if we fetch saved address */
+  isAuthenticated: boolean
   onContinue: (data: CheckoutAddress, termsAccepted: boolean) => void
 }
 
 export function StepInfo({
   hasNonReturnable,
   defaultValues,
+  isAuthenticated,
   onContinue,
 }: StepInfoProps) {
+  const [savedAddress, setSavedAddress] = useState<CheckoutAddress | null>(null)
+  const [usingSaved, setUsingSaved] = useState(false)
+  const [loadingAddress, setLoadingAddress] = useState(isAuthenticated)
+  const fetchedRef = useRef(false)
+
   const {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
   } = useForm<InfoFormValues>({
     resolver: zodResolver(schema),
     defaultValues: { state: "", ...defaultValues },
   })
+
+  // Fetch saved default address once for authenticated users
+  useEffect(() => {
+    if (!isAuthenticated || fetchedRef.current) return
+    fetchedRef.current = true
+
+    fetch("/api/addresses/default")
+      .then((r) => r.json())
+      .then(({ address }: { address: CheckoutAddress | null }) => {
+        if (address) {
+          setSavedAddress(address)
+          setUsingSaved(true)
+          // Pre-fill the form with all saved fields
+          reset({
+            fullName: address.fullName,
+            email: address.email,
+            phone: address.phone,
+            streetLine1: address.streetLine1,
+            streetLine2: address.streetLine2,
+            city: address.city,
+            state: address.state,
+            zip: address.zip,
+          })
+        }
+        setLoadingAddress(false)
+      })
+      .catch(() => setLoadingAddress(false))
+  }, [isAuthenticated, reset])
 
   const termsAccepted = watch("termsAccepted")
 
@@ -65,105 +105,170 @@ export function StepInfo({
     )
   }
 
+  if (loadingAddress) {
+    return (
+      <div className="space-y-6">
+        <h2 className="text-foreground text-lg font-semibold">
+          Contact & Address
+        </h2>
+        <div className="space-y-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-muted h-12 animate-pulse rounded-md" />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
       <h2 className="text-foreground text-lg font-semibold">
         Contact & Address
       </h2>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FloatingField
-          label="Full name"
-          error={errors.fullName?.message}
-          required
-        >
-          <input
-            {...register("fullName")}
-            className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
-            placeholder="Full name"
-          />
-        </FloatingField>
-        <FloatingField label="Phone" error={errors.phone?.message} required>
-          <input
-            {...register("phone")}
-            type="tel"
-            className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
-            placeholder="Phone"
-          />
-        </FloatingField>
-      </div>
-
-      <FloatingField label="Email" error={errors.email?.message} required>
-        <input
-          {...register("email")}
-          type="email"
-          className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
-          placeholder="Email"
-        />
-      </FloatingField>
-
-      <FloatingField
-        label="Street address"
-        error={errors.streetLine1?.message}
-        required
-      >
-        <input
-          {...register("streetLine1")}
-          className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
-          placeholder="Street address"
-        />
-      </FloatingField>
-
-      <FloatingField
-        label="Apartment, suite, unit (optional)"
-        error={undefined}
-      >
-        <input
-          {...register("streetLine2")}
-          className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
-          placeholder="Apartment, suite, unit"
-        />
-      </FloatingField>
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="sm:col-span-1">
-          <FloatingField label="City" error={errors.city?.message} required>
-            <input
-              {...register("city")}
-              className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
-              placeholder="City"
+      {/* Saved address banner */}
+      {savedAddress && usingSaved && (
+        <div className="border-border bg-muted/40 flex items-start justify-between gap-3 rounded-lg border p-4">
+          <div className="flex items-start gap-3">
+            <CheckCircle
+              className="mt-0.5 h-4 w-4 shrink-0 text-green-500"
+              strokeWidth={1.75}
             />
-          </FloatingField>
-        </div>
-        <div>
-          <label className="text-muted-foreground mb-1 block text-xs font-medium">
-            State <span className="text-destructive">*</span>
-          </label>
-          <select
-            {...register("state")}
-            className="border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 py-2.5 text-sm outline-none"
+            <div>
+              <p className="text-foreground text-sm font-medium">
+                Using saved address
+              </p>
+              <p className="text-muted-foreground text-xs">
+                {savedAddress.streetLine1}
+                {savedAddress.streetLine2
+                  ? `, ${savedAddress.streetLine2}`
+                  : ""}
+                {" — "}
+                {savedAddress.city}, {savedAddress.state} {savedAddress.zip}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setUsingSaved(false)}
+            className="text-muted-foreground hover:text-foreground flex shrink-0 items-center gap-1.5 text-xs font-medium transition-colors"
           >
-            <option value="">Select state</option>
-            {US_STATES.map((s) => (
-              <option key={s.code} value={s.code}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-          {errors.state && (
-            <p className="text-destructive mt-1 text-xs">
-              {errors.state.message}
-            </p>
-          )}
+            <Pencil className="h-3 w-3" strokeWidth={2} />
+            Edit
+          </button>
         </div>
-        <div>
-          <FloatingField label="ZIP code" error={errors.zip?.message} required>
+      )}
+
+      {/* Form fields — always rendered so react-hook-form state is maintained */}
+      <div
+        className={
+          savedAddress && usingSaved ? "pointer-events-none opacity-50" : ""
+        }
+      >
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FloatingField
+            label="Full name"
+            error={errors.fullName?.message}
+            required
+          >
             <input
-              {...register("zip")}
+              {...register("fullName")}
               className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
-              placeholder="ZIP"
+              placeholder="Full name"
             />
           </FloatingField>
+          <FloatingField label="Phone" error={errors.phone?.message} required>
+            <input
+              {...register("phone")}
+              type="tel"
+              className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
+              placeholder="Phone"
+            />
+          </FloatingField>
+        </div>
+
+        <div className="mt-4">
+          <FloatingField label="Email" error={errors.email?.message} required>
+            <input
+              {...register("email")}
+              type="email"
+              className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
+              placeholder="Email"
+            />
+          </FloatingField>
+        </div>
+
+        <div className="mt-4">
+          <FloatingField
+            label="Street address"
+            error={errors.streetLine1?.message}
+            required
+          >
+            <input
+              {...register("streetLine1")}
+              className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
+              placeholder="Street address"
+            />
+          </FloatingField>
+        </div>
+
+        <div className="mt-4">
+          <FloatingField
+            label="Apartment, suite, unit (optional)"
+            error={undefined}
+          >
+            <input
+              {...register("streetLine2")}
+              className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
+              placeholder="Apartment, suite, unit"
+            />
+          </FloatingField>
+        </div>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
+          <div className="sm:col-span-1">
+            <FloatingField label="City" error={errors.city?.message} required>
+              <input
+                {...register("city")}
+                className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
+                placeholder="City"
+              />
+            </FloatingField>
+          </div>
+          <div>
+            <label className="text-muted-foreground mb-1 block text-xs font-medium">
+              State <span className="text-destructive">*</span>
+            </label>
+            <select
+              {...register("state")}
+              className="border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 py-2.5 text-sm outline-none"
+            >
+              <option value="">Select state</option>
+              {US_STATES.map((s) => (
+                <option key={s.code} value={s.code}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+            {errors.state && (
+              <p className="text-destructive mt-1 text-xs">
+                {errors.state.message}
+              </p>
+            )}
+          </div>
+          <div>
+            <FloatingField
+              label="ZIP code"
+              error={errors.zip?.message}
+              required
+            >
+              <input
+                {...register("zip")}
+                className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
+                placeholder="ZIP"
+              />
+            </FloatingField>
+          </div>
         </div>
       </div>
 

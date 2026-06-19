@@ -4,6 +4,18 @@ import {
   computeShippingCents,
 } from "@/lib/checkout/totals"
 import type { ShippingRate } from "@/lib/checkout/types"
+import type { CheckoutAddress } from "@/lib/checkout/types"
+import { packItems, type PackInput } from "@/lib/shippo/packing"
+import { fetchShippoRates } from "@/lib/shippo/rates"
+import { createAdminClient } from "@/lib/supabase/admin"
+import type { PackageClass } from "@/lib/square/attributes"
+
+interface ShippingRatesBody {
+  subtotalCents: number
+  address?: CheckoutAddress
+  /** cart_item variation UUIDs — server looks up packageClass + weightLb */
+  variationIds?: string[]
+}
 
 const FREE_THRESHOLD_CENTS = parseInt(
   process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD_CENTS ?? "7000",
@@ -12,12 +24,14 @@ const FREE_THRESHOLD_CENTS = parseInt(
 
 /**
  * POST /api/checkout/shipping-rates
- * Returns available shipping options based on the current subtotal.
- * Phase 5: fixed rates. Phase 6: replaced with real Shippo rates.
- * Body: { subtotalCents: number }
+ *
+ * When `address` and `variationIds` are provided: fetches live Shippo rates
+ * using the packing algorithm (with DB-resolved packageClass + weightLb).
+ * Falls back to fixed rates when Shippo is unavailable or address is absent.
  */
 export async function POST(request: NextRequest) {
-  const { subtotalCents } = (await request.json()) as { subtotalCents: number }
+  const body = (await request.json()) as ShippingRatesBody
+  const { subtotalCents, address, variationIds } = body
 
   if (typeof subtotalCents !== "number" || subtotalCents < 0) {
     return NextResponse.json(
@@ -26,8 +40,112 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  const isFreeStandard =
+    subtotalCents >= FREE_THRESHOLD_CENTS && subtotalCents > 0
+
+  // ── Attempt live Shippo rates ─────────────────────────────────────────────
+  if (
+    address &&
+    variationIds &&
+    variationIds.length > 0 &&
+    process.env.SHIPPO_API_KEY
+  ) {
+    try {
+      // Resolve packageClass + weightLb from the DB so client doesn't need them
+      const admin = createAdminClient()
+      const { data: varRows } = await admin
+        .from("product_variations")
+        .select(
+          "id, weight_lb, quantity:inventory_count, product_translations(package_class)",
+        )
+        .in("id", variationIds)
+
+      // Map variationId → pack input (quantity comes from the cart client,
+      // but for packing purposes we send 1 per variation ID present — the
+      // caller deduplicates; we'll receive one entry per unique variation)
+      const packInputs: PackInput[] = (
+        varRows as unknown as {
+          id: string
+          weight_lb: number | null
+          product_translations: { package_class: PackageClass } | null
+        }[]
+      ).map((row) => ({
+        packageClass: row.product_translations?.package_class ?? "small",
+        weightLb: row.weight_lb,
+        quantity: 1,
+      }))
+
+      const { parcels, oversized } = packItems(packInputs)
+
+      if (oversized) {
+        return NextResponse.json({
+          oversized: true,
+          rates: [],
+          message:
+            "One or more items require special handling. Please contact us to complete this order.",
+        })
+      }
+
+      const shippoRates = await fetchShippoRates(address, parcels)
+
+      const standardCents = isFreeStandard
+        ? 0
+        : (shippoRates.standardCents ?? SHIPPING_RATES_CENTS.standard)
+      const expressCents =
+        shippoRates.expressCents ?? SHIPPING_RATES_CENTS.express
+      const overnightCents =
+        shippoRates.overnightCents ?? SHIPPING_RATES_CENTS.overnight
+
+      const rates: ShippingRate[] = [
+        {
+          method: "standard",
+          label: "Standard Shipping",
+          description: "Tracked via USPS · 5–7 business days",
+          amountCents: standardCents,
+          display: isFreeStandard
+            ? "FREE"
+            : `$${(standardCents / 100).toFixed(2)}`,
+        },
+        {
+          method: "express",
+          label: "Express Shipping",
+          description: "2–3 business days",
+          amountCents: expressCents,
+          display: `$${(expressCents / 100).toFixed(2)}`,
+        },
+        {
+          method: "overnight",
+          label: "Overnight",
+          description: "Next business day",
+          amountCents: overnightCents,
+          display: `$${(overnightCents / 100).toFixed(2)}`,
+        },
+        {
+          method: "pickup",
+          label: "Pick Up in Store",
+          description: "Ontario, CA — free",
+          amountCents: 0,
+          display: "FREE",
+        },
+      ]
+
+      const freeThresholdNote =
+        !isFreeStandard && subtotalCents > 0
+          ? `Add $${((FREE_THRESHOLD_CENTS - subtotalCents) / 100).toFixed(2)} more for free standard shipping`
+          : undefined
+
+      return NextResponse.json({ rates, freeThresholdNote })
+    } catch (err) {
+      console.error(
+        "[shipping-rates] Shippo error — falling back to fixed rates:",
+        err,
+      )
+      // Fall through to fixed rates
+    }
+  }
+
+  // ── Fixed-rate fallback (no address yet, or Shippo unavailable) ───────────
   const standardCents = computeShippingCents("standard", subtotalCents)
-  const isFreeStandard = standardCents === 0 && subtotalCents > 0
 
   const rates: ShippingRate[] = [
     {

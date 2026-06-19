@@ -107,6 +107,8 @@ export function CheckoutClient() {
     return data
   }
 
+  // Profile-level defaults (name, email, phone from profile row).
+  // The saved address (street, city, etc.) is fetched inside StepInfo.
   const infoDefaults =
     user && dbProfile
       ? {
@@ -137,12 +139,17 @@ export function CheckoutClient() {
             <StepInfo
               hasNonReturnable={hasNonReturnable}
               defaultValues={infoDefaults}
+              isAuthenticated={!!user}
               onContinue={handleInfoContinue}
             />
           )}
-          {wizardStep === "shipping" && (
+          {wizardStep === "shipping" && address && (
             <StepShipping
               subtotalCents={Math.round(totals.subtotal * 100)}
+              address={address}
+              variationIds={items
+                .filter((i) => !i.unavailable && i.variationId)
+                .map((i) => i.variationId)}
               onContinue={handleShippingContinue}
               onBack={() => setWizardStep("info")}
             />

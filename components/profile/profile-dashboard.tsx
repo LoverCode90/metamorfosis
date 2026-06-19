@@ -26,9 +26,6 @@ export function ProfileDashboard() {
     submitVerification,
     savedAddress,
   } = useUser()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const order: any = null // Orders are now fetched from DB in Phase 5
-
   const checklist = [
     {
       id: "name",
@@ -130,7 +127,7 @@ export function ProfileDashboard() {
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <button
                 type="button"
-                onClick={() => router.push("/tracking")}
+                onClick={() => router.push("/orders")}
                 className="border-border bg-background hover:bg-muted flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors"
               >
                 <span className="bg-muted flex h-9 w-9 items-center justify-center rounded-lg">
@@ -140,13 +137,13 @@ export function ProfileDashboard() {
                   />
                 </span>
                 <span className="text-foreground text-sm font-semibold">
-                  Order Tracking
+                  My Orders
                 </span>
                 <span className="text-muted-foreground text-xs">
-                  {order ? `Latest: ${order.number}` : "No active orders yet"}
+                  View order history &amp; receipts
                 </span>
                 <span className="text-foreground mt-1 text-xs font-medium underline underline-offset-2">
-                  Track order
+                  View orders
                 </span>
               </button>
             </div>

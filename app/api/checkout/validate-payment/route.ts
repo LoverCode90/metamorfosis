@@ -9,6 +9,8 @@ import {
 } from "@/lib/checkout/discount"
 import { buildPriceSheet } from "@/lib/checkout/totals"
 import { clearDbCart } from "@/lib/cart/db"
+import { saveCheckoutAddress } from "@/lib/addresses/db"
+import { sendOrderConfirmation } from "@/lib/email/resend"
 import type { CheckoutPayload, PlaceOrderResponse } from "@/lib/checkout/types"
 import type { DbVerificationStatus, UserRole } from "@/lib/types"
 
@@ -277,6 +279,29 @@ export async function POST(
   if (user) {
     await clearDbCart(user.id)
   }
+
+  // ── Save shipping address for logged-in users ──────────────────────────────
+  if (user) {
+    saveCheckoutAddress(user.id, address).catch((err) =>
+      console.error("[validate-payment] Address save failed:", err),
+    )
+  }
+
+  // ── Send order confirmation email (fire-and-forget) ────────────────────────
+  const recipientEmail = user ? address.email : (guestEmail ?? address.email)
+  sendOrderConfirmation({
+    to: recipientEmail,
+    orderNumber,
+    address,
+    items: priceSheet.items.map((i) => ({
+      name: i.name,
+      quantity: i.quantity,
+      unitPriceCents: i.unitPriceCents,
+      discountCents: i.discountCents,
+    })),
+    priceSheet,
+    shippingMethod,
+  }).catch((err) => console.error("[validate-payment] Email send failed:", err))
 
   return NextResponse.json({
     ok: true,

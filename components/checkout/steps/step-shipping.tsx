@@ -1,23 +1,32 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { ArrowLeft, Check } from "lucide-react"
-import type { ShippingMethod, ShippingRate } from "@/lib/checkout/types"
+import { AlertCircle, ArrowLeft, Check } from "lucide-react"
+import type {
+  ShippingMethod,
+  ShippingRate,
+  CheckoutAddress,
+} from "@/lib/checkout/types"
 import { cn } from "@/lib/utils"
 
 interface StepShippingProps {
   subtotalCents: number
+  address: CheckoutAddress
+  variationIds: string[]
   onContinue: (method: ShippingMethod, amountCents: number) => void
   onBack: () => void
 }
 
 export function StepShipping({
   subtotalCents,
+  address,
+  variationIds,
   onContinue,
   onBack,
 }: StepShippingProps) {
   const [rates, setRates] = useState<ShippingRate[]>([])
   const [freeNote, setFreeNote] = useState<string | undefined>()
+  const [oversizedMsg, setOversizedMsg] = useState<string | undefined>()
   const [selected, setSelected] = useState<ShippingMethod>("standard")
   const [loading, setLoading] = useState(true)
 
@@ -26,13 +35,18 @@ export function StepShipping({
     fetch("/api/checkout/shipping-rates", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subtotalCents }),
+      body: JSON.stringify({ subtotalCents, address, variationIds }),
     })
       .then((r) => r.json())
-      .then(({ rates: r, freeThresholdNote }) => {
+      .then(({ rates: r, freeThresholdNote, oversized, message }) => {
         if (cancelled) return
-        setRates(r ?? [])
-        setFreeNote(freeThresholdNote)
+        if (oversized) {
+          setOversizedMsg(message as string)
+          setRates([])
+        } else {
+          setRates(r ?? [])
+          setFreeNote(freeThresholdNote)
+        }
         setLoading(false)
       })
       .catch((err) => {
@@ -44,6 +58,7 @@ export function StepShipping({
     return () => {
       cancelled = true
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subtotalCents])
 
   const selectedRate = rates.find((r) => r.method === selected)
@@ -57,6 +72,14 @@ export function StepShipping({
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="bg-muted h-16 animate-pulse rounded-lg" />
           ))}
+        </div>
+      ) : oversizedMsg ? (
+        <div className="border-destructive/30 bg-destructive/5 flex items-start gap-3 rounded-lg border p-4">
+          <AlertCircle
+            className="text-destructive mt-0.5 h-4 w-4 shrink-0"
+            strokeWidth={1.75}
+          />
+          <p className="text-foreground text-sm">{oversizedMsg}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -123,7 +146,7 @@ export function StepShipping({
         </button>
         <button
           type="button"
-          disabled={!selectedRate}
+          disabled={!selectedRate || !!oversizedMsg}
           onClick={() =>
             selectedRate && onContinue(selected, selectedRate.amountCents)
           }

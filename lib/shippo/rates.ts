@@ -1,0 +1,88 @@
+import "server-only"
+
+import { createShippoClient } from "./client"
+import type { Parcel } from "./packing"
+import type { CheckoutAddress } from "@/lib/checkout/types"
+
+export interface ShippoRates {
+  /** Amount in cents, or null if Shippo returned no rate for this service */
+  standardCents: number | null
+  expressCents: number | null
+  overnightCents: number | null
+}
+
+const FROM_ADDRESS = {
+  name: "Metamorfosis Beauty Supply",
+  street1: process.env.SHIPPO_FROM_STREET1 ?? "",
+  city: "Ontario",
+  state: "CA",
+  zip: "91761",
+  country: "US",
+  phone: process.env.SHIPPO_FROM_PHONE ?? "",
+}
+
+/**
+ * Service level token → our shipping method key.
+ * Shippo returns many carriers; we surface only USPS priority/express/overnight.
+ */
+const TOKEN_MAP: Record<string, keyof ShippoRates> = {
+  usps_priority: "standardCents",
+  usps_first: "standardCents",
+  usps_express: "expressCents",
+  usps_priority_express: "expressCents",
+  usps_overnight: "overnightCents",
+  usps_express_mail: "overnightCents",
+}
+
+/**
+ * Calls Shippo to retrieve live shipping rates.
+ *
+ * Runs `async: false` so the shipment response already contains rates.
+ * Returns null amounts for any service level Shippo didn't quote.
+ */
+export async function fetchShippoRates(
+  address: CheckoutAddress,
+  parcels: Parcel[],
+): Promise<ShippoRates> {
+  const shippo = createShippoClient()
+
+  const shipment = await shippo.shipments.create({
+    addressFrom: FROM_ADDRESS,
+    addressTo: {
+      name: address.fullName,
+      street1: address.streetLine1,
+      street2: address.streetLine2 || undefined,
+      city: address.city,
+      state: address.state,
+      zip: address.zip,
+      country: "US",
+      phone: address.phone,
+    },
+    parcels,
+    async: false,
+  })
+
+  const result: ShippoRates = {
+    standardCents: null,
+    expressCents: null,
+    overnightCents: null,
+  }
+
+  for (const rate of shipment.rates ?? []) {
+    const token = rate.servicelevel.token ?? ""
+    const key = TOKEN_MAP[token]
+    if (!key) continue
+
+    const dollars = parseFloat(rate.amount)
+    if (isNaN(dollars)) continue
+    const cents = Math.round(dollars * 100)
+
+    // Keep the cheapest match for each tier
+    const existing = result[key]
+    if (existing === null || cents < existing) {
+      result[key] = cents
+    }
+  }
+
+  return result
+}
