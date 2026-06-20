@@ -80,10 +80,8 @@ export function ProductCard({ product: card }: { product: CatalogCard }) {
           }
           aria-pressed={wishlisted}
           className={cn(
-            "absolute top-2.5 right-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur transition-colors",
-            wishlisted
-              ? "bg-foreground text-background"
-              : "bg-background/90 text-foreground hover:bg-muted shadow-sm",
+            "bg-background/90 hover:bg-muted absolute top-2.5 right-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full shadow-sm backdrop-blur transition-colors",
+            wishlisted ? "text-rose-500" : "text-foreground",
           )}
         >
           <Heart

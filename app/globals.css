@@ -25,7 +25,7 @@
 
   /* ── Accent palette ────────────────────────────────────────── */
   /* One dominant accent per page section. Never mix > 2 in one viewport. */
-  --accent-violet: oklch(0.68 0.18 290); /* primary brand accent */
+  --accent-violet: #560bad; /* primary brand accent */
   --accent-amber: oklch(0.78 0.15 75); /* warm highlights */
   --accent-emerald: oklch(0.72 0.14 160); /* success, pro discount */
   --accent-rose: oklch(0.7 0.18 15); /* destructive, alerts */

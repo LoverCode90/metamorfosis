@@ -6,9 +6,74 @@ import type { ActiveFilters } from "@/lib/catalog"
 import { formatUSD } from "@/lib/utils/format"
 import { cn } from "@/lib/utils"
 
+const CATEGORY_TREE: { parent: string; children: string[] }[] = [
+  {
+    parent: "Hair Care",
+    children: [
+      "Shampoos",
+      "Conditioners",
+      "Hair Masks",
+      "Intensive Treatments",
+      "Oils & Serums",
+    ],
+  },
+  {
+    parent: "Hair Color",
+    children: [
+      "Permanent Color",
+      "Semi & Demi-Permanent Color",
+      "Developers & Peroxides",
+      "Bleaches & Lighteners",
+      "Color Tools & Accessories",
+    ],
+  },
+  {
+    parent: "Hair Styling",
+    children: [
+      "Gels & Waxes",
+      "Hairsprays & Fixatives",
+      "Styling Creams",
+      "Heat Protectants",
+      "Styling Tools",
+    ],
+  },
+  {
+    parent: "Nails",
+    children: [
+      "Acrylics & Monomers",
+      "Gel & Nail Polish",
+      "Primers, Base & Top Coats",
+      "Treatments & Removers",
+      "Nail Tips & Extensions",
+      "Tools & Equipment",
+      "Salon Disposables & Practice",
+    ],
+  },
+  {
+    parent: "Makeup",
+    children: ["Face", "Eyes & Brows", "Lips", "Brushes & Tools"],
+  },
+  {
+    parent: "Lashes",
+    children: ["Eyelash Extensions", "Adhesives & Tools"],
+  },
+  {
+    parent: "Barber & Men's Grooming",
+    children: [
+      "Hair & Beard Styling",
+      "Shaving & Beard Care",
+      "Clippers, Trimmers & Blades",
+      "Barber Accessories & Apparel",
+    ],
+  },
+  {
+    parent: "Personal Care & Fragrances",
+    children: ["Fragrances"],
+  },
+]
+
 interface FiltersPanelProps {
   filters: ActiveFilters
-  categoryGroups: { parent: string; children: string[] }[]
   maxPrice: number
   onChange: (next: ActiveFilters) => void
   onClear: () => void
@@ -16,7 +81,6 @@ interface FiltersPanelProps {
 
 export function FiltersPanel({
   filters,
-  categoryGroups,
   maxPrice,
   onChange,
   onClear,
@@ -110,101 +174,99 @@ export function FiltersPanel({
       )}
 
       {/* Category accordion */}
-      {categoryGroups.length > 0 && (
-        <div>
-          <h3 className="text-foreground mb-3 text-xs font-semibold tracking-wide uppercase">
-            Category
-          </h3>
-          <ul className="flex flex-col gap-0.5">
-            {categoryGroups.map(({ parent, children }) => {
-              const isOpen = openParents.has(parent)
-              const someChildChecked = children.some((c) =>
-                filters.categories.includes(`${parent} > ${c}`),
-              )
+      <div>
+        <h3 className="text-foreground mb-3 text-xs font-semibold tracking-wide uppercase">
+          Category
+        </h3>
+        <ul className="flex flex-col gap-0.5">
+          {CATEGORY_TREE.map(({ parent, children }) => {
+            const isOpen = openParents.has(parent)
+            const someChildChecked = children.some((c) =>
+              filters.categories.includes(`${parent} > ${c}`),
+            )
 
-              return (
-                <li key={parent}>
-                  <button
-                    type="button"
-                    onClick={() => toggleParentOpen(parent)}
-                    className="hover:text-foreground flex w-full items-center justify-between rounded-md py-1.5 text-left text-sm transition-colors"
+            return (
+              <li key={parent}>
+                <button
+                  type="button"
+                  onClick={() => toggleParentOpen(parent)}
+                  className="hover:text-foreground flex w-full items-center justify-between rounded-md py-1.5 text-left text-sm transition-colors"
+                >
+                  <span
+                    className={cn(
+                      "font-medium",
+                      someChildChecked
+                        ? "text-accent-violet"
+                        : "text-muted-foreground",
+                    )}
                   >
-                    <span
-                      className={cn(
-                        "font-medium",
-                        someChildChecked
-                          ? "text-accent-violet"
-                          : "text-muted-foreground",
-                      )}
-                    >
-                      {parent}
-                    </span>
-                    <ChevronDown
-                      className={cn(
-                        "text-muted-foreground h-3.5 w-3.5 transition-transform duration-200",
-                        isOpen && "rotate-180",
-                      )}
-                      strokeWidth={1.75}
-                    />
-                  </button>
+                    {parent}
+                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "text-muted-foreground h-3.5 w-3.5 transition-transform duration-200",
+                      isOpen && "rotate-180",
+                    )}
+                    strokeWidth={1.75}
+                  />
+                </button>
 
-                  {isOpen && children.length > 0 && (
-                    <ul className="mt-0.5 ml-3 flex flex-col gap-0.5">
-                      {children.map((child) => {
-                        const key = `${parent} > ${child}`
-                        const checked = filters.categories.includes(key)
-                        return (
-                          <li key={child}>
-                            <button
-                              type="button"
-                              onClick={() => toggleCategory(key)}
-                              className="hover:text-foreground flex w-full items-center gap-2.5 rounded-md py-1.5 text-left text-sm transition-colors"
+                {isOpen && (
+                  <ul className="mt-0.5 ml-3 flex flex-col gap-0.5">
+                    {children.map((child) => {
+                      const key = `${parent} > ${child}`
+                      const checked = filters.categories.includes(key)
+                      return (
+                        <li key={child}>
+                          <button
+                            type="button"
+                            onClick={() => toggleCategory(key)}
+                            className="hover:text-foreground flex w-full items-center gap-2.5 rounded-md py-1.5 text-left text-sm transition-colors"
+                          >
+                            <span
+                              className={cn(
+                                "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
+                                checked
+                                  ? "border-accent-violet bg-accent-violet text-white"
+                                  : "border-border",
+                              )}
                             >
-                              <span
-                                className={cn(
-                                  "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
-                                  checked
-                                    ? "border-accent-violet bg-accent-violet text-white"
-                                    : "border-border",
-                                )}
-                              >
-                                {checked && (
-                                  <svg
-                                    viewBox="0 0 12 12"
-                                    className="h-3 w-3"
-                                    fill="none"
-                                  >
-                                    <path
-                                      d="M2.5 6.5l2.5 2.5 4.5-5"
-                                      stroke="currentColor"
-                                      strokeWidth="1.75"
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                    />
-                                  </svg>
-                                )}
-                              </span>
-                              <span
-                                className={cn(
-                                  checked
-                                    ? "text-accent-violet font-medium"
-                                    : "text-muted-foreground",
-                                )}
-                              >
-                                {child}
-                              </span>
-                            </button>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        </div>
-      )}
+                              {checked && (
+                                <svg
+                                  viewBox="0 0 12 12"
+                                  className="h-3 w-3"
+                                  fill="none"
+                                >
+                                  <path
+                                    d="M2.5 6.5l2.5 2.5 4.5-5"
+                                    stroke="currentColor"
+                                    strokeWidth="1.75"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              )}
+                            </span>
+                            <span
+                              className={cn(
+                                checked
+                                  ? "text-accent-violet font-medium"
+                                  : "text-muted-foreground",
+                              )}
+                            >
+                              {child}
+                            </span>
+                          </button>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      </div>
     </div>
   )
 }

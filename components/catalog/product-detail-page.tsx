@@ -126,7 +126,7 @@ export function ProductDetailPage({ product, related }: Props) {
         {/* ── Details ── */}
         <div className="flex flex-col gap-6">
           <div>
-            <p className="text-muted-foreground text-xs font-medium tracking-widest uppercase">
+            <p className="text-muted-foreground text-xs font-medium tracking-widest uppercase lg:text-sm">
               {product.categoriesHierarchy.split(" > ")[0]}
             </p>
             <h1 className="text-foreground mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
@@ -147,13 +147,15 @@ export function ProductDetailPage({ product, related }: Props) {
               {formatUSD(priceCents)}
             </span>
             {!product.isReturnable && (
-              <span className="text-muted-foreground text-xs">Final sale</span>
+              <span className="text-muted-foreground text-xs lg:text-sm">
+                Final sale
+              </span>
             )}
           </div>
 
           {/* Description — desktop only */}
           {product.descriptionEn && (
-            <p className="text-muted-foreground hidden text-sm leading-relaxed lg:block">
+            <p className="text-muted-foreground hidden text-sm leading-relaxed lg:block lg:text-base">
               {product.descriptionEn}
             </p>
           )}
@@ -198,7 +200,7 @@ export function ProductDetailPage({ product, related }: Props) {
                 href={product.colorChartPdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
+                className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors lg:text-sm"
               >
                 <FileText className="h-3.5 w-3.5" strokeWidth={1.75} />
                 View Chart
@@ -206,7 +208,7 @@ export function ProductDetailPage({ product, related }: Props) {
               <a
                 href={product.colorChartPdfUrl}
                 download
-                className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
+                className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors lg:text-sm"
               >
                 <Download className="h-3.5 w-3.5" strokeWidth={1.75} />
                 Download Chart
@@ -216,7 +218,7 @@ export function ProductDetailPage({ product, related }: Props) {
 
           {/* Color disclaimer */}
           {product.isColorProduct && (
-            <p className="text-muted-foreground bg-muted/50 rounded-lg px-4 py-3 text-xs leading-relaxed">
+            <p className="text-muted-foreground bg-muted/50 rounded-lg px-4 py-3 text-xs leading-relaxed lg:text-sm">
               Shades shown are a digital approximation. For accurate
               formulation, consult the printed chart or a licensed professional.
             </p>
@@ -279,10 +281,8 @@ export function ProductDetailPage({ product, related }: Props) {
               }
               aria-pressed={wishlisted}
               className={cn(
-                "border-border flex h-11 w-11 shrink-0 items-center justify-center rounded-md border transition-colors",
-                wishlisted
-                  ? "bg-foreground text-background border-foreground"
-                  : "text-foreground hover:bg-muted",
+                "border-border hover:bg-muted flex h-11 w-11 shrink-0 items-center justify-center rounded-md border transition-colors",
+                wishlisted ? "text-rose-500" : "text-foreground",
               )}
             >
               <Heart
@@ -295,7 +295,7 @@ export function ProductDetailPage({ product, related }: Props) {
 
           {/* Return policy note */}
           {!product.isReturnable && (
-            <p className="text-muted-foreground text-xs">
+            <p className="text-muted-foreground text-xs lg:text-sm">
               Chemical products (bleach, developer, permanent color) cannot be
               returned once shipped.
             </p>

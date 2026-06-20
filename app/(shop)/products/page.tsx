@@ -14,11 +14,5 @@ export default async function Products() {
     getFilterFacets(),
   ])
 
-  return (
-    <ProductsPage
-      products={products}
-      categoryGroups={facets.categoryGroups}
-      maxPrice={facets.maxPrice}
-    />
-  )
+  return <ProductsPage products={products} maxPrice={facets.maxPrice} />
 }
