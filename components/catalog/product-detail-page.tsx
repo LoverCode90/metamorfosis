@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import { useMemo, useState } from "react"
@@ -15,7 +14,6 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { formatUSD } from "@/lib/utils/format"
-import { squareImageUrl } from "@/lib/utils/square-image"
 import { cn } from "@/lib/utils"
 import {
   LOW_STOCK_THRESHOLD,
@@ -23,7 +21,7 @@ import {
   type CatalogVariation,
 } from "@/lib/catalog"
 import { useCart } from "@/hooks/use-cart"
-import { PlaceholderImage } from "@/components/shared/placeholder-image"
+import { ProductGallery } from "./product-gallery"
 import { ColorSwatches } from "./color-swatches"
 import type { CatalogCard } from "@/lib/catalog"
 import { ProductCard } from "./product-card"
@@ -43,16 +41,6 @@ export function ProductDetailPage({ product, related }: Props) {
   const [selectedVariationId, setSelectedVariationId] = useState(
     product.variations[0]?.id ?? "",
   )
-  // Gallery state: tracks both which variation is "active" and the selected thumb index.
-  // Storing the variationId alongside idx allows us to auto-reset to 0 when the
-  // variation changes without needing a separate useEffect.
-  const [galleryState, setGalleryState] = useState({
-    variationId: selectedVariationId,
-    idx: 0,
-  })
-  const galleryIdx =
-    galleryState.variationId === selectedVariationId ? galleryState.idx : 0
-
   const selectedVariation: CatalogVariation | undefined =
     product.variations.find((v) => v.id === selectedVariationId) ??
     product.variations[0]
@@ -79,8 +67,6 @@ export function ProductDetailPage({ product, related }: Props) {
     return parentImgs
   }, [selectedVariation, product.imageUrls, product.imageUrl])
 
-  const mainImgSrc = squareImageUrl(galleryImages[galleryIdx] ?? null, 1200)
-  // rawImageUrl is used for cart thumbnail — always the variation's own image
   const rawImageUrl = selectedVariation?.imageUrl ?? product.imageUrl ?? null
 
   function handleAdd() {
@@ -135,50 +121,11 @@ export function ProductDetailPage({ product, related }: Props) {
 
       <div className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-14">
         {/* ── Gallery ── */}
-        <div className="flex flex-col gap-3">
-          <div className="aspect-square overflow-hidden rounded-2xl">
-            {mainImgSrc ? (
-              <img
-                src={mainImgSrc}
-                alt={product.nameEn}
-                loading="eager"
-                className="h-full w-full object-cover transition-opacity duration-200"
-              />
-            ) : (
-              <PlaceholderImage className="h-full w-full rounded-2xl" />
-            )}
-          </div>
-
-          {galleryImages.length > 1 && (
-            <div className="flex [scrollbar-width:none] gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">
-              {galleryImages.map((url, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() =>
-                    setGalleryState({
-                      variationId: selectedVariationId,
-                      idx: i,
-                    })
-                  }
-                  aria-label={`Image ${i + 1}`}
-                  className={cn(
-                    "h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition-all duration-150",
-                    i === galleryIdx
-                      ? "border-accent-violet opacity-100"
-                      : "border-transparent opacity-60 hover:opacity-90",
-                  )}
-                >
-                  <img
-                    src={squareImageUrl(url, 160) ?? "/placeholder.svg"}
-                    alt={`${product.nameEn} ${i + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <ProductGallery
+          key={selectedVariationId}
+          imageUrls={galleryImages}
+          name={product.nameEn}
+        />
 
         {/* ── Details ── */}
         <div className="flex flex-col gap-6">

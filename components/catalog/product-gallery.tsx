@@ -2,35 +2,34 @@
 "use client"
 
 import { useState } from "react"
+import { squareImageUrl } from "@/lib/utils/square-image"
 import { cn } from "@/lib/utils"
 
 interface ProductGalleryProps {
-  image: string
+  imageUrls: string[]
   name: string
-  /** Optional badge text shown over the main image (e.g. "PROFESSIONAL"). */
   badge?: string
 }
 
-export function ProductGallery({ image, name, badge }: ProductGalleryProps) {
-  const [active, setActive] = useState(0)
-  // The catalog reuses a single image; we present it across framed thumbnails
-  // to communicate multiple angles without extra network requests.
-  const thumbs = [0, 1, 2, 3]
-
-  const objectClass = [
-    "object-cover",
-    "object-contain p-8",
-    "object-cover",
-    "object-contain p-12",
-  ]
+export function ProductGallery({
+  imageUrls,
+  name,
+  badge,
+}: ProductGalleryProps) {
+  const images = imageUrls.length > 0 ? imageUrls : ["/placeholder.svg"]
+  const [activeIdx, setActiveIdx] = useState(0)
+  const safeIdx = activeIdx < images.length ? activeIdx : 0
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <div className="border-border bg-muted relative aspect-square overflow-hidden rounded-2xl border">
         <img
-          src={image || "/placeholder.svg"}
+          src={
+            squareImageUrl(images[safeIdx] ?? null, 1200) ?? "/placeholder.svg"
+          }
           alt={name}
-          className={cn("h-full w-full", objectClass[active])}
+          loading="eager"
+          className="h-full w-full object-cover transition-opacity duration-200"
         />
         {badge && (
           <span className="bg-foreground text-background absolute top-4 left-4 rounded-full px-3 py-1 text-xs font-semibold tracking-wide uppercase">
@@ -39,29 +38,31 @@ export function ProductGallery({ image, name, badge }: ProductGalleryProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-4 gap-3">
-        {thumbs.map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setActive(t)}
-            aria-label={`View ${name} image ${t + 1}`}
-            className={cn(
-              "bg-muted aspect-square overflow-hidden rounded-xl border transition-colors",
-              active === t
-                ? "border-foreground"
-                : "border-border hover:border-foreground/40",
-            )}
-          >
-            <img
-              src={image || "/placeholder.svg"}
-              alt=""
-              aria-hidden="true"
-              className={cn("h-full w-full", objectClass[t])}
-            />
-          </button>
-        ))}
-      </div>
+      {images.length > 1 && (
+        <div className="flex [scrollbar-width:none] gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden">
+          {images.map((url, i) => (
+            <button
+              key={url}
+              type="button"
+              onClick={() => setActiveIdx(i)}
+              aria-label={`Ver imagen ${i + 1} de ${images.length}`}
+              aria-pressed={i === safeIdx}
+              className={cn(
+                "h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition-all duration-150",
+                i === safeIdx
+                  ? "border-accent-violet opacity-100"
+                  : "border-transparent opacity-60 hover:opacity-90",
+              )}
+            >
+              <img
+                src={squareImageUrl(url, 160) ?? "/placeholder.svg"}
+                alt={`${name} vista ${i + 1}`}
+                className="h-full w-full object-cover"
+              />
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
