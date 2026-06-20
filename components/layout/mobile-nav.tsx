@@ -121,7 +121,7 @@ export function MobileNav({
                       className={cn(
                         "block w-full rounded-md px-3 py-3 text-left text-sm transition-colors",
                         active
-                          ? "bg-muted text-foreground font-medium"
+                          ? "bg-accent-violet/10 text-accent-violet font-medium"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >

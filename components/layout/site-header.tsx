@@ -62,13 +62,13 @@ export function SiteHeader() {
                 className={cn(
                   "relative text-sm transition-colors",
                   active
-                    ? "text-foreground font-medium"
+                    ? "text-accent-violet font-medium"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {link.label}
                 {active && (
-                  <span className="bg-foreground absolute -bottom-[21px] left-0 h-px w-full" />
+                  <span className="bg-accent-violet absolute -bottom-[21px] left-0 h-px w-full" />
                 )}
               </Link>
             )

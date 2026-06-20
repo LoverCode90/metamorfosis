@@ -120,7 +120,7 @@ export function CartSummary({
           onClick={onCheckout}
           disabled={disabled}
           className={cn(
-            "bg-foreground text-background focus-visible:ring-ring mt-4 h-11 w-full rounded-md text-sm font-semibold transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:mt-5 sm:h-12",
+            "bg-accent-violet focus-visible:ring-ring mt-4 h-11 w-full rounded-md text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:mt-5 sm:h-12",
             disabled && "cursor-not-allowed opacity-40 hover:opacity-40",
           )}
         >

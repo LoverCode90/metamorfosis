@@ -118,80 +118,38 @@ export function FiltersPanel({
           <ul className="flex flex-col gap-0.5">
             {categoryGroups.map(({ parent, children }) => {
               const isOpen = openParents.has(parent)
-              const parentChecked = filters.categories.includes(parent)
               const someChildChecked = children.some((c) =>
                 filters.categories.includes(`${parent} > ${c}`),
               )
 
               return (
                 <li key={parent}>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => toggleCategory(parent)}
-                      className="hover:text-foreground flex flex-1 items-center gap-2.5 rounded-md py-1.5 text-left text-sm transition-colors"
+                  <button
+                    type="button"
+                    onClick={() => toggleParentOpen(parent)}
+                    className="hover:text-foreground flex w-full items-center justify-between rounded-md py-1.5 text-left text-sm transition-colors"
+                  >
+                    <span
+                      className={cn(
+                        "font-medium",
+                        someChildChecked
+                          ? "text-accent-violet"
+                          : "text-muted-foreground",
+                      )}
                     >
-                      <span
-                        className={cn(
-                          "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
-                          parentChecked
-                            ? "border-foreground bg-foreground text-background"
-                            : someChildChecked
-                              ? "border-foreground bg-foreground/20"
-                              : "border-border",
-                        )}
-                      >
-                        {parentChecked && (
-                          <svg
-                            viewBox="0 0 12 12"
-                            className="h-3 w-3"
-                            fill="none"
-                          >
-                            <path
-                              d="M2.5 6.5l2.5 2.5 4.5-5"
-                              stroke="currentColor"
-                              strokeWidth="1.75"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        )}
-                        {!parentChecked && someChildChecked && (
-                          <span className="bg-foreground block h-1.5 w-1.5 rounded-sm" />
-                        )}
-                      </span>
-                      <span
-                        className={cn(
-                          "font-medium",
-                          parentChecked || someChildChecked
-                            ? "text-foreground"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        {parent}
-                      </span>
-                    </button>
-
-                    {children.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => toggleParentOpen(parent)}
-                        aria-label={isOpen ? "Collapse" : "Expand"}
-                        className="text-muted-foreground hover:text-foreground flex h-7 w-7 shrink-0 items-center justify-center rounded transition-colors"
-                      >
-                        <ChevronDown
-                          className={cn(
-                            "h-3.5 w-3.5 transition-transform duration-200",
-                            isOpen && "rotate-180",
-                          )}
-                          strokeWidth={1.75}
-                        />
-                      </button>
-                    )}
-                  </div>
+                      {parent}
+                    </span>
+                    <ChevronDown
+                      className={cn(
+                        "text-muted-foreground h-3.5 w-3.5 transition-transform duration-200",
+                        isOpen && "rotate-180",
+                      )}
+                      strokeWidth={1.75}
+                    />
+                  </button>
 
                   {isOpen && children.length > 0 && (
-                    <ul className="mt-0.5 ml-6 flex flex-col gap-0.5">
+                    <ul className="mt-0.5 ml-3 flex flex-col gap-0.5">
                       {children.map((child) => {
                         const key = `${parent} > ${child}`
                         const checked = filters.categories.includes(key)
@@ -206,7 +164,7 @@ export function FiltersPanel({
                                 className={cn(
                                   "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
                                   checked
-                                    ? "border-foreground bg-foreground text-background"
+                                    ? "border-accent-violet bg-accent-violet text-white"
                                     : "border-border",
                                 )}
                               >
@@ -229,7 +187,7 @@ export function FiltersPanel({
                               <span
                                 className={cn(
                                   checked
-                                    ? "text-foreground"
+                                    ? "text-accent-violet font-medium"
                                     : "text-muted-foreground",
                                 )}
                               >

@@ -1,6 +1,5 @@
 "use client"
 
-import { Check } from "lucide-react"
 import type { CatalogVariation } from "@/lib/catalog"
 import { cn } from "@/lib/utils"
 
@@ -39,22 +38,16 @@ export function ColorSwatches({
               aria-pressed={isSelected}
               title={variation.shadeNumber ?? variation.nameEn}
               className={cn(
-                "ring-offset-background focus-visible:ring-ring relative flex h-9 w-9 items-center justify-center rounded-full ring-offset-2 transition-all focus-visible:ring-2 focus-visible:outline-none",
+                "ring-offset-background focus-visible:ring-ring relative flex h-8 w-8 items-center justify-center rounded-full ring-offset-2 transition-all focus-visible:ring-2 focus-visible:outline-none",
                 isSelected
-                  ? "ring-foreground ring-2"
+                  ? "ring-2 ring-white"
                   : "ring-border hover:ring-foreground/40 ring-1",
               )}
             >
               <span
-                className="h-7 w-7 rounded-full"
+                className="h-6 w-6 rounded-full"
                 style={{ backgroundColor: hex }}
               />
-              {isSelected && (
-                <Check
-                  className="text-background absolute h-4 w-4 mix-blend-difference"
-                  strokeWidth={3}
-                />
-              )}
             </button>
           )
         })}

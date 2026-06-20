@@ -188,7 +188,7 @@
   }
 
   body {
-    @apply bg-bg-base text-fg-primary font-sans antialiased;
+    @apply bg-bg-base text-fg-primary font-sans text-base antialiased;
   }
 
   /* Instrument Serif only for large display headings (§4.3) */

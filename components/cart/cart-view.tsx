@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { CartLineItem } from "./cart-line-item"
 import { CartSummary } from "./cart-summary"
-import { RelatedProducts } from "./related-products"
 import { VerifyGateModal } from "@/components/profile/verify-gate-modal"
 
 export function CartView() {
@@ -60,8 +59,6 @@ export function CartView() {
           </div>
         </div>
       )}
-
-      <RelatedProducts />
     </div>
   )
 }
@@ -81,7 +78,7 @@ function EmptyCart({ onShop }: { onShop: () => void }) {
       <button
         type="button"
         onClick={onShop}
-        className="bg-foreground text-background mt-6 h-11 rounded-md px-6 text-sm font-semibold transition-opacity hover:opacity-90"
+        className="bg-accent-violet mt-6 h-11 rounded-md px-6 text-sm font-semibold text-white transition-opacity hover:opacity-90"
       >
         Browse products
       </button>

@@ -32,7 +32,6 @@ export function ProfileDashboard() {
     dbProfile,
     updateProfile,
     verificationStatus,
-    submitVerification,
     savedAddress,
     saveAddress,
   } = useUser()
@@ -50,11 +49,6 @@ export function ProfileDashboard() {
       id: "name",
       label: "Add your name",
       done: profile.name.trim().length > 0,
-    },
-    {
-      id: "location",
-      label: "Set your location",
-      done: profile.location.trim().length > 0,
     },
     {
       id: "bio",
@@ -127,22 +121,13 @@ export function ProfileDashboard() {
             readOnly
           />
           <EditableField
-            label="Business name"
-            value={profile.location}
-            onSave={(v) => updateProfile({ business_name: v })}
-          />
-          <EditableField
             label="Bio"
             value={profile.bio}
             multiline
             onSave={(v) => updateProfile({ bio: v })}
           />
 
-          <VerificationPanel
-            status={verificationStatus}
-            email={profile.email}
-            onSubmit={submitVerification}
-          />
+          <VerificationPanel status={verificationStatus} />
 
           {/* Saved addresses */}
           <section className="border-border bg-card rounded-2xl border p-6">
@@ -225,7 +210,7 @@ export function ProfileDashboard() {
                       saveAddress(addrDraft)
                       setEditingAddress(false)
                     }}
-                    className="bg-foreground text-background h-9 rounded-md px-4 text-sm font-semibold transition-opacity hover:opacity-90"
+                    className="bg-accent-violet h-9 rounded-md px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90"
                   >
                     Save address
                   </button>
@@ -322,22 +307,23 @@ function RoleBadge({ role }: { role: UserRole }) {
     student: {
       label: "Student",
       icon: GraduationCap,
-      className: "border-blue-500/40 bg-blue-500/10 text-blue-500",
+      className:
+        "border-accent-violet/40 bg-accent-violet/10 text-accent-violet",
     },
     professional: {
       label: "Professional",
       icon: Star,
-      className: "border-amber-500/40 bg-amber-500/10 text-amber-500",
+      className: "border-accent-amber/40 bg-accent-amber/10 text-accent-amber",
     },
     salon_owner: {
       label: "Salon Owner",
       icon: Home,
-      className: "border-purple-500/40 bg-purple-500/10 text-purple-500",
+      className: "border-accent-amber/40 bg-accent-amber/10 text-accent-amber",
     },
     admin: {
       label: "Admin",
       icon: ShieldCheck,
-      className: "border-foreground bg-foreground text-background",
+      className: "border-accent-violet bg-accent-violet text-white",
     },
   }
   const { label, icon: Icon, className } = config[role]
@@ -365,17 +351,18 @@ function VerificationBadge({ status }: { status: VerificationStatus }) {
     pending: {
       label: "Verification pending",
       icon: Clock,
-      className: "border-foreground/30 bg-muted text-foreground",
+      className: "border-accent-amber/40 bg-accent-amber/10 text-accent-amber",
     },
     verified: {
       label: "Verified Professional",
       icon: BadgeCheck,
-      className: "border-foreground bg-foreground text-background",
+      className:
+        "border-accent-emerald/40 bg-accent-emerald/10 text-accent-emerald",
     },
     rejected: {
       label: "Rejected",
       icon: ShieldCheck,
-      className: "border-destructive text-destructive",
+      className: "border-destructive/40 bg-destructive/10 text-destructive",
     },
   }[status]
   const Icon = config.icon

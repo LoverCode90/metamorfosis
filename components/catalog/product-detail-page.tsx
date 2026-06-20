@@ -25,7 +25,6 @@ import {
 import { useCart } from "@/hooks/use-cart"
 import { PlaceholderImage } from "@/components/shared/placeholder-image"
 import { ColorSwatches } from "./color-swatches"
-import { ProductTabs } from "./product-tabs"
 import type { CatalogCard } from "@/lib/catalog"
 import { ProductCard } from "./product-card"
 
@@ -135,7 +134,7 @@ export function ProductDetailPage({ product, related }: Props) {
             </h1>
 
             {product.isProfessional && (
-              <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-400">
+              <span className="border-accent-amber/30 bg-accent-amber/10 text-accent-amber mt-3 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold">
                 <ShieldCheck className="h-3.5 w-3.5" />
                 Professional Only
               </span>
@@ -151,6 +150,13 @@ export function ProductDetailPage({ product, related }: Props) {
               <span className="text-muted-foreground text-xs">Final sale</span>
             )}
           </div>
+
+          {/* Description — desktop only */}
+          {product.descriptionEn && (
+            <p className="text-muted-foreground hidden text-sm leading-relaxed lg:block">
+              {product.descriptionEn}
+            </p>
+          )}
 
           {/* Color swatches */}
           {product.isColorProduct && colorVariations.length > 0 && (
@@ -195,7 +201,7 @@ export function ProductDetailPage({ product, related }: Props) {
                 className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
               >
                 <FileText className="h-3.5 w-3.5" strokeWidth={1.75} />
-                Open color chart
+                View Chart
               </a>
               <a
                 href={product.colorChartPdfUrl}
@@ -203,7 +209,7 @@ export function ProductDetailPage({ product, related }: Props) {
                 className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
               >
                 <Download className="h-3.5 w-3.5" strokeWidth={1.75} />
-                Download PDF
+                Download Chart
               </a>
             </div>
           )}
@@ -259,7 +265,7 @@ export function ProductDetailPage({ product, related }: Props) {
               type="button"
               onClick={handleAdd}
               disabled={outOfStock}
-              className="bg-foreground text-background focus-visible:ring-ring flex h-11 flex-1 items-center justify-center gap-2 rounded-md text-sm font-semibold transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              className="bg-accent-violet focus-visible:ring-ring flex h-11 flex-1 items-center justify-center gap-2 rounded-md text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />
               {outOfStock ? "Out of stock" : "Add to Bag"}
@@ -294,11 +300,15 @@ export function ProductDetailPage({ product, related }: Props) {
               returned once shipped.
             </p>
           )}
+
+          {/* Description — mobile only */}
+          {product.descriptionEn && (
+            <p className="text-muted-foreground text-sm leading-relaxed lg:hidden">
+              {product.descriptionEn}
+            </p>
+          )}
         </div>
       </div>
-
-      {/* Product tabs */}
-      <ProductTabs product={product} selectedVariation={selectedVariation} />
 
       {/* Related products */}
       {related.length > 0 && (
