@@ -15,7 +15,6 @@ import {
   ShieldCheck,
   Star,
   User,
-  X,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import type { SavedAddress, UserRole, VerificationStatus } from "@/lib/types"

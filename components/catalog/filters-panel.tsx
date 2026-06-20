@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { ChevronDown, Search } from "lucide-react"
 import type { ActiveFilters } from "@/lib/catalog"
 import { formatUSD } from "@/lib/utils/format"
@@ -87,10 +87,42 @@ export function FiltersPanel({
 }: FiltersPanelProps) {
   const [openParents, setOpenParents] = useState<Set<string>>(new Set())
 
+  // ── Debounced search ─────────────────────────────────────────────────────
+  const [localSearch, setLocalSearch] = useState(filters.search)
+
+  // "Shadow" of the parent's search used to detect external resets (e.g. Clear all)
+  const [lastParentSearch, setLastParentSearch] = useState(filters.search)
+  if (filters.search !== lastParentSearch) {
+    // Parent reset the search — sync local state during render (derived-state pattern)
+    setLastParentSearch(filters.search)
+    setLocalSearch(filters.search)
+  }
+
+  // Stable latest-value refs — updated in a layout effect (not during render)
+  const onChangeRef = useRef(onChange)
+  const filtersRef = useRef(filters)
+  useLayoutEffect(() => {
+    onChangeRef.current = onChange
+    filtersRef.current = filters
+  })
+
+  // Push debounced search value to parent
+  useEffect(() => {
+    const t = setTimeout(() => {
+      onChangeRef.current({ ...filtersRef.current, search: localSearch })
+    }, 400)
+    return () => clearTimeout(t)
+  }, [localSearch])
+  // ─────────────────────────────────────────────────────────────────────────
+
   function toggleParentOpen(parent: string) {
     setOpenParents((prev) => {
       const next = new Set(prev)
-      next.has(parent) ? next.delete(parent) : next.add(parent)
+      if (next.has(parent)) {
+        next.delete(parent)
+      } else {
+        next.add(parent)
+      }
       return next
     })
   }
@@ -133,10 +165,10 @@ export function FiltersPanel({
           />
           <input
             type="text"
-            value={filters.search}
-            onChange={(e) => onChange({ ...filters, search: e.target.value })}
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
             placeholder="Search products"
-            className="border-border bg-background text-foreground focus:border-foreground placeholder:text-muted-foreground h-10 w-full rounded-md border pr-3 pl-9 text-sm transition-colors outline-none"
+            className="border-border bg-background text-foreground focus:border-accent-violet placeholder:text-muted-foreground h-10 w-full rounded-md border pr-3 pl-9 text-sm transition-colors outline-none"
           />
         </label>
       </div>

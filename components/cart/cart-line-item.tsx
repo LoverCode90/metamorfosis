@@ -2,6 +2,7 @@
 "use client"
 
 import { AlertCircle, Heart, RotateCcw, Trash2, Truck } from "lucide-react"
+import Link from "next/link"
 import { formatUSD } from "@/lib/utils/format"
 import type { CartItem } from "@/lib/types"
 import { QtyStepper } from "@/components/shared/qty-stepper"
@@ -31,9 +32,12 @@ export function CartLineItem({ item }: { item: CartItem }) {
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-start justify-between gap-2 sm:gap-3">
             <div className="min-w-0">
-              <h3 className="text-foreground truncate text-sm font-semibold">
+              <Link
+                href={`/products/${item.id}`}
+                className="text-foreground hover:text-accent-violet truncate text-sm font-semibold transition-colors"
+              >
                 {item.name}
-              </h3>
+              </Link>
               <p className="text-muted-foreground mt-0.5 truncate text-xs">
                 {item.variant}
               </p>

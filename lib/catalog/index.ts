@@ -21,13 +21,24 @@ export function filterCatalogCards(
   const q = f.search.trim().toLowerCase()
   return cards.filter((p) => {
     if (q && !p.nameEn.toLowerCase().includes(q)) return false
-    if (
-      f.categories.length > 0 &&
-      !f.categories.some((cat) =>
-        p.categoriesHierarchy.toLowerCase().startsWith(cat.toLowerCase()),
-      )
-    )
-      return false
+    if (f.categories.length > 0) {
+      const hier = p.categoriesHierarchy.toLowerCase()
+      const matches = f.categories.some((cat) => {
+        const catL = cat.toLowerCase()
+        // 1. Exact prefix match (e.g. DB stores "Hair Care > Shampoos…")
+        if (hier.startsWith(catL)) return true
+        // 2. Substring match — handles deeper nesting or reordered paths
+        if (hier.includes(catL)) return true
+        // 3. Leaf-word match — fallback when Square names differ slightly
+        //    e.g. filter "Hair Care > Shampoos" → leaf "shampoos"
+        const leaf = catL.split(" > ").pop()?.trim() ?? catL
+        return (
+          leaf.length >= 3 &&
+          hier.split(" > ").some((seg) => seg.trim().includes(leaf))
+        )
+      })
+      if (!matches) return false
+    }
     if (Number.isFinite(f.maxPrice) && p.minPriceCents > f.maxPrice)
       return false
     return true

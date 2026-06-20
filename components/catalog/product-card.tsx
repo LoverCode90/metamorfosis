@@ -39,8 +39,9 @@ export function ProductCard({ product: card }: { product: CatalogCard }) {
 
   const badge = card.isProfessional
     ? {
-        label: "Professional",
-        className: "bg-background text-foreground ring-1 ring-border",
+        label: "Pro",
+        className:
+          "border border-accent-amber/40 bg-accent-amber/10 text-accent-amber",
       }
     : null
 
@@ -80,8 +81,10 @@ export function ProductCard({ product: card }: { product: CatalogCard }) {
           }
           aria-pressed={wishlisted}
           className={cn(
-            "bg-background/90 hover:bg-muted absolute top-2.5 right-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full shadow-sm backdrop-blur transition-colors",
-            wishlisted ? "text-rose-500" : "text-foreground",
+            "absolute top-2.5 right-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur transition-colors",
+            wishlisted
+              ? "bg-foreground text-background"
+              : "bg-background/90 text-foreground hover:bg-muted shadow-sm",
           )}
         >
           <Heart
