@@ -148,6 +148,8 @@ export async function POST(request: NextRequest) {
       blocked_until: null,
       resend_count: 0,
       resend_window_start: new Date().toISOString(),
+      resend_block_count: 0,
+      resend_blocked_until: null,
       ip,
     },
     { onConflict: "email" },

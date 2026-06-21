@@ -27,6 +27,11 @@ import {
   type VerifyCodeData,
 } from "./templates/verify-code"
 import {
+  buildPasswordResetHtml,
+  buildPasswordResetText,
+  type PasswordResetData,
+} from "./templates/password-reset"
+import {
   buildWelcomeHtml,
   buildWelcomeText,
   type WelcomeData,
@@ -62,6 +67,27 @@ export async function sendVerificationCode(
     subject: `${data.code} is your Metamorfosis verification code`,
     html: buildVerifyCodeHtml(data),
     text: buildVerifyCodeText(data),
+  })
+  if (error) throw new Error(`Resend error: ${JSON.stringify(error)}`)
+}
+
+export async function sendPasswordReset(
+  data: PasswordResetData,
+): Promise<void> {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn(
+      "[email] RESEND_API_KEY not set — skipping password reset email",
+    )
+    return
+  }
+  const resend = getResend()
+  const { error } = await resend.emails.send({
+    from: FROM,
+    replyTo: REPLY_TO,
+    to: data.to,
+    subject: "Reset your Metamorfosis Beauty password",
+    html: buildPasswordResetHtml(data),
+    text: buildPasswordResetText(data),
   })
   if (error) throw new Error(`Resend error: ${JSON.stringify(error)}`)
 }
