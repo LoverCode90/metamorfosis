@@ -102,7 +102,7 @@ export async function sendWelcomeEmail(data: WelcomeData): Promise<void> {
     from: FROM,
     replyTo: REPLY_TO,
     to: data.to,
-    subject: "Welcome to Metamorfosis Beauty 🎉",
+    subject: "Welcome to Metamorfosis Beauty 🎉 ¡Te damos la bienvenida!",
     html: buildWelcomeHtml(data),
     text: buildWelcomeText(data),
   })
