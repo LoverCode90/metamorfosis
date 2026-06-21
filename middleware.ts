@@ -2,16 +2,23 @@ import { type NextRequest, NextResponse } from "next/server"
 import { createServerClient } from "@supabase/ssr"
 
 /**
- * Routes that require a signed-in user.
- * Middleware will redirect to /login?next=<path> when the session is absent.
+ * Protected routes matched by an exact path comparison.
+ * These have no sub-routes, so a prefix match would wrongly capture siblings
+ * (e.g. "/verify" must NOT match the public "/verify-email" auth page).
  */
-const PROTECTED_ROUTES = [
-  "/profile",
+const EXACT_PROTECTED = [
   "/verify",
-  "/checkout",
   "/cart/verify",
-  "/admin",
+  "/orders",
+  "/tracking",
+  "/wishlist",
 ]
+
+/**
+ * Protected routes matched by prefix, because they own nested paths
+ * (e.g. "/admin/products", "/checkout/payment").
+ */
+const PREFIX_PROTECTED = ["/profile", "/checkout", "/admin"]
 
 /**
  * Routes that authenticated users should be redirected away from.
@@ -50,9 +57,9 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  const isProtected = PROTECTED_ROUTES.some((route) =>
-    pathname.startsWith(route),
-  )
+  const isProtected =
+    EXACT_PROTECTED.some((route) => pathname === route) ||
+    PREFIX_PROTECTED.some((route) => pathname.startsWith(route))
   const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route))
 
   if (isProtected && !user) {
