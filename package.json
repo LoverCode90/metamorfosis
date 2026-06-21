@@ -28,6 +28,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "deepl-node": "^1.27.0",
+    "disposable-email-domains": "^1.0.62",
     "isomorphic-dompurify": "^3.17.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.16.0",

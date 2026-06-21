@@ -150,6 +150,7 @@ export interface DbProfile {
   school_name: string | null
   graduation_date: string | null
   document_url: string | null
+  document_hash: string | null
   expiration_date: string | null
   rejection_reason: string | null
   created_at: string

@@ -229,6 +229,20 @@ export function ProfileDashboard() {
           </section>
 
           <section className="border-border bg-card rounded-2xl border p-6">
+            <h3 className="text-foreground mb-4 text-sm font-semibold">
+              Account
+            </h3>
+            <form action="/api/auth/signout" method="POST">
+              <button
+                type="submit"
+                className="border-border text-foreground hover:bg-muted flex h-9 items-center gap-1.5 rounded-md border px-4 text-sm font-medium transition-colors"
+              >
+                Sign out
+              </button>
+            </form>
+          </section>
+
+          <section className="border-border bg-card rounded-2xl border p-6">
             <h3 className="text-foreground text-sm font-semibold">Activity</h3>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <button

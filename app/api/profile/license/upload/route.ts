@@ -1,3 +1,4 @@
+import { createHash } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -168,6 +169,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const storagePath = `${user.id}/license.${ext}`
   const fileBuffer = Buffer.from(await file.arrayBuffer())
 
+  // ── Document hash duplicate check ─────────────────────────────────────────
+  const documentHash = createHash("sha256").update(fileBuffer).digest("hex")
+
+  const { data: duplicateRow } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("document_hash", documentHash)
+    .neq("id", user.id)
+    .maybeSingle()
+
+  if (duplicateRow) {
+    return NextResponse.json(
+      {
+        error:
+          "This document has already been submitted by another account. Contact support if you believe this is an error.",
+      },
+      { status: 400 },
+    )
+  }
+
   const { error: uploadError } = await admin.storage
     .from("license-verification")
     .upload(storagePath, fileBuffer, {
@@ -183,11 +204,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     )
   }
 
-  // ── Save document path + form data to profile ─────────────────────────────
+  // ── Save document path, hash, and form data to profile ───────────────────
   await admin
     .from("profiles")
     .update({
       document_url: storagePath,
+      document_hash: documentHash,
       license_number: licenseNumber,
       ...(businessName ? { business_name: businessName } : {}),
       verification_status: "pending_review",
