@@ -11,6 +11,7 @@ import { buildPriceSheet } from "@/lib/checkout/totals"
 import { clearDbCart } from "@/lib/cart/db"
 import { saveCheckoutAddress } from "@/lib/addresses/db"
 import { sendOrderConfirmation } from "@/lib/email/resend"
+import { paymentLimiter } from "@/lib/rate-limit"
 import type { CheckoutPayload, PlaceOrderResponse } from "@/lib/checkout/types"
 import type { DbVerificationStatus, UserRole } from "@/lib/types"
 
@@ -29,6 +30,21 @@ import type { DbVerificationStatus, UserRole } from "@/lib/types"
 export async function POST(
   request: NextRequest,
 ): Promise<NextResponse<PlaceOrderResponse>> {
+  // ── Rate limit (also guards the order-confirmation email + card-testing) ──
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anonymous"
+  const { success: withinLimit } = await paymentLimiter.limit(`payment:${ip}`)
+  if (!withinLimit) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Too many attempts. Please wait a moment and try again.",
+        code: "RATE_LIMITED",
+      },
+      { status: 429 },
+    )
+  }
+
   const payload = (await request.json()) as CheckoutPayload &
     Record<string, unknown>
 

@@ -227,5 +227,5 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     name: pending.full_name.split(" ")[0],
   }).catch((err) => console.error("[verify-email] welcome email failed:", err))
 
-  return NextResponse.json({ ok: true, redirect: "/profile" }, { status: 200 })
+  return NextResponse.json({ ok: true, redirect: "/" }, { status: 200 })
 }

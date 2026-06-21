@@ -70,6 +70,7 @@ export interface PlaceOrderError {
     | "PAYMENT_FAILED"
     | "UNAUTHORIZED"
     | "TURNSTILE"
+    | "RATE_LIMITED"
   item?: string
   available?: number
 }

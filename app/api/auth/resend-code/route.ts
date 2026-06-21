@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { ResendCodeSchema } from "@/lib/validation/schemas"
 import { sendVerificationCode } from "@/lib/email/resend"
+import { evaluateEmailLimit } from "@/lib/auth/email-rate-limit"
 
-const MAX_RESENDS_PER_HOUR = 3
 const CODE_EXPIRY_MINUTES = 10
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -50,6 +50,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       full_name: string
       resend_count: number
       resend_window_start: string
+      resend_block_count: number
+      resend_blocked_until: string | null
     }>()
 
   if (!pending) {
@@ -61,30 +63,50 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     )
   }
 
-  // ── Resend rate limit: max 3 per hour per email ───────────────────────────
-  const windowStart = new Date(pending.resend_window_start)
-  const hourAgo = new Date(Date.now() - 60 * 60 * 1000)
+  // ── Resend rate limit: 3/hour, 20-min block, ban after 2 blocks ───────────
+  const decision = evaluateEmailLimit({
+    attemptCount: pending.resend_count,
+    blockCount: pending.resend_block_count,
+    blockedUntil: pending.resend_blocked_until,
+    windowStart: pending.resend_window_start,
+  })
 
-  let resendCount = pending.resend_count
-  let newWindowStart = pending.resend_window_start
-
-  if (windowStart < hourAgo) {
-    // Window expired — reset
-    resendCount = 0
-    newWindowStart = new Date().toISOString()
-  }
-
-  if (resendCount >= MAX_RESENDS_PER_HOUR) {
+  if (decision.action === "ban") {
+    await admin.from("banned_emails").insert({
+      email,
+      reason: "too_many_resend_requests",
+    })
+    await admin.from("pending_signups").delete().eq("email", email)
     return NextResponse.json(
       {
         error:
-          "Too many resend requests. Please wait up to 1 hour before requesting another code.",
+          "This email has been blocked due to too many requests. Contact support.",
+      },
+      { status: 403 },
+    )
+  }
+
+  if (decision.action === "cooldown") {
+    if (decision.next) {
+      await admin
+        .from("pending_signups")
+        .update({
+          resend_count: decision.next.attemptCount,
+          resend_block_count: decision.next.blockCount,
+          resend_blocked_until: decision.next.blockedUntil,
+          resend_window_start: decision.next.windowStart,
+        })
+        .eq("email", email)
+    }
+    return NextResponse.json(
+      {
+        error: `Too many resend requests. Try again in ${decision.retryAfterMinutes} minute${decision.retryAfterMinutes !== 1 ? "s" : ""}.`,
       },
       { status: 429 },
     )
   }
 
-  // ── Generate fresh code ───────────────────────────────────────────────────
+  // ── Allowed: generate fresh code and persist the send ─────────────────────
   const code = String(randomInt(1000, 10000)).padStart(4, "0")
   const codeHash = createHash("sha256").update(code).digest("hex")
   const expiresAt = new Date(
@@ -98,8 +120,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       expires_at: expiresAt,
       attempt_count: 0,
       blocked_until: null,
-      resend_count: resendCount + 1,
-      resend_window_start: newWindowStart,
+      resend_count: decision.next.attemptCount,
+      resend_block_count: decision.next.blockCount,
+      resend_blocked_until: decision.next.blockedUntil,
+      resend_window_start: decision.next.windowStart,
     })
     .eq("email", email)
 
