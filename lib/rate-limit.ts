@@ -97,3 +97,9 @@ export const paymentLimiter = buildLimiter(3, 60)
 
 /** 5 shipping-rate requests per minute per IP. */
 export const shippingRatesLimiter = buildLimiter(5, 60)
+
+/** 5 signup attempts per 15 minutes per IP. */
+export const signupLimiter = buildLimiter(5, 900)
+
+/** 10 code-verification attempts per 10 minutes per IP (DB tracks per-email). */
+export const verifyCodeLimiter = buildLimiter(10, 600)

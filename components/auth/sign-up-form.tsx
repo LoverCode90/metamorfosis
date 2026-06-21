@@ -35,8 +35,12 @@ export function SignUpForm() {
       return
     }
 
+    // Temporarily store credentials so the verify-email page can complete signup
+    sessionStorage.setItem("signup_email", data.email)
+    sessionStorage.setItem("signup_password", data.password)
+
     setSuccess(true)
-    router.push("/login?signup=confirm")
+    router.push("/verify-email")
   }
 
   if (success) {

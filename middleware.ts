@@ -16,7 +16,7 @@ const PROTECTED_ROUTES = [
 /**
  * Routes that authenticated users should be redirected away from.
  */
-const AUTH_ROUTES = ["/login", "/signup"]
+const AUTH_ROUTES = ["/login", "/signup", "/verify-email"]
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({

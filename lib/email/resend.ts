@@ -21,6 +21,11 @@ import {
   buildVerificationRejectedText,
   type VerificationRejectedData,
 } from "./templates/verification-rejected"
+import {
+  buildVerifyCodeHtml,
+  buildVerifyCodeText,
+  type VerifyCodeData,
+} from "./templates/verify-code"
 
 let _resend: Resend | null = null
 
@@ -32,8 +37,29 @@ function getResend(): Resend {
   return _resend
 }
 
-const FROM =
-  process.env.EMAIL_FROM ?? "Metamorfosis Beauty <orders@metamorfosis.beauty>"
+const FROM = "Metamorfosis <no-reply@metamorfosisllc.com>"
+const REPLY_TO = "hello@metamorfosisllc.com"
+
+export async function sendVerificationCode(
+  data: VerifyCodeData,
+): Promise<void> {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn(
+      "[email] RESEND_API_KEY not set — skipping verification code email",
+    )
+    return
+  }
+  const resend = getResend()
+  const { error } = await resend.emails.send({
+    from: FROM,
+    replyTo: REPLY_TO,
+    to: data.to,
+    subject: `${data.code} is your Metamorfosis verification code`,
+    html: buildVerifyCodeHtml(data),
+    text: buildVerifyCodeText(data),
+  })
+  if (error) throw new Error(`Resend error: ${JSON.stringify(error)}`)
+}
 
 export async function sendOrderConfirmation(
   data: OrderConfirmationData,
@@ -46,6 +72,7 @@ export async function sendOrderConfirmation(
   const resend = getResend()
   const { error } = await resend.emails.send({
     from: FROM,
+    replyTo: REPLY_TO,
     to: data.to,
     subject: `Your order ${data.orderNumber} is confirmed — Metamorfosis Beauty`,
     html: buildOrderConfirmationHtml(data),
@@ -69,6 +96,7 @@ export async function sendVerificationPending(
   const resend = getResend()
   const { error } = await resend.emails.send({
     from: FROM,
+    replyTo: REPLY_TO,
     to: data.to,
     subject: "Your document is under review — Metamorfosis Beauty",
     html: buildVerificationPendingHtml(data),
@@ -89,6 +117,7 @@ export async function sendVerificationApproved(
   const resend = getResend()
   const { error } = await resend.emails.send({
     from: FROM,
+    replyTo: REPLY_TO,
     to: data.to,
     subject: "Your license is verified — Professional access unlocked",
     html: buildVerificationApprovedHtml(data),
@@ -109,6 +138,7 @@ export async function sendVerificationRejected(
   const resend = getResend()
   const { error } = await resend.emails.send({
     from: FROM,
+    replyTo: REPLY_TO,
     to: data.to,
     subject: "Verification unsuccessful — Action required",
     html: buildVerificationRejectedHtml(data),

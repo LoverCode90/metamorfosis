@@ -6,7 +6,6 @@ import { useState } from "react"
 import {
   BadgeCheck,
   Check,
-  Clock,
   GraduationCap,
   Home,
   MapPin,
@@ -93,8 +92,10 @@ export function ProfileDashboard() {
                 <h2 className="text-foreground text-lg font-semibold">
                   {profile.name}
                 </h2>
-                <VerificationBadge status={verificationStatus} />
-                {dbProfile?.role && <RoleBadge role={dbProfile.role} />}
+                <ProfileBadges
+                  role={dbProfile?.role ?? "standard_customer"}
+                  verificationStatus={verificationStatus}
+                />
               </div>
               <p className="text-muted-foreground mt-0.5 text-sm">
                 {profile.email}
@@ -229,20 +230,6 @@ export function ProfileDashboard() {
           </section>
 
           <section className="border-border bg-card rounded-2xl border p-6">
-            <h3 className="text-foreground mb-4 text-sm font-semibold">
-              Account
-            </h3>
-            <form action="/api/auth/signout" method="POST">
-              <button
-                type="submit"
-                className="border-border text-foreground hover:bg-muted flex h-9 items-center gap-1.5 rounded-md border px-4 text-sm font-medium transition-colors"
-              >
-                Sign out
-              </button>
-            </form>
-          </section>
-
-          <section className="border-border bg-card rounded-2xl border p-6">
             <h3 className="text-foreground text-sm font-semibold">Activity</h3>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <button
@@ -267,6 +254,20 @@ export function ProfileDashboard() {
                 </span>
               </button>
             </div>
+          </section>
+
+          <section className="border-border bg-card rounded-2xl border p-6">
+            <h3 className="text-foreground mb-4 text-sm font-semibold">
+              Account
+            </h3>
+            <form action="/api/auth/signout" method="POST">
+              <button
+                type="submit"
+                className="border-border text-destructive hover:bg-destructive/10 flex h-9 items-center gap-1.5 rounded-md border px-4 text-sm font-medium transition-colors"
+              >
+                Sign out
+              </button>
+            </form>
           </section>
         </div>
 
@@ -310,40 +311,79 @@ export function ProfileDashboard() {
   )
 }
 
-function RoleBadge({ role }: { role: UserRole }) {
-  const config: Record<
-    UserRole,
-    { label: string; icon: React.ElementType; className: string }
-  > = {
-    standard_customer: {
-      label: "Standard",
-      icon: User,
-      className: "border-border text-muted-foreground",
-    },
-    student: {
-      label: "Student",
-      icon: GraduationCap,
-      className:
-        "border-accent-violet/40 bg-accent-violet/10 text-accent-violet",
-    },
-    professional: {
-      label: "Professional",
-      icon: Star,
-      className: "border-accent-amber/40 bg-accent-amber/10 text-accent-amber",
-    },
-    salon_owner: {
-      label: "Salon Owner",
-      icon: Home,
-      className: "border-accent-amber/40 bg-accent-amber/10 text-accent-amber",
-    },
-    admin: {
-      label: "Admin",
-      icon: ShieldCheck,
-      className: "border-accent-violet bg-accent-violet text-white",
-    },
+/**
+ * Single source of truth for profile badges.
+ *
+ * Rules:
+ *  - admin                                    → Admin chip only
+ *  - professional|student|salon_owner+verified → role chip + Verified chip
+ *  - everything else                           → Standard chip
+ */
+function ProfileBadges({
+  role,
+  verificationStatus,
+}: {
+  role: UserRole
+  verificationStatus: VerificationStatus
+}) {
+  if (role === "admin") {
+    return (
+      <Chip
+        label="Admin"
+        icon={ShieldCheck}
+        className="border-accent-violet bg-accent-violet text-white"
+      />
+    )
   }
-  const { label, icon: Icon, className } = config[role]
 
+  const isPro =
+    role === "professional" || role === "student" || role === "salon_owner"
+
+  if (isPro && verificationStatus === "verified") {
+    const roleConfig: Record<
+      "professional" | "student" | "salon_owner",
+      { label: string; icon: React.ElementType }
+    > = {
+      professional: { label: "Professional", icon: Star },
+      student: { label: "Student", icon: GraduationCap },
+      salon_owner: { label: "Salon Owner", icon: Home },
+    }
+    const { label, icon } =
+      roleConfig[role as "professional" | "student" | "salon_owner"]
+    return (
+      <>
+        <Chip
+          label={label}
+          icon={icon}
+          className="border-accent-amber/40 bg-accent-amber/10 text-accent-amber"
+        />
+        <Chip
+          label="Verified"
+          icon={BadgeCheck}
+          className="border-accent-emerald/40 bg-accent-emerald/10 text-accent-emerald"
+        />
+      </>
+    )
+  }
+
+  return (
+    <Chip
+      label="Standard"
+      icon={User}
+      className="border-border text-muted-foreground"
+    />
+  )
+}
+
+function Chip({
+  label,
+  icon: Icon,
+  className,
+}: {
+  label: string
+  icon: React.ElementType
+  className: string
+}) {
   return (
     <span
       className={cn(
@@ -353,45 +393,6 @@ function RoleBadge({ role }: { role: UserRole }) {
     >
       <Icon className="h-3 w-3" strokeWidth={2} />
       {label}
-    </span>
-  )
-}
-
-function VerificationBadge({ status }: { status: VerificationStatus }) {
-  const config = {
-    regular: {
-      label: "Standard",
-      icon: ShieldCheck,
-      className: "border-border text-muted-foreground",
-    },
-    pending: {
-      label: "Verification pending",
-      icon: Clock,
-      className: "border-accent-amber/40 bg-accent-amber/10 text-accent-amber",
-    },
-    verified: {
-      label: "Verified Professional",
-      icon: BadgeCheck,
-      className:
-        "border-accent-emerald/40 bg-accent-emerald/10 text-accent-emerald",
-    },
-    rejected: {
-      label: "Rejected",
-      icon: ShieldCheck,
-      className: "border-destructive/40 bg-destructive/10 text-destructive",
-    },
-  }[status]
-  const Icon = config.icon
-
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold",
-        config.className,
-      )}
-    >
-      <Icon className="h-3 w-3" strokeWidth={2} />
-      {config.label}
     </span>
   )
 }

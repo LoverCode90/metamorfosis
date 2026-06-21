@@ -9,6 +9,7 @@ export function isDiscountEligible(
   role: UserRole,
   verificationStatus: DbVerificationStatus,
 ): boolean {
+  if (role === "admin") return false
   return (
     (role === "professional" || role === "student" || role === "salon_owner") &&
     verificationStatus === "approved"

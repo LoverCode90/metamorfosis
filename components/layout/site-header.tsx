@@ -100,28 +100,14 @@ export function SiteHeader() {
           </HeaderIconButton>
 
           {user ? (
-            <>
-              <HeaderIconButton
-                label="Profile"
-                onClick={() => router.push("/profile")}
-                active={pathname.startsWith("/profile")}
-                className="hidden sm:flex"
-              >
-                <User className="h-5 w-5" strokeWidth={1.75} />
-              </HeaderIconButton>
-              <form
-                action="/api/auth/signout"
-                method="POST"
-                className="hidden sm:flex"
-              >
-                <button
-                  type="submit"
-                  className="border-border text-foreground hover:bg-muted flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors"
-                >
-                  Sign out
-                </button>
-              </form>
-            </>
+            <HeaderIconButton
+              label="Profile"
+              onClick={() => router.push("/profile")}
+              active={pathname.startsWith("/profile")}
+              className="hidden sm:flex"
+            >
+              <User className="h-5 w-5" strokeWidth={1.75} />
+            </HeaderIconButton>
           ) : (
             <Link
               href="/login"

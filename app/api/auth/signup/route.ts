@@ -1,10 +1,15 @@
+import { createHash, randomInt } from "crypto"
+import { promises as dns } from "dns"
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { SignupSchema } from "@/lib/validation/schemas"
 import { verifyTurnstileToken } from "@/lib/auth/turnstile"
+import { signupLimiter } from "@/lib/rate-limit"
+import { sendVerificationCode } from "@/lib/email/resend"
 import disposableDomains from "disposable-email-domains"
 
 const EXTRA_BLOCKED_DOMAINS = new Set([
+  "xgshare.com",
   "mailinator.com",
   "tempmail.com",
   "guerrillamail.com",
@@ -16,7 +21,31 @@ const EXTRA_BLOCKED_DOMAINS = new Set([
   "sharklasers.com",
 ])
 
+const CODE_EXPIRY_MINUTES = 10
+
+async function hasMxRecords(domain: string): Promise<boolean> {
+  try {
+    const records = await dns.resolveMx(domain)
+    return records.length > 0
+  } catch {
+    return false
+  }
+}
+
 export async function POST(request: NextRequest) {
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anonymous"
+
+  // ── Rate limit ────────────────────────────────────────────────────────────
+  const { success: withinLimit } = await signupLimiter.limit(`signup:${ip}`)
+  if (!withinLimit) {
+    return NextResponse.json(
+      { error: "Too many signup attempts. Try again in 15 minutes." },
+      { status: 429 },
+    )
+  }
+
+  // ── Parse body ────────────────────────────────────────────────────────────
   let body: unknown
   try {
     body = await request.json()
@@ -32,9 +61,10 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { email, password, fullName, turnstileToken } = parsed.data
-
+  const { email, fullName, turnstileToken } = parsed.data
   const emailDomain = email.split("@")[1]?.toLowerCase() ?? ""
+
+  // ── Disposable email check — runs before any Supabase call ────────────────
   if (
     EXTRA_BLOCKED_DOMAINS.has(emailDomain) ||
     (disposableDomains as string[]).includes(emailDomain)
@@ -48,30 +78,94 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const ip = request.headers.get("x-forwarded-for")
-  const human = await verifyTurnstileToken(turnstileToken, ip)
+  // Secondary check: domain must have MX records (catches unlisted throwaway domains)
+  const mxOk = await hasMxRecords(emailDomain)
+  if (!mxOk) {
+    return NextResponse.json(
+      {
+        error:
+          "Please use a permanent email address. Disposable email addresses are not allowed.",
+      },
+      { status: 400 },
+    )
+  }
+
+  // ── Turnstile ─────────────────────────────────────────────────────────────
+  const human = await verifyTurnstileToken(turnstileToken ?? null, ip)
   if (!human) {
     return NextResponse.json({ error: "Bot detected" }, { status: 400 })
   }
 
-  const supabase = await createClient()
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { full_name: fullName },
-    },
-  })
+  const admin = createAdminClient()
 
-  if (error) {
-    if (error.message.toLowerCase().includes("already registered")) {
-      return NextResponse.json(
-        { error: "An account with this email already exists." },
-        { status: 409 },
-      )
-    }
-    return NextResponse.json({ error: error.message }, { status: 400 })
+  // ── Banned emails check ───────────────────────────────────────────────────
+  const { data: banned } = await admin
+    .from("banned_emails")
+    .select("email")
+    .eq("email", email)
+    .maybeSingle()
+
+  if (banned) {
+    return NextResponse.json(
+      {
+        error:
+          "This email address is not eligible for registration. Contact support if you believe this is an error.",
+      },
+      { status: 403 },
+    )
   }
+
+  // ── Check if email already has a confirmed Supabase account ───────────────
+  const { data: existingUsers } = await admin.auth.admin.listUsers()
+  const alreadyRegistered = existingUsers?.users.some(
+    (u) => u.email === email && u.email_confirmed_at,
+  )
+  if (alreadyRegistered) {
+    return NextResponse.json(
+      { error: "An account with this email already exists." },
+      { status: 409 },
+    )
+  }
+
+  // ── Generate 4-digit code ─────────────────────────────────────────────────
+  const code = String(randomInt(1000, 10000)).padStart(4, "0")
+  const codeHash = createHash("sha256").update(code).digest("hex")
+  const expiresAt = new Date(
+    Date.now() + CODE_EXPIRY_MINUTES * 60 * 1000,
+  ).toISOString()
+
+  // ── Upsert pending signup (fresh code, reset counters) ────────────────────
+  const { error: upsertError } = await admin.from("pending_signups").upsert(
+    {
+      email,
+      full_name: fullName,
+      code_hash: codeHash,
+      expires_at: expiresAt,
+      attempt_count: 0,
+      block_count: 0,
+      blocked_until: null,
+      resend_count: 0,
+      resend_window_start: new Date().toISOString(),
+      ip,
+    },
+    { onConflict: "email" },
+  )
+
+  if (upsertError) {
+    console.error("[signup] pending_signups upsert failed:", upsertError)
+    return NextResponse.json(
+      { error: "Signup failed. Please try again." },
+      { status: 500 },
+    )
+  }
+
+  // ── Send verification email (fire-and-forget, logged on error) ────────────
+  sendVerificationCode({
+    to: email,
+    name: fullName.split(" ")[0],
+    code,
+    expiresInMinutes: CODE_EXPIRY_MINUTES,
+  }).catch((err) => console.error("[signup] verification email failed:", err))
 
   return NextResponse.json({ ok: true }, { status: 201 })
 }

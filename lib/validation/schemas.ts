@@ -10,6 +10,25 @@ export const SignupSchema = z.object({
 
 export type SignupInput = z.infer<typeof SignupSchema>
 
+/** POST /api/auth/verify-email — code submission. */
+export const VerifyEmailSchema = z.object({
+  email: z.email("Enter a valid email address"),
+  code: z
+    .string()
+    .length(4, "Code must be 4 digits")
+    .regex(/^\d{4}$/, "Code must be 4 digits"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+})
+
+export type VerifyEmailInput = z.infer<typeof VerifyEmailSchema>
+
+/** POST /api/auth/resend-code */
+export const ResendCodeSchema = z.object({
+  email: z.email("Enter a valid email address"),
+})
+
+export type ResendCodeInput = z.infer<typeof ResendCodeSchema>
+
 /** Sign-in payload used by the client login form. */
 export const SignInSchema = z.object({
   email: z.email("Enter a valid email address"),

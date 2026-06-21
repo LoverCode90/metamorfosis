@@ -134,19 +134,22 @@ export async function POST(
     ).map((v) => [v.id, v]),
   )
 
-  // ── Professional items gate (no user session) ──────────────────────────────
-  for (const item of items) {
-    const v = varMap.get(item.variationId)
-    if (!v) continue
-    if (v.product_translations?.is_professional && !user) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Sign in required for professional products",
-          code: "UNAUTHORIZED",
-        },
-        { status: 401 },
-      )
+  // ── Professional items gate ────────────────────────────────────────────────
+  // Admins bypass all purchase restrictions.
+  if (role !== "admin") {
+    for (const item of items) {
+      const v = varMap.get(item.variationId)
+      if (!v) continue
+      if (v.product_translations?.is_professional && !user) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Sign in required for professional products",
+            code: "UNAUTHORIZED",
+          },
+          { status: 401 },
+        )
+      }
     }
   }
 
@@ -201,7 +204,9 @@ export async function POST(
   })
 
   const withDiscount = applyProfessionalDiscount(discountableItems, eligible)
-  const taxExempt = role === "salon_owner" && verificationStatus === "approved"
+  const taxExempt =
+    role === "admin" ||
+    (role === "salon_owner" && verificationStatus === "approved")
   const priceSheet = buildPriceSheet(withDiscount, shippingMethod, taxExempt)
 
   // ── Charge card ────────────────────────────────────────────────────────────
