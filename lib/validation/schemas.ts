@@ -10,6 +10,26 @@ export const SignupSchema = z.object({
 
 export type SignupInput = z.infer<typeof SignupSchema>
 
+/** POST /api/auth/forgot-password */
+export const ForgotPasswordSchema = z.object({
+  email: z.email("Enter a valid email address"),
+})
+
+export type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>
+
+/** /reset-password page form */
+export const ResetPasswordSchema = z
+  .object({
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .refine((d) => d.password === d.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  })
+
+export type ResetPasswordInput = z.infer<typeof ResetPasswordSchema>
+
 /** POST /api/auth/verify-email — code submission. */
 export const VerifyEmailSchema = z.object({
   email: z.email("Enter a valid email address"),

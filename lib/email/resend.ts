@@ -26,6 +26,11 @@ import {
   buildVerifyCodeText,
   type VerifyCodeData,
 } from "./templates/verify-code"
+import {
+  buildWelcomeHtml,
+  buildWelcomeText,
+  type WelcomeData,
+} from "./templates/welcome"
 
 let _resend: Resend | null = null
 
@@ -57,6 +62,23 @@ export async function sendVerificationCode(
     subject: `${data.code} is your Metamorfosis verification code`,
     html: buildVerifyCodeHtml(data),
     text: buildVerifyCodeText(data),
+  })
+  if (error) throw new Error(`Resend error: ${JSON.stringify(error)}`)
+}
+
+export async function sendWelcomeEmail(data: WelcomeData): Promise<void> {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn("[email] RESEND_API_KEY not set — skipping welcome email")
+    return
+  }
+  const resend = getResend()
+  const { error } = await resend.emails.send({
+    from: FROM,
+    replyTo: REPLY_TO,
+    to: data.to,
+    subject: "Welcome to Metamorfosis Beauty 🎉",
+    html: buildWelcomeHtml(data),
+    text: buildWelcomeText(data),
   })
   if (error) throw new Error(`Resend error: ${JSON.stringify(error)}`)
 }

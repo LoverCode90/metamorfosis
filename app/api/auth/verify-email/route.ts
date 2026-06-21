@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { VerifyEmailSchema } from "@/lib/validation/schemas"
 import { verifyCodeLimiter } from "@/lib/rate-limit"
+import { sendWelcomeEmail } from "@/lib/email/resend"
 
 const MAX_ATTEMPTS = 3
 const BLOCK_MINUTES = 20
@@ -219,6 +220,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   await admin.from("pending_signups").delete().eq("email", email)
+
+  // Welcome email — fire-and-forget; account is already created so don't fail the response
+  sendWelcomeEmail({
+    to: email,
+    name: pending.full_name.split(" ")[0],
+  }).catch((err) => console.error("[verify-email] welcome email failed:", err))
 
   return NextResponse.json({ ok: true, redirect: "/profile" }, { status: 200 })
 }

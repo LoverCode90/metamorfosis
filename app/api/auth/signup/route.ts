@@ -115,12 +115,14 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // ── Check if email already has a confirmed Supabase account ───────────────
-  const { data: existingUsers } = await admin.auth.admin.listUsers()
-  const alreadyRegistered = existingUsers?.users.some(
-    (u) => u.email === email && u.email_confirmed_at,
-  )
-  if (alreadyRegistered) {
+  // ── Check if a confirmed profile already exists for this email ───────────
+  const { data: existingProfile } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("email", email)
+    .maybeSingle()
+
+  if (existingProfile) {
     return NextResponse.json(
       { error: "An account with this email already exists." },
       { status: 409 },
@@ -159,13 +161,26 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  // ── Send verification email (fire-and-forget, logged on error) ────────────
-  sendVerificationCode({
-    to: email,
-    name: fullName.split(" ")[0],
-    code,
-    expiresInMinutes: CODE_EXPIRY_MINUTES,
-  }).catch((err) => console.error("[signup] verification email failed:", err))
+  // ── Send verification email — awaited so failures surface to the client ───
+  try {
+    await sendVerificationCode({
+      to: email,
+      name: fullName.split(" ")[0],
+      code,
+      expiresInMinutes: CODE_EXPIRY_MINUTES,
+    })
+  } catch (err) {
+    console.error("[signup] verification email failed:", err)
+    // Roll back the pending signup so the user can try again cleanly
+    await admin.from("pending_signups").delete().eq("email", email)
+    return NextResponse.json(
+      {
+        error:
+          "We could not send a verification email. Please check your address and try again.",
+      },
+      { status: 500 },
+    )
+  }
 
   return NextResponse.json({ ok: true }, { status: 201 })
 }

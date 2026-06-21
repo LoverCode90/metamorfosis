@@ -5,41 +5,43 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
-import { SignupSchema, type SignupInput } from "@/lib/validation/schemas"
-import { TurnstileWidget } from "./turnstile-widget"
+import { createClient } from "@/lib/supabase/client"
+import {
+  ResetPasswordSchema,
+  type ResetPasswordInput,
+} from "@/lib/validation/schemas"
 
-export function SignUpForm() {
+export function ResetPasswordForm() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<SignupInput>({ resolver: zodResolver(SignupSchema) })
+  } = useForm<ResetPasswordInput>({
+    resolver: zodResolver(ResetPasswordSchema),
+  })
 
-  async function onSubmit(data: SignupInput) {
+  async function onSubmit(data: ResetPasswordInput) {
     setServerError(null)
-    const res = await fetch("/api/auth/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...data, turnstileToken }),
+    const supabase = createClient()
+    const { error } = await supabase.auth.updateUser({
+      password: data.password,
     })
 
-    if (!res.ok) {
-      const body = (await res.json().catch(() => ({}))) as { error?: string }
-      setServerError(body.error ?? "Something went wrong. Please try again.")
+    if (error) {
+      setServerError(
+        error.message.includes("session")
+          ? "Your reset link has expired. Please request a new one."
+          : "Could not update your password. Please try again.",
+      )
       return
     }
 
-    // Store credentials in sessionStorage so verify-email page can complete account creation.
-    // Cleared on successful verification or on page unload from /verify-email.
-    sessionStorage.setItem("signup_email", data.email)
-    sessionStorage.setItem("signup_password", data.password)
-
-    router.push("/verify-email")
+    router.push("/profile")
   }
 
   return (
@@ -48,27 +50,7 @@ export function SignUpForm() {
       noValidate
       className="flex flex-col gap-4"
     >
-      <Field label="Full name" error={errors.fullName?.message}>
-        <input
-          type="text"
-          autoComplete="name"
-          placeholder="Jane Smith"
-          {...register("fullName")}
-          className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-foreground h-11 w-full rounded-md border px-3 text-sm transition-colors outline-none"
-        />
-      </Field>
-
-      <Field label="Email address" error={errors.email?.message}>
-        <input
-          type="email"
-          autoComplete="email"
-          placeholder="you@example.com"
-          {...register("email")}
-          className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-foreground h-11 w-full rounded-md border px-3 text-sm transition-colors outline-none"
-        />
-      </Field>
-
-      <Field label="Password" error={errors.password?.message}>
+      <Field label="New password" error={errors.password?.message}>
         <div className="relative">
           <input
             type={showPassword ? "text" : "password"}
@@ -92,10 +74,32 @@ export function SignUpForm() {
         </div>
       </Field>
 
-      <TurnstileWidget
-        onVerify={(token) => setTurnstileToken(token)}
-        onExpire={() => setTurnstileToken(null)}
-      />
+      <Field
+        label="Confirm new password"
+        error={errors.confirmPassword?.message}
+      >
+        <div className="relative">
+          <input
+            type={showConfirm ? "text" : "password"}
+            autoComplete="new-password"
+            placeholder="Repeat your new password"
+            {...register("confirmPassword")}
+            className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-foreground h-11 w-full rounded-md border px-3 pr-10 text-sm transition-colors outline-none"
+          />
+          <button
+            type="button"
+            onClick={() => setShowConfirm((v) => !v)}
+            aria-label={showConfirm ? "Hide password" : "Show password"}
+            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
+          >
+            {showConfirm ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+          </button>
+        </div>
+      </Field>
 
       {serverError && (
         <p
@@ -112,15 +116,8 @@ export function SignUpForm() {
         className="bg-foreground text-background mt-1 flex h-11 w-full items-center justify-center gap-2 rounded-md text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-        Create account
+        Update password
       </button>
-
-      <p className="text-muted-foreground text-center text-xs">
-        By signing up you agree to our{" "}
-        <span className="underline underline-offset-2">Terms of Service</span>{" "}
-        and <span className="underline underline-offset-2">Privacy Policy</span>
-        .
-      </p>
     </form>
   )
 }
