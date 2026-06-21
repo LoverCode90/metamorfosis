@@ -126,7 +126,10 @@ export function ProfileDashboard() {
             onSave={(v) => updateProfile({ bio: v })}
           />
 
-          <VerificationPanel status={verificationStatus} />
+          <VerificationPanel
+            status={verificationStatus}
+            rejectionReason={dbProfile?.rejection_reason}
+          />
 
           {/* Saved addresses */}
           <section className="border-border bg-card rounded-2xl border p-6">

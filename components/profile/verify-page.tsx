@@ -1,10 +1,14 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Check, Loader2 } from "lucide-react"
+import { useState } from "react"
+import { AlertCircle, Check, Loader2, RefreshCw } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { useCartStore } from "@/stores/cart"
+import {
+  validateLicenseNumber,
+  getLicenseHelperText,
+} from "@/lib/validation/schemas"
 import {
   InfoStep,
   UploadStep,
@@ -15,12 +19,13 @@ import {
 } from "./verify-steps"
 
 type WizardStep = "info" | "upload" | "summary"
+type Phase = "idle" | "processing" | "success" | "pending" | "rejected"
 
 const STEP_ORDER: WizardStep[] = ["info", "upload", "summary"]
 
 export function VerifyPage() {
   const router = useRouter()
-  const { submitVerification } = useUser()
+  const { refetchProfile } = useUser()
   const hasProItems = useCartStore((s) => s.hasProItems)
 
   const [step, setStep] = useState<WizardStep>("info")
@@ -31,12 +36,22 @@ export function VerifyPage() {
     profession: "Cosmetologist",
   })
   const [file, setFile] = useState<UploadedFile | null>(null)
-  const [phase, setPhase] = useState<"idle" | "processing" | "success">("idle")
+  const [phase, setPhase] = useState<Phase>("idle")
+  const [rejectionReason, setRejectionReason] = useState<string>("")
 
   const stepIndex = STEP_ORDER.indexOf(step)
+
+  // Only compute format error when the field is non-empty; empty field is already
+  // blocked by the licenseNumber.trim() !== "" check in canContinue.
+  const licenseError =
+    info.licenseNumber.trim().length > 0
+      ? validateLicenseNumber(info.profession, info.licenseNumber.trim())
+      : null
+  const licenseHelperText = getLicenseHelperText(info.profession)
+
   const canContinue =
     step === "info"
-      ? info.businessName.trim() !== "" && info.licenseNumber.trim() !== ""
+      ? info.licenseNumber.trim() !== "" && licenseError === null
       : step === "upload"
         ? file !== null
         : true
@@ -50,19 +65,63 @@ export function VerifyPage() {
     else if (step === "upload") setStep("info")
   }
 
-  useEffect(() => {
-    if (phase === "processing") {
-      const id = setTimeout(() => setPhase("success"), 2200)
-      return () => clearTimeout(id)
+  async function handleConfirm() {
+    if (!file) return
+    setPhase("processing")
+
+    try {
+      const formData = new FormData()
+      formData.append("file", file.file)
+      formData.append("profession", info.profession)
+      formData.append("licenseNumber", info.licenseNumber)
+      if (info.businessName) formData.append("businessName", info.businessName)
+
+      const res = await fetch("/api/profile/license/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      const data = (await res.json()) as {
+        ok: boolean
+        status: "approved" | "pending_review" | "rejected"
+        message: string
+        error?: string
+      }
+
+      if (!res.ok || !data.ok) {
+        setRejectionReason(data.error ?? "Upload failed. Please try again.")
+        setPhase("rejected")
+        return
+      }
+
+      await refetchProfile()
+
+      if (data.status === "approved") {
+        setPhase("success")
+        setTimeout(() => {
+          router.push(hasProItems ? "/checkout" : "/products")
+        }, 2000)
+      } else if (data.status === "rejected") {
+        setRejectionReason(data.message)
+        setPhase("rejected")
+      } else {
+        setPhase("pending")
+        setTimeout(() => {
+          router.push("/profile")
+        }, 3000)
+      }
+    } catch {
+      setRejectionReason("A network error occurred. Please try again.")
+      setPhase("rejected")
     }
-    if (phase === "success") {
-      const id = setTimeout(() => {
-        void submitVerification()
-        router.push(hasProItems ? "/checkout" : "/cart")
-      }, 1600)
-      return () => clearTimeout(id)
-    }
-  }, [phase, submitVerification, router, hasProItems])
+  }
+
+  function handleRetry() {
+    setPhase("idle")
+    setFile(null)
+    setStep("upload")
+    setRejectionReason("")
+  }
 
   return (
     <div className="bg-muted/40 min-h-[calc(100dvh-4rem)]">
@@ -91,8 +150,9 @@ export function VerifyPage() {
             {step === "summary" ? (
               <button
                 type="button"
-                onClick={() => setPhase("processing")}
-                className="bg-foreground text-background inline-flex h-9 items-center gap-1.5 rounded-md px-4 text-sm font-semibold transition-opacity hover:opacity-90"
+                onClick={() => void handleConfirm()}
+                disabled={phase === "processing"}
+                className="bg-foreground text-background inline-flex h-9 items-center gap-1.5 rounded-md px-4 text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Confirm
               </button>
@@ -111,7 +171,14 @@ export function VerifyPage() {
       </header>
 
       <main className="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
-        {step === "info" && <InfoStep info={info} onChange={setInfo} />}
+        {step === "info" && (
+          <InfoStep
+            info={info}
+            onChange={setInfo}
+            licenseError={licenseError}
+            licenseHelperText={licenseHelperText}
+          />
+        )}
         {step === "upload" && (
           <UploadStep
             file={file}
@@ -122,6 +189,7 @@ export function VerifyPage() {
         {step === "summary" && <SummaryStep info={info} file={file} />}
       </main>
 
+      {/* ── Overlay states ── */}
       {phase !== "idle" && (
         <div
           className="bg-background/80 fixed inset-0 z-[70] flex items-center justify-center p-4 backdrop-blur-sm"
@@ -129,30 +197,69 @@ export function VerifyPage() {
           aria-live="polite"
         >
           <div className="border-border bg-background flex w-full max-w-sm flex-col items-center rounded-2xl border p-10 text-center shadow-2xl">
-            {phase === "processing" ? (
+            {phase === "processing" && (
               <>
                 <Loader2
                   className="text-foreground h-12 w-12 animate-spin"
                   strokeWidth={1.5}
                 />
                 <h2 className="text-foreground mt-6 text-lg font-semibold tracking-tight">
-                  Verifying your documents
+                  Analyzing your document
                 </h2>
                 <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
                   Cross-checking your license with the cosmetology board.
                 </p>
               </>
-            ) : (
+            )}
+
+            {phase === "success" && (
               <>
                 <span className="animate-in zoom-in-50 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white duration-300">
                   <Check className="h-7 w-7" strokeWidth={2.5} />
                 </span>
                 <h2 className="text-foreground mt-6 text-lg font-semibold tracking-tight">
-                  Document approved
+                  License verified
                 </h2>
                 <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-                  Your professional status is verified. Redirecting…
+                  Professional pricing is unlocked. Redirecting…
                 </p>
+              </>
+            )}
+
+            {phase === "pending" && (
+              <>
+                <span className="animate-in zoom-in-50 flex h-14 w-14 items-center justify-center rounded-full bg-amber-500 text-white duration-300">
+                  <Loader2 className="h-7 w-7" strokeWidth={2} />
+                </span>
+                <h2 className="text-foreground mt-6 text-lg font-semibold tracking-tight">
+                  Under review
+                </h2>
+                <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
+                  We&apos;ll email you within 1 business day. Redirecting to
+                  your profile…
+                </p>
+              </>
+            )}
+
+            {phase === "rejected" && (
+              <>
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-rose-600 text-white">
+                  <AlertCircle className="h-7 w-7" strokeWidth={2} />
+                </span>
+                <h2 className="text-foreground mt-6 text-lg font-semibold tracking-tight">
+                  Verification unsuccessful
+                </h2>
+                <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
+                  {rejectionReason}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleRetry}
+                  className="bg-foreground text-background mt-6 inline-flex h-10 items-center gap-2 rounded-md px-5 text-sm font-semibold transition-opacity hover:opacity-90"
+                >
+                  <RefreshCw className="h-4 w-4" strokeWidth={2} />
+                  Re-upload document
+                </button>
               </>
             )}
           </div>

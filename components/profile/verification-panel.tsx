@@ -1,10 +1,25 @@
 "use client"
 
-import { BadgeCheck, Clock, ExternalLink, ShieldCheck } from "lucide-react"
+import {
+  BadgeCheck,
+  Clock,
+  ExternalLink,
+  RefreshCw,
+  ShieldCheck,
+  XCircle,
+} from "lucide-react"
 import Link from "next/link"
 import type { VerificationStatus } from "@/lib/types"
 
-export function VerificationPanel({ status }: { status: VerificationStatus }) {
+interface VerificationPanelProps {
+  status: VerificationStatus
+  rejectionReason?: string | null
+}
+
+export function VerificationPanel({
+  status,
+  rejectionReason,
+}: VerificationPanelProps) {
   return (
     <section className="border-border bg-card rounded-2xl border p-6">
       <div className="flex items-center gap-2">
@@ -40,6 +55,32 @@ export function VerificationPanel({ status }: { status: VerificationStatus }) {
               as your professional status is approved.
             </p>
           </div>
+        </div>
+      ) : status === "rejected" ? (
+        <div className="mt-4 space-y-3">
+          <div className="flex items-start gap-3 rounded-xl border border-rose-500/20 bg-rose-500/5 px-4 py-3">
+            <XCircle
+              className="mt-0.5 h-5 w-5 shrink-0 text-rose-400"
+              strokeWidth={2}
+            />
+            <div>
+              <p className="text-sm font-medium text-rose-400">
+                Verification unsuccessful
+              </p>
+              {rejectionReason && (
+                <p className="text-muted-foreground mt-0.5 text-sm leading-relaxed">
+                  {rejectionReason}
+                </p>
+              )}
+            </div>
+          </div>
+          <Link
+            href="/verify"
+            className="inline-flex h-10 items-center gap-2 rounded-md border border-rose-500/30 px-4 text-sm font-medium text-rose-400 transition-colors hover:border-rose-500/50 hover:bg-rose-500/5"
+          >
+            <RefreshCw className="h-3.5 w-3.5" strokeWidth={2} />
+            Re-upload document
+          </Link>
         </div>
       ) : (
         <>

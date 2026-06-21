@@ -201,7 +201,8 @@ export async function POST(
   })
 
   const withDiscount = applyProfessionalDiscount(discountableItems, eligible)
-  const priceSheet = buildPriceSheet(withDiscount, shippingMethod)
+  const taxExempt = role === "salon_owner" && verificationStatus === "approved"
+  const priceSheet = buildPriceSheet(withDiscount, shippingMethod, taxExempt)
 
   // ── Charge card ────────────────────────────────────────────────────────────
   const locationId = process.env.SQUARE_LOCATION_ID!

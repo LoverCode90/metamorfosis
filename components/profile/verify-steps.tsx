@@ -22,14 +22,20 @@ export interface LicenseInfo {
 export interface UploadedFile {
   name: string
   size: string
+  /** The actual File object — sent to the upload API as FormData. */
+  file: File
 }
 
 export function InfoStep({
   info,
   onChange,
+  licenseError,
+  licenseHelperText,
 }: {
   info: LicenseInfo
   onChange: (info: LicenseInfo) => void
+  licenseError?: string | null
+  licenseHelperText?: string
 }) {
   return (
     <div className="mx-auto max-w-2xl">
@@ -43,7 +49,7 @@ export function InfoStep({
         </p>
       </div>
       <div className="border-border bg-background space-y-5 rounded-xl border p-6">
-        <InfoField label="Business / Salon name" required>
+        <InfoField label="Business / Salon name">
           <input
             type="text"
             value={info.businessName}
@@ -54,6 +60,19 @@ export function InfoStep({
             className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-foreground h-11 w-full rounded-md border px-3 text-sm transition-colors outline-none"
           />
         </InfoField>
+        <InfoField label="Profession" required>
+          <select
+            value={info.profession}
+            onChange={(e) => onChange({ ...info, profession: e.target.value })}
+            className="border-border bg-background text-foreground focus:border-foreground h-11 w-full rounded-md border px-3 text-sm transition-colors outline-none"
+          >
+            <option>Cosmetologist</option>
+            <option>Barber</option>
+            <option>Colorist</option>
+            <option>Salon Owner</option>
+            <option>Esthetician</option>
+          </select>
+        </InfoField>
         <InfoField label="License number" required>
           <input
             type="text"
@@ -61,36 +80,30 @@ export function InfoStep({
             onChange={(e) =>
               onChange({ ...info, licenseNumber: e.target.value })
             }
-            placeholder="e.g. CL-0192834"
-            className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-foreground h-11 w-full rounded-md border px-3 text-sm transition-colors outline-none"
+            placeholder="e.g. C123456"
+            className={cn(
+              "border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-foreground h-11 w-full rounded-md border px-3 text-sm transition-colors outline-none",
+              licenseError && "border-rose-500 focus:border-rose-500",
+            )}
           />
+          {licenseHelperText && !licenseError && (
+            <p className="text-muted-foreground mt-1 text-xs">
+              {licenseHelperText}
+            </p>
+          )}
+          {licenseError && (
+            <p className="mt-1 text-xs text-rose-500">{licenseError}</p>
+          )}
         </InfoField>
-        <div className="grid gap-5 sm:grid-cols-2">
-          <InfoField label="Profession">
-            <select
-              value={info.profession}
-              onChange={(e) =>
-                onChange({ ...info, profession: e.target.value })
-              }
-              className="border-border bg-background text-foreground focus:border-foreground h-11 w-full rounded-md border px-3 text-sm transition-colors outline-none"
-            >
-              <option>Cosmetologist</option>
-              <option>Barber</option>
-              <option>Colorist</option>
-              <option>Salon Owner</option>
-              <option>Esthetician</option>
-            </select>
-          </InfoField>
-          <InfoField label="Country / Region">
-            <select
-              value={info.country}
-              onChange={(e) => onChange({ ...info, country: e.target.value })}
-              className="border-border bg-background text-foreground focus:border-foreground h-11 w-full rounded-md border px-3 text-sm transition-colors outline-none"
-            >
-              <option value="United States">United States</option>
-            </select>
-          </InfoField>
-        </div>
+        <InfoField label="Country / Region">
+          <select
+            value={info.country}
+            onChange={(e) => onChange({ ...info, country: e.target.value })}
+            className="border-border bg-background text-foreground focus:border-foreground h-11 w-full rounded-md border px-3 text-sm transition-colors outline-none"
+          >
+            <option value="United States">United States</option>
+          </select>
+        </InfoField>
       </div>
     </div>
   )
@@ -137,6 +150,7 @@ export function UploadStep({
         kb > 1024
           ? `${(kb / 1024).toFixed(1)} MB`
           : `${Math.max(1, Math.round(kb))} KB`,
+      file: f,
     })
   }
 
@@ -179,15 +193,15 @@ export function UploadStep({
           Upload your license document
         </span>
         <span className="text-muted-foreground mt-1 text-xs">
-          Maximum file size: 50 MB
+          Maximum file size: 10 MB
         </span>
         <span className="text-muted-foreground text-xs">
-          Supported formats: PDF, JPG, PNG
+          Supported formats: PDF, JPG, PNG, WebP
         </span>
         <input
           ref={inputRef}
           type="file"
-          accept=".pdf,.jpg,.jpeg,.png"
+          accept=".pdf,.jpg,.jpeg,.png,.webp"
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0]

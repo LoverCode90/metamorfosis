@@ -10,7 +10,7 @@ export function isDiscountEligible(
   verificationStatus: DbVerificationStatus,
 ): boolean {
   return (
-    (role === "professional" || role === "student") &&
+    (role === "professional" || role === "student" || role === "salon_owner") &&
     verificationStatus === "approved"
   )
 }

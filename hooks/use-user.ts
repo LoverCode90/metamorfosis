@@ -35,7 +35,8 @@ interface UseUserResult {
     patch: Partial<Pick<DbProfile, "full_name" | "bio" | "business_name">>,
   ) => Promise<void>
   saveAddress: (address: SavedAddress) => void
-  submitVerification: () => Promise<void>
+  /** Re-fetch the profile from Supabase — call after the license upload API responds. */
+  refetchProfile: () => Promise<void>
   signOut: () => Promise<void>
 }
 
@@ -115,21 +116,10 @@ export function useUser(): UseUserResult {
     [user, supabase],
   )
 
-  const submitVerification = useCallback(async () => {
+  const refetchProfile = useCallback(async () => {
     if (!user) return
-    const { data } = await supabase
-      .from("profiles")
-      .update({ verification_status: "pending_review" })
-      .eq("id", user.id)
-      .select()
-      .single<DbProfile>()
-
-    if (data) {
-      setDbProfile(data)
-      setProfile(mapDbProfile(data))
-      setVerificationStatus("pending")
-    }
-  }, [user, supabase])
+    await fetchProfile(user.id)
+  }, [user, fetchProfile])
 
   const signOut = useCallback(async () => {
     await fetch("/api/auth/signout", { method: "POST" })
@@ -146,7 +136,7 @@ export function useUser(): UseUserResult {
     isLoading,
     updateProfile,
     saveAddress,
-    submitVerification,
+    refetchProfile,
     signOut,
   }
 }

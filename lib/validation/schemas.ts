@@ -17,3 +17,97 @@ export const SignInSchema = z.object({
 })
 
 export type SignInInput = z.infer<typeof SignInSchema>
+
+/**
+ * Multipart form fields for POST /api/profile/license/upload.
+ * The actual file is validated separately (MIME type + size check).
+ */
+export const LicenseUploadSchema = z.object({
+  profession: z.enum([
+    "Cosmetologist",
+    "Barber",
+    "Colorist",
+    "Salon Owner",
+    "Esthetician",
+  ]),
+  licenseNumber: z
+    .string()
+    .min(2, "License number is required")
+    .max(100)
+    .trim(),
+  businessName: z.string().max(200).trim().optional(),
+})
+
+export type LicenseUploadInput = z.infer<typeof LicenseUploadSchema>
+
+/** Body for POST /api/admin/verifications/[id]/reject. */
+export const AdminRejectSchema = z.object({
+  reason: z
+    .string()
+    .min(10, "Reason must be at least 10 characters")
+    .max(500, "Reason must be under 500 characters")
+    .trim(),
+})
+
+export type AdminRejectInput = z.infer<typeof AdminRejectSchema>
+
+// ── License number format validation ──────────────────────────────────────────
+
+interface LicenseFormatRule {
+  regex: RegExp
+  helperText: string
+  errorText: string
+}
+
+const LICENSE_FORMAT_RULES: Partial<Record<string, LicenseFormatRule>> = {
+  Cosmetologist: {
+    regex: /^[CBEA]\d{6,7}$/i,
+    helperText: "CA Board: letter + 6–7 digits (e.g. C123456)",
+    errorText: "Expected CA Board format: letter + 6–7 digits (e.g. C123456)",
+  },
+  Barber: {
+    regex: /^[CBEA]\d{6,7}$/i,
+    helperText: "CA Board: letter + 6–7 digits (e.g. B654321)",
+    errorText: "Expected CA Board format: letter + 6–7 digits (e.g. B654321)",
+  },
+  Colorist: {
+    regex: /^[CBEA]\d{6,7}$/i,
+    helperText: "CA Board: letter + 6–7 digits (e.g. C123456)",
+    errorText: "Expected CA Board format: letter + 6–7 digits (e.g. C123456)",
+  },
+  Esthetician: {
+    regex: /^[CBEA]\d{6,7}$/i,
+    helperText: "CA Board: letter + 6–7 digits (e.g. E789012)",
+    errorText: "Expected CA Board format: letter + 6–7 digits (e.g. E789012)",
+  },
+  "Salon Owner": {
+    regex: /^[A-Z0-9]{6,}$/i,
+    helperText: "Alphanumeric, min 6 characters (e.g. SR123456)",
+    errorText: "Must be alphanumeric, min 6 characters",
+  },
+}
+
+/**
+ * Validates a license number against the expected format for the given profession.
+ * Returns null if valid, or an error message string if invalid.
+ */
+export function validateLicenseNumber(
+  profession: string,
+  licenseNumber: string,
+): string | null {
+  const rule = LICENSE_FORMAT_RULES[profession]
+  if (!rule) {
+    return licenseNumber.length >= 4
+      ? null
+      : "License number must be at least 4 characters"
+  }
+  return rule.regex.test(licenseNumber) ? null : rule.errorText
+}
+
+/** Returns helper text describing the expected license format for a given profession. */
+export function getLicenseHelperText(profession: string): string {
+  return (
+    LICENSE_FORMAT_RULES[profession]?.helperText ??
+    "Enter your license number (min 4 characters)"
+  )
+}

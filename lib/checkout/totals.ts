@@ -38,6 +38,7 @@ export function buildPriceSheet(
     discountCents: number
   }[],
   shippingMethod: ShippingMethod,
+  taxExempt = false,
 ): PriceSheet {
   const items = itemsWithDiscount.map((i) => ({
     ...i,
@@ -57,7 +58,9 @@ export function buildPriceSheet(
     shippingMethod,
     subtotalCents - discountCents,
   )
-  const taxCents = Math.round((subtotalCents - discountCents) * TAX_RATE)
+  const taxCents = taxExempt
+    ? 0
+    : Math.round((subtotalCents - discountCents) * TAX_RATE)
   const totalCents = subtotalCents - discountCents + shippingCents + taxCents
 
   return {

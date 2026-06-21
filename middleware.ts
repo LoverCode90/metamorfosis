@@ -5,7 +5,13 @@ import { createServerClient } from "@supabase/ssr"
  * Routes that require a signed-in user.
  * Middleware will redirect to /login?next=<path> when the session is absent.
  */
-const PROTECTED_ROUTES = ["/profile", "/checkout", "/cart/verify", "/admin"]
+const PROTECTED_ROUTES = [
+  "/profile",
+  "/verify",
+  "/checkout",
+  "/cart/verify",
+  "/admin",
+]
 
 /**
  * Routes that authenticated users should be redirected away from.

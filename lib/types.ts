@@ -145,7 +145,13 @@ export interface DbProfile {
   bio: string | null
   role: UserRole
   verification_status: DbVerificationStatus
+  license_number: string | null
   business_name: string | null
+  school_name: string | null
+  graduation_date: string | null
+  document_url: string | null
+  expiration_date: string | null
+  rejection_reason: string | null
   created_at: string
   updated_at: string
 }
