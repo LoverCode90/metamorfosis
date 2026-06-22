@@ -56,20 +56,21 @@ These must be created in Square Dashboard → **Items → Custom Attributes** be
 
 | Attribute Name        | Type        | Allowed Values                                    |
 | --------------------- | ----------- | ------------------------------------------------- |
-| `is_professional`     | `SELECTION` | `true`, `false`                                   |
-| `is_returnable`       | `SELECTION` | `true`, `false`                                   |
+| `is_professional`     | `BOOLEAN`   | `true`, `false` (returned as booleanValue)        |
+| `is_returnable`       | `BOOLEAN`   | `true`, `false` (returned as booleanValue)        |
 | `package_class`       | `SELECTION` | `tiny`, `small`, `medium`, `box_set`, `kit_large` |
-| `is_color_product`    | `SELECTION` | `true`, `false`                                   |
-| `color_family`        | `STRING`    | `naturals`, `warm`, `cool`, `pastel`, `special`   |
-| `color_chart_pdf_url` | `STRING`    | Full public URL to the PDF                        |
+| `is_color_product`    | `BOOLEAN`   | `true`, `false` (returned as booleanValue)        |
+| `color_family`        | `SELECTION` | `naturals`, `warm`, `cool`, `pastel`, `special`   |
+| `color_chart_pdf_url` | `TEXT`      | Full public URL to the PDF                        |
 
 #### At the ITEM_VARIATION level:
 
 | Attribute Name | Type     | Notes                                      |
 | -------------- | -------- | ------------------------------------------ |
 | `weight_lb`    | `NUMBER` | Real weighed value in pounds, e.g. `0.802` |
-| `hex_color`    | `STRING` | Only for color products, e.g. `#C4956A`    |
-| `shade_number` | `STRING` | e.g. `7N`, `3R`, `10NA`                    |
+| `hex_color`    | `TEXT`   | Only for color products, e.g. `#C4956A`    |
+| `shade_number` | `TEXT`   | e.g. `7N`, `3R`, `10NA`                    |
+| `key_features` | `TEXT`   | Used to store string value                 |
 
 > **Action required:** Change all existing `Y`/`N` values for `is_returnable` to `true`/`false` before connecting the sync webhook.
 
@@ -97,10 +98,10 @@ if (!isValid) return res.status(403).end()
 
 ```
 1. Receive webhook → validate signature
-2. Fetch full catalog from Square: GET /v2/catalog/list?types=ITEM,ITEM_VARIATION,CUSTOM_ATTRIBUTE_VALUE
+2. Fetch full catalog from Square: GET /v2/catalog/list?types=ITEM,ITEM_VARIATION,CUSTOM_ATTRIBUTE_DEFINITION
 3. For each ITEM:
    a. Extract custom attributes (is_professional, is_returnable, package_class, etc.)
-   b. Normalize booleans: "true"/"false" strings → true/false
+   b. Resolve SELECTION UIDs via CUSTOM_ATTRIBUTE_DEFINITION map, and BOOLEAN via booleanValue
    c. Check if name_en or description_en changed vs Supabase record
       → If changed: call DeepL API once → get name_es + description_es
       → Upsert into product_translations

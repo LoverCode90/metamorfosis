@@ -114,7 +114,7 @@ Cursor follows this order. Each phase must be approved before the next begins.
 
 - Square API client wrapper
 - Webhook receiver with signature validation
-- Sync engine (ITEM + ITEM_VARIATION + custom attributes)
+- Sync engine (ITEM + ITEM_VARIATION + CUSTOM_ATTRIBUTE_DEFINITION to resolve Selection attributes)
 - Product translation layer (DeepL)
 - Catalog page reading from Supabase
 - Product detail with color swatches reading `hex_color`, `shade_number`, `color_family`

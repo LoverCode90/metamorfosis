@@ -10,24 +10,26 @@ Custom attributes must be created under **Items → Custom Attributes** in the S
 
 ### ITEM-level attributes
 
-| Key                   | Type    | Values                                                |
-| --------------------- | ------- | ----------------------------------------------------- |
-| `is_professional`     | Boolean | `true` / `false`                                      |
-| `is_returnable`       | Boolean | `true` / `false`                                      |
-| `is_color_product`    | Boolean | `true` / `false`                                      |
-| `package_class`       | String  | `tiny` / `small` / `medium` / `box_set` / `kit_large` |
-| `color_family`        | String  | `naturals` / `warm` / `cool` / `pastel` / `special`   |
-| `color_chart_pdf_url` | String  | full HTTPS URL to PDF                                 |
+| Key                   | Type      | Values                                                |
+| --------------------- | --------- | ----------------------------------------------------- |
+| `is_professional`     | Toggle    | `true` / `false`                                      |
+| `is_returnable`       | Toggle    | `true` / `false`                                      |
+| `is_color_product`    | Toggle    | `true` / `false`                                      |
+| `package_class`       | Selection | `tiny` / `small` / `medium` / `box_set` / `kit_large` |
+| `color_family`        | Selection | `naturals` / `warm` / `cool` / `pastel` / `special`   |
+| `color_chart_pdf_url` | Text      | full HTTPS URL to PDF                                 |
 
 ### ITEM_VARIATION-level attributes
 
 | Key            | Type   | Values                   |
 | -------------- | ------ | ------------------------ |
-| `hex_color`    | String | CSS hex, e.g. `#A04020`  |
-| `shade_number` | String | e.g. `7.4`, `5N`, `9B`   |
+| `hex_color`    | Text   | CSS hex, e.g. `#A04020`  |
+| `shade_number` | Text   | e.g. `7.4`, `5N`, `9B`   |
 | `weight_lb`    | Number | decimal weight in pounds |
+| `key_features` | Text   | Used to store string     |
 
-> **Important:** `is_returnable` must be stored as `true`/`false` (boolean text), not `Y`/`N`. The sync engine treats any non-`true` value as `false`.
+> **Important Setup Note:** After creating these attribute definitions in the Square Dashboard, the values currently remain unpopulated across all 132 products. They must be manually set on each product in the Square Dashboard, or populated via a batch API script.
+> **Important:** Toggle attributes (`is_returnable`) must be stored as `true`/`false` boolean toggles in Square. The sync engine expects `booleanValue`.
 
 ---
 
@@ -101,7 +103,7 @@ After a successful sync, navigate to `/products` — Square items appear instead
 
 The sync runs on every `catalog.version.updated` webhook event and on manual admin triggers.
 
-1. **Fetch** all `ITEM` and `ITEM_VARIATION` objects from Square catalog API (paginated).
+1. **Fetch** all `ITEM`, `ITEM_VARIATION`, and `CUSTOM_ATTRIBUTE_DEFINITION` objects from Square catalog API. (The definitions are required to resolve Selection UIDs).
 2. **Fetch inventory counts** for all variation IDs filtered by `SQUARE_LOCATION_ID` (or all locations).
 3. **Compare** `name_en` / `description_en` against existing Supabase rows.
 4. **Translate** via DeepL only when English text has changed — never on pure read.
