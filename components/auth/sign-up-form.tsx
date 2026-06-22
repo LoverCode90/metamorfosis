@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { SignupSchema, type SignupInput } from "@/lib/validation/schemas"
 import { TurnstileWidget } from "./turnstile-widget"
-import { PasswordStrength } from "./password-strength"
+import { PasswordStrength } from "@/components/ui/password-strength"
 
 export function SignUpForm() {
   const router = useRouter()

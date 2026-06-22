@@ -60,6 +60,15 @@ export function CheckoutClient() {
     setAddress(addr)
     setTermsAccepted(terms)
     setWizardStep("shipping")
+
+    // Persist address to DB on step-advance (fire-and-forget for authenticated users).
+    if (user) {
+      fetch("/api/addresses/default", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(addr),
+      }).catch(() => {})
+    }
   }
 
   function handleShippingContinue(method: ShippingMethod, cents: number) {
@@ -106,10 +115,20 @@ export function CheckoutClient() {
     return data
   }
 
-  // Profile-level defaults (name, email, phone from profile row).
-  // The saved address (street, city, etc.) is fetched inside StepInfo.
-  const infoDefaults =
-    user && dbProfile
+  // When returning from shipping step, restore the full address the user entered
+  // so their edits are not lost. On first visit, seed name/email/phone from profile.
+  const infoDefaults = address
+    ? {
+        fullName: address.fullName,
+        email: address.email,
+        phone: address.phone,
+        streetLine1: address.streetLine1,
+        streetLine2: address.streetLine2,
+        city: address.city,
+        state: address.state,
+        zip: address.zip,
+      }
+    : user && dbProfile
       ? {
           fullName: dbProfile.full_name,
           email: dbProfile.email,
@@ -139,6 +158,7 @@ export function CheckoutClient() {
               hasNonReturnable={hasNonReturnable}
               defaultValues={infoDefaults}
               isAuthenticated={!!user}
+              skipAddressFetch={address !== null}
               onContinue={handleInfoContinue}
             />
           )}

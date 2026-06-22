@@ -56,6 +56,11 @@ export const US_STATES: { code: string; name: string }[] = [
   { code: "DC", name: "District of Columbia" },
 ]
 
+/** 48 contiguous US states + DC — excludes Hawaii and Alaska (no shipping). */
+export const CONTINENTAL_STATES = US_STATES.filter(
+  (s) => s.code !== "HI" && s.code !== "AK",
+)
+
 /** Low-stock warning shown when variation inventory falls at or below this. */
 export const LOW_STOCK_THRESHOLD = 4
 

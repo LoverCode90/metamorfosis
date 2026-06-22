@@ -108,6 +108,7 @@ export const CANCEL_WINDOW_MINUTES = 120
 
 export interface SavedAddress {
   fullName: string
+  phone?: string
   line1: string
   city: string
   region: string

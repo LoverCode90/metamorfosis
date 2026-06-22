@@ -10,7 +10,7 @@ import {
   ResetPasswordSchema,
   type ResetPasswordInput,
 } from "@/lib/validation/schemas"
-import { PasswordStrength } from "./password-strength"
+import { PasswordStrength } from "@/components/ui/password-strength"
 
 export function ResetPasswordForm() {
   const router = useRouter()
@@ -44,7 +44,7 @@ export function ResetPasswordForm() {
       return
     }
 
-    router.push("/profile")
+    router.push("/login")
   }
 
   return (

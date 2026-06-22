@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useDebounce } from "@/hooks/use-debounce"
 import { Heart, Search, SlidersHorizontal, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
@@ -27,6 +28,7 @@ export function WishlistView() {
   const items = wishlist as WishItem[]
 
   const [search, setSearch] = useState("")
+  const debouncedSearch = useDebounce(search, 300)
   const [sort, setSort] = useState<SortKey>("added")
   const [grid, setGrid] = useState(true)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -81,7 +83,7 @@ export function WishlistView() {
       : 0)
 
   const visible = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = debouncedSearch.trim().toLowerCase()
     const [lo, hi] = currentPriceValue
     const list = items.filter((i) => {
       if (q && !i.name.toLowerCase().includes(q)) return false
@@ -98,7 +100,7 @@ export function WishlistView() {
       if (sort === "name") return a.name.localeCompare(b.name)
       return 0
     })
-  }, [items, search, selectedBrands, currentPriceValue, sort])
+  }, [items, debouncedSearch, selectedBrands, currentPriceValue, sort])
 
   if (items.length === 0) {
     return (
