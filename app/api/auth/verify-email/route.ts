@@ -1,6 +1,7 @@
 import { createHash } from "crypto"
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { cookies } from "next/headers"
+import { createServerClient } from "@supabase/ssr"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { VerifyEmailSchema } from "@/lib/validation/schemas"
 import { verifyCodeLimiter } from "@/lib/rate-limit"
@@ -217,7 +218,34 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     .eq("id", created.user.id)
 
   // ── Sign in to establish a session ────────────────────────────────────────
-  const supabase = await createClient()
+  const response = NextResponse.json(
+    { ok: true, redirect: "/" },
+    { status: 200 },
+  )
+  const cookieStore = await cookies()
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options)
+              response.cookies.set(name, value, options)
+            })
+          } catch {
+            // ignore
+          }
+        },
+      },
+    },
+  )
+
   const { error: signInError } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -244,5 +272,5 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     name: firstName,
   }).catch((err) => console.error("[verify-email] welcome email failed:", err))
 
-  return NextResponse.json({ ok: true, redirect: "/" }, { status: 200 })
+  return response
 }
