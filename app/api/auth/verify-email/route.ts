@@ -266,11 +266,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   await admin.from("pending_signups").delete().eq("email", email)
 
-  // Welcome email — fire-and-forget; account is already created so don't fail the response
-  sendWelcomeEmail({
-    to: email,
-    name: firstName,
-  }).catch((err) => console.error("[verify-email] welcome email failed:", err))
+  // Welcome email — account is already created so don't fail the response
+  try {
+    await sendWelcomeEmail({
+      to: email,
+      name: firstName,
+    })
+  } catch (err) {
+    console.error("[verify-email] welcome email failed:", err)
+  }
 
   return response
 }

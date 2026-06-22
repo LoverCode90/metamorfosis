@@ -138,14 +138,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       // Fire-and-forget — a delivery failure is logged but never disclosed to
       // the caller, preserving the generic response.
-      sendPasswordReset({
-        to: email,
-        name: profile.first_name ?? profile.full_name.split(" ")[0] ?? "",
-        resetUrl,
-        expiresInMinutes: RESET_LINK_EXPIRY_MINUTES,
-      }).catch((err) =>
-        console.error("[forgot-password] reset email failed:", err),
-      )
+      try {
+        await sendPasswordReset({
+          to: email,
+          name: profile.first_name ?? profile.full_name.split(" ")[0] ?? "",
+          resetUrl,
+          expiresInMinutes: RESET_LINK_EXPIRY_MINUTES,
+        })
+      } catch (err) {
+        console.error("[forgot-password] reset email failed:", err)
+      }
     }
   }
 
