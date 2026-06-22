@@ -209,3 +209,71 @@
     scroll-behavior: smooth;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Admin section — opt-in LIGHT theme, scoped to the admin shell.
+   The store is always dark; only [data-admin-theme="light"]
+   (set on the admin layout wrapper) overrides the foundational
+   tokens. Every semantic alias derives from these via var(), so
+   re-pointing the base tokens cascades to the whole admin subtree.
+───────────────────────────────────────────────────────────── */
+[data-admin-theme="light"] {
+  --bg-base: oklch(0.99 0.002 280);
+  --bg-surface: oklch(0.975 0.003 280);
+  --bg-surface-2: oklch(0.94 0.004 280);
+  --bg-inset: oklch(0.96 0.003 280);
+
+  --fg-primary: oklch(0.23 0.01 280);
+  --fg-secondary: oklch(0.46 0.01 280);
+  --fg-tertiary: oklch(0.62 0.01 280);
+
+  --border-subtle: oklch(0.9 0.004 280);
+  --border-strong: oklch(0.82 0.006 280);
+
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.06);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 16px 40px -8px rgb(0 0 0 / 0.14);
+
+  color-scheme: light;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Admin accessibility font scaling, scoped to the admin shell.
+   data-font-size on the admin wrapper sets the base font-size.
+   Desktop caps at 20px, mobile at 18px (smaller increments so
+   touch layouts don't break). Transitions stay smooth.
+───────────────────────────────────────────────────────────── */
+[data-font-size] {
+  transition: font-size 0.2s ease;
+
+  /* Re-point Tailwind's text scale to em (relative to this wrapper's base)
+     so utility text classes scale with the slider — scoped to admin only,
+     the store keeps the root rem-based scale. */
+  --text-xs: 0.75em;
+  --text-sm: 0.875em;
+  --text-base: 1em;
+  --text-lg: 1.125em;
+  --text-xl: 1.25em;
+  --text-2xl: 1.5em;
+  --text-3xl: 1.875em;
+}
+[data-font-size="normal"] {
+  font-size: 16px;
+}
+[data-font-size="large"] {
+  font-size: 18px;
+}
+[data-font-size="larger"] {
+  font-size: 20px;
+}
+@media (max-width: 640px) {
+  [data-font-size="normal"] {
+    font-size: 16px;
+  }
+  [data-font-size="large"] {
+    font-size: 17px;
+  }
+  [data-font-size="larger"] {
+    font-size: 18px;
+  }
+}
