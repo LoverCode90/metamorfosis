@@ -46,7 +46,20 @@ export async function GET(request: NextRequest) {
   )
 
   if (token_hash && type) {
-    const { error } = await supabase.auth.verifyOtp({ token_hash, type })
+    if (type === "recovery") {
+      // Security: Do NOT verify recovery OTPs here. That would log the user in
+      // immediately before they change their password, leaving an active session
+      // if they abandon the form. Instead, pass the token to the frontend to
+      // consume precisely when submitting the new password.
+      const resetUrl = new URL(`${origin}/reset-password`)
+      resetUrl.searchParams.set("token_hash", token_hash)
+      return NextResponse.redirect(resetUrl.toString())
+    }
+
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash,
+      type: type as "signup" | "recovery" | "magiclink" | "invite",
+    })
     if (!error) {
       return response
     }

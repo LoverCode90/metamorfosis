@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import {
@@ -14,6 +14,9 @@ import { PasswordStrength } from "@/components/ui/password-strength"
 
 export function ResetPasswordForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const tokenHash = searchParams.get("token_hash")
+
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
@@ -29,22 +32,44 @@ export function ResetPasswordForm() {
   const passwordValue = useWatch({ control, name: "password" }) ?? ""
 
   async function onSubmit(data: ResetPasswordInput) {
-    setServerError(null)
-    const supabase = createClient()
-    const { error } = await supabase.auth.updateUser({
-      password: data.password,
-    })
-
-    if (error) {
+    if (!tokenHash) {
       setServerError(
-        error.message.includes("session")
-          ? "Your reset link has expired. Please request a new one."
-          : "Could not update your password. Please try again.",
+        "Invalid or missing recovery token. Please request a new link.",
       )
       return
     }
 
-    router.push("/login")
+    setServerError(null)
+    const supabase = createClient()
+
+    // 1. Verify the recovery OTP to establish the temporary session
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: "recovery",
+    })
+
+    if (verifyError) {
+      setServerError(
+        "Your reset link is invalid or has expired. Please request a new one.",
+      )
+      return
+    }
+
+    // 2. Update the user's password using the temporary session
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: data.password,
+    })
+
+    if (updateError) {
+      setServerError("Could not update your password. Please try again.")
+      return
+    }
+
+    // 3. Immediately sign out to clear the temporary recovery session
+    await supabase.auth.signOut()
+
+    // 4. Redirect to login
+    router.push("/login?reset=success")
   }
 
   return (
