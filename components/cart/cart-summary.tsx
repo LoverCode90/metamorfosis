@@ -1,11 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown, Tag, Truck } from "lucide-react"
+import { ChevronDown, PartyPopper, Tag, Truck } from "lucide-react"
 import { formatUSD } from "@/lib/utils/format"
 import type { Totals } from "@/lib/types"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
+
+/** Free-shipping threshold in cents ($120). */
+const FREE_SHIPPING_CENTS = 12_000
 
 interface CartSummaryProps {
   totals: Totals
@@ -29,6 +32,8 @@ export function CartSummary({
         <h2 className="text-foreground text-lg font-semibold tracking-tight">
           Order Summary
         </h2>
+
+        <FreeShippingBar subtotalCents={totals.subtotal} />
 
         <div className="border-border mt-4 rounded-lg border sm:mt-5">
           <button
@@ -135,5 +140,64 @@ export function CartSummary({
         </button>
       </div>
     </aside>
+  )
+}
+
+/**
+ * Progress toward the $120 free-shipping threshold. A single track whose fill
+ * width tracks the subtotal and whose color steps through red → orange → green
+ * (smoothly) as progress crosses 40% and 80%.
+ */
+function FreeShippingBar({ subtotalCents }: { subtotalCents: number }) {
+  const pct = Math.min(100, (subtotalCents / FREE_SHIPPING_CENTS) * 100)
+  const unlocked = subtotalCents >= FREE_SHIPPING_CENTS
+  const remaining = Math.max(0, FREE_SHIPPING_CENTS - subtotalCents)
+
+  const fillColor =
+    pct >= 80 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-red-500"
+
+  return (
+    <div className="mt-4 sm:mt-5">
+      <p className="text-foreground flex items-center gap-1.5 text-sm font-medium">
+        {unlocked ? (
+          <>
+            <PartyPopper
+              className="h-4 w-4 text-emerald-500"
+              strokeWidth={1.75}
+            />
+            You&apos;ve unlocked free shipping!
+          </>
+        ) : (
+          <>
+            <Truck
+              className="text-muted-foreground h-4 w-4"
+              strokeWidth={1.75}
+            />
+            Free shipping on orders over {formatUSD(FREE_SHIPPING_CENTS)}
+          </>
+        )}
+      </p>
+      {!unlocked && (
+        <p className="text-muted-foreground mt-0.5 text-xs">
+          Add {formatUSD(remaining)} more to qualify.
+        </p>
+      )}
+      <div
+        className="bg-muted mt-2 h-2 w-full overflow-hidden rounded-full"
+        role="progressbar"
+        aria-valuenow={Math.round(pct)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Progress toward free shipping"
+      >
+        <div
+          className={cn(
+            "h-full rounded-full transition-[width,background-color] duration-500 ease-out",
+            fillColor,
+          )}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
   )
 }

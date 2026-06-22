@@ -5,14 +5,13 @@ import { createServerClient } from "@supabase/ssr"
  * Protected routes matched by an exact path comparison.
  * These have no sub-routes, so a prefix match would wrongly capture siblings
  * (e.g. "/verify" must NOT match the public "/verify-email" auth page).
+ *
+ * NOTE: /wishlist is intentionally NOT protected — it renders an empty state
+ * for guests and the user's saved items when authenticated. Gating it caused
+ * authenticated users to bounce to /login during the post-login cookie
+ * propagation window.
  */
-const EXACT_PROTECTED = [
-  "/verify",
-  "/cart/verify",
-  "/orders",
-  "/tracking",
-  "/wishlist",
-]
+const EXACT_PROTECTED = ["/verify", "/cart/verify", "/orders", "/tracking"]
 
 /**
  * Protected routes matched by prefix, because they own nested paths

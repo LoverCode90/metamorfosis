@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { fetchCatalogCards, getFilterFacets } from "@/lib/catalog/queries"
+import { fetchCatalogCards } from "@/lib/catalog/queries"
 import { ProductsPage } from "@/components/catalog/products-page"
 
 export const metadata: Metadata = {
@@ -9,10 +9,7 @@ export const metadata: Metadata = {
 }
 
 export default async function Products() {
-  const [products, facets] = await Promise.all([
-    fetchCatalogCards(),
-    getFilterFacets(),
-  ])
+  const products = await fetchCatalogCards()
 
-  return <ProductsPage products={products} maxPrice={facets.maxPrice} />
+  return <ProductsPage products={products} />
 }

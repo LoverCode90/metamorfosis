@@ -50,6 +50,8 @@ export interface CatalogCard {
   /** Min price in cents (cheapest active variation) */
   minPriceCents: number
   totalStock: number
+  /** Number of active variations — drives "Add to Bag" vs "View Options". */
+  variationCount: number
   /** product_variations.id of the cheapest active variation */
   defaultVariationId: string | null
   /** Square ITEM_VARIATION ID for the cheapest active variation */

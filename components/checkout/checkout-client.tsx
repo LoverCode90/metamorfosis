@@ -21,7 +21,7 @@ import { StepPayment } from "./steps/step-payment"
 
 export function CheckoutClient() {
   const router = useRouter()
-  const { items, totals, hasProItems, clearCart, removeItem } = useCart()
+  const { items, totals, clearCart, removeItem } = useCart()
   const { user, dbProfile } = useUser()
 
   const [wizardStep, setWizardStep] = useState<CheckoutStepId>("info")
@@ -33,22 +33,21 @@ export function CheckoutClient() {
 
   const liveTotals = computeTotalsWithShipping(items, shippingCents)
 
-  // ── Checkout gate — professional items ─────────────────────────────────────
-  const proItems = items.filter((i) => i.isProfessional && !i.unavailable)
-  const isVerifiedPro =
-    dbProfile?.verification_status === "approved" &&
-    (dbProfile?.role === "professional" ||
-      dbProfile?.role === "student" ||
-      dbProfile?.role === "salon_owner")
+  // ── Checkout gate — professional-only items ────────────────────────────────
+  // Only products explicitly flagged isProfessional require verification.
+  // Color products (isColorProduct) are open to everyone — verification only
+  // unlocks the $2/per-color-item discount, applied server-side in checkout.
+  const gatedItems = items.filter((i) => i.isProfessional && !i.unavailable)
+  const isApproved = dbProfile?.verification_status === "approved"
 
-  if (hasProItems && (!user || !isVerifiedPro)) {
+  if (gatedItems.length > 0 && (!user || !isApproved)) {
     return (
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <CheckoutGate
-          proItems={proItems}
+          proItems={gatedItems}
           isAuthenticated={!!user}
           onRemovePro={() => {
-            proItems.forEach((i) => removeItem(i.variationId ?? i.id))
+            gatedItems.forEach((i) => removeItem(i.variationId ?? i.id))
           }}
         />
       </div>

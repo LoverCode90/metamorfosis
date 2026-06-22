@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { ChevronRight, Loader2, RefreshCw } from "lucide-react"
+import { ChevronRight, Loader2, RefreshCw, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { formatDate } from "@/lib/utils/format"
 import { VerificationDetail } from "./verification-detail"
@@ -244,7 +244,7 @@ export function VerificationsDashboard() {
         </div>
       </div>
 
-      {/* ── Right: detail ────────────────────────────────────────────────── */}
+      {/* ── Right: detail (desktop side panel) ───────────────────────────── */}
       <div className="hidden flex-1 lg:block">
         {selected ? (
           <VerificationDetail
@@ -258,6 +258,45 @@ export function VerificationsDashboard() {
           </div>
         )}
       </div>
+
+      {/* ── Detail (mobile/tablet full-screen overlay) ───────────────────── */}
+      {selected && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col lg:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Verification detail"
+        >
+          <button
+            type="button"
+            aria-label="Close detail"
+            onClick={() => setSelected(null)}
+            className="bg-foreground/40 absolute inset-0 backdrop-blur-sm"
+          />
+          <div className="bg-background relative z-10 mt-auto flex h-[92dvh] flex-col rounded-t-2xl shadow-2xl">
+            <div className="border-border flex items-center justify-between border-b px-4 py-3">
+              <span className="text-foreground text-sm font-semibold">
+                Verification detail
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelected(null)}
+                aria-label="Close"
+                className="text-foreground hover:bg-muted flex h-9 w-9 items-center justify-center rounded-md transition-colors"
+              >
+                <X className="h-5 w-5" strokeWidth={1.75} />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1">
+              <VerificationDetail
+                item={selected}
+                onApprove={handleApprove}
+                onReject={handleReject}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -75,6 +75,7 @@ export async function fetchCatalogCards(): Promise<CatalogCard[]> {
       ...row,
       min_price_cents: cheapest?.price_cents ?? 0,
       total_stock: vars.reduce((s, v) => s + v.inventory_count, 0),
+      variation_count: vars.length,
       default_variation_id: cheapest?.id ?? null,
       default_square_variation_id: cheapest?.square_variation_id ?? null,
     })
@@ -165,6 +166,7 @@ export async function fetchRelatedProducts(
             min_price_cents:
               vars.length > 0 ? Math.min(...vars.map((v) => v.price_cents)) : 0,
             total_stock: vars.reduce((s, v) => s + v.inventory_count, 0),
+            variation_count: vars.length,
           })
         })
       }
@@ -199,6 +201,7 @@ export async function fetchRelatedProducts(
       min_price_cents:
         vars.length > 0 ? Math.min(...vars.map((v) => v.price_cents)) : 0,
       total_stock: vars.reduce((s, v) => s + v.inventory_count, 0),
+      variation_count: vars.length,
     })
   })
 }

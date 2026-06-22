@@ -51,19 +51,27 @@ export function useCart() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
 
-  // ── Clear the session guard on actual logout, not on initial mount ────────
-  // useUser() starts with user === null before resolving — without this ref
-  // every mount of any useCart() consumer would clear the dedupe guard and
-  // re-fire the sync, which on /cart races the loadFromDb([]) write and wipes
-  // the visible cart.
+  // ── On logout: clear stores + any legacy localStorage, reset sync guard ───
+  // useUser() starts with user === null before resolving — the ref ensures we
+  // only act on a real truthy→null transition (actual logout / account
+  // deletion), not the initial mount. We also proactively delete the legacy
+  // persisted keys so a stale guest cart/wishlist can never reappear.
   const prevUserIdRef = useRef<string | null>(null)
   useEffect(() => {
     const prev = prevUserIdRef.current
     const next = user?.id ?? null
     if (prev !== null && next === null) {
       _syncedUsers.clear()
+      cart.clearCart()
+      wishlist.clear()
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("metamorfosis-cart")
+        localStorage.removeItem("metamorfosis-wishlist")
+      }
     }
     prevUserIdRef.current = next
+    // cart/wishlist store actions are stable Zustand refs — safe to omit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
   // ── addToCart ─────────────────────────────────────────────────────────────

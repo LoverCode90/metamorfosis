@@ -72,16 +72,17 @@ const CATEGORY_TREE: { parent: string; children: string[] }[] = [
   },
 ]
 
+/** Fixed maximum for the price slider — $200, regardless of catalog data. */
+const MAX_PRICE_CENTS = 20_000
+
 interface FiltersPanelProps {
   filters: ActiveFilters
-  maxPrice: number
   onChange: (next: ActiveFilters) => void
   onClear: () => void
 }
 
 export function FiltersPanel({
   filters,
-  maxPrice,
   onChange,
   onClear,
 }: FiltersPanelProps) {
@@ -137,7 +138,9 @@ export function FiltersPanel({
   const activeCount =
     filters.categories.length +
     (filters.search ? 1 : 0) +
-    (Number.isFinite(filters.maxPrice) && filters.maxPrice < maxPrice ? 1 : 0)
+    (Number.isFinite(filters.maxPrice) && filters.maxPrice < MAX_PRICE_CENTS
+      ? 1
+      : 0)
 
   return (
     <div className="flex flex-col gap-7">
@@ -173,37 +176,39 @@ export function FiltersPanel({
         </label>
       </div>
 
-      {/* Price slider */}
-      {maxPrice > 0 && (
-        <div>
-          <h3 className="text-foreground text-xs font-semibold tracking-wide uppercase">
-            Max Price
-          </h3>
-          <input
-            type="range"
-            min={0}
-            max={maxPrice}
-            step={1}
-            value={
-              Number.isFinite(filters.maxPrice) ? filters.maxPrice : maxPrice
-            }
-            onChange={(e) =>
-              onChange({ ...filters, maxPrice: Number(e.target.value) })
-            }
-            aria-label="Maximum price"
-            className="accent-foreground mt-3 w-full"
-          />
-          <div className="text-muted-foreground mt-1.5 flex items-center justify-between text-xs tabular-nums">
-            <span>{formatUSD(0)}</span>
-            <span className="text-foreground font-medium">
-              up to{" "}
-              {formatUSD(
-                Number.isFinite(filters.maxPrice) ? filters.maxPrice : maxPrice,
-              )}
-            </span>
-          </div>
+      {/* Price slider — fixed $0–$200 cap regardless of catalog prices */}
+      <div>
+        <h3 className="text-foreground text-xs font-semibold tracking-wide uppercase">
+          Max Price
+        </h3>
+        <input
+          type="range"
+          min={0}
+          max={MAX_PRICE_CENTS}
+          step={100}
+          value={
+            Number.isFinite(filters.maxPrice)
+              ? Math.min(filters.maxPrice, MAX_PRICE_CENTS)
+              : MAX_PRICE_CENTS
+          }
+          onChange={(e) =>
+            onChange({ ...filters, maxPrice: Number(e.target.value) })
+          }
+          aria-label="Maximum price"
+          className="accent-foreground mt-3 w-full"
+        />
+        <div className="text-muted-foreground mt-1.5 flex items-center justify-between text-xs tabular-nums">
+          <span>{formatUSD(0)}</span>
+          <span className="text-foreground font-medium">
+            up to{" "}
+            {formatUSD(
+              Number.isFinite(filters.maxPrice)
+                ? Math.min(filters.maxPrice, MAX_PRICE_CENTS)
+                : MAX_PRICE_CENTS,
+            )}
+          </span>
         </div>
-      )}
+      </div>
 
       {/* Category accordion */}
       <div>

@@ -232,9 +232,11 @@ export function WishlistView() {
             <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 xl:grid-cols-4">
               {visible.map((item) => (
                 <WishlistCard
-                  key={item.id}
+                  key={item.variationId ?? item.id}
                   item={item}
-                  onRemove={() => removeFromWishlist(item.id)}
+                  onRemove={() =>
+                    removeFromWishlist(item.variationId ?? item.id)
+                  }
                   onAdd={() => addToCart(item)}
                 />
               ))}
@@ -243,9 +245,11 @@ export function WishlistView() {
             <ul className="divide-border border-border flex flex-col divide-y rounded-xl border">
               {visible.map((item) => (
                 <WishlistRow
-                  key={item.id}
+                  key={item.variationId ?? item.id}
                   item={item}
-                  onRemove={() => removeFromWishlist(item.id)}
+                  onRemove={() =>
+                    removeFromWishlist(item.variationId ?? item.id)
+                  }
                   onAdd={() => addToCart(item)}
                 />
               ))}

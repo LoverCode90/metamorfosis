@@ -31,9 +31,14 @@ function toProduct(card: CatalogCard): Product {
 
 export function ProductCard({ product: card }: { product: CatalogCard }) {
   const { addToCart, toggleWishlist, isWishlisted, isAuthenticated } = useCart()
-  const wishlisted = isWishlisted(card.squareProductId)
+  // Wishlist identity is per-variation; the card represents its default variation.
+  const wishlistKey = card.defaultVariationId ?? card.squareProductId
+  const wishlisted = isWishlisted(wishlistKey)
   const lowStock = card.totalStock > 0 && card.totalStock <= LOW_STOCK_THRESHOLD
   const outOfStock = card.totalStock === 0
+  // Products with multiple variations (colors/sizes) can't be added directly —
+  // the shopper must pick a variation on the detail page first.
+  const hasOptions = card.variationCount > 1
   const [showWishlistModal, setShowWishlistModal] = useState(false)
   const [imgIdx, setImgIdx] = useState(0)
 
@@ -185,15 +190,28 @@ export function ProductCard({ product: card }: { product: CatalogCard }) {
               )}
             </span>
 
-            <button
-              type="button"
-              onClick={handleAdd}
-              disabled={outOfStock}
-              className="bg-foreground text-background focus-visible:ring-ring inline-flex h-8 shrink-0 items-center justify-center gap-1 rounded-md px-3 text-xs font-semibold whitespace-nowrap transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
-              {card.isColorProduct ? "Select" : "Add to Bag"}
-            </button>
+            {hasOptions ? (
+              <Link
+                href={`/products/${card.squareProductId}`}
+                aria-disabled={outOfStock}
+                className={cn(
+                  "border-border text-foreground hover:bg-muted focus-visible:ring-ring inline-flex h-8 shrink-0 items-center justify-center gap-1 rounded-md border px-3 text-xs font-semibold whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+                  outOfStock && "pointer-events-none opacity-40",
+                )}
+              >
+                View Options
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={handleAdd}
+                disabled={outOfStock}
+                className="bg-foreground text-background focus-visible:ring-ring inline-flex h-8 shrink-0 items-center justify-center gap-1 rounded-md px-3 text-xs font-semibold whitespace-nowrap transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Plus className="h-3.5 w-3.5" strokeWidth={2.5} />
+                Add to Bag
+              </button>
+            )}
           </div>
         </div>
       </article>

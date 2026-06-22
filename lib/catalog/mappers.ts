@@ -103,6 +103,7 @@ export function mapCard(
   row: DbProductRow & {
     min_price_cents?: number
     total_stock?: number
+    variation_count?: number
     default_variation_id?: string | null
     default_square_variation_id?: string | null
   },
@@ -117,6 +118,7 @@ export function mapCard(
     imageUrls: parseImageUrls(row.image_urls),
     minPriceCents: row.min_price_cents ?? 0,
     totalStock: row.total_stock ?? 0,
+    variationCount: row.variation_count ?? 1,
     defaultVariationId: row.default_variation_id ?? null,
     defaultSquareVariationId: row.default_square_variation_id ?? null,
   }
