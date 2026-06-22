@@ -93,6 +93,7 @@ export function VerifyEmailForm() {
     sessionStorage.removeItem("signup_password")
 
     router.push(body.redirect ?? "/profile")
+    router.refresh()
   }
 
   async function onResend() {

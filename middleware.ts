@@ -61,18 +61,28 @@ export async function middleware(request: NextRequest) {
     PREFIX_PROTECTED.some((route) => pathname.startsWith(route))
   const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route))
 
+  // Helper to ensure any cookies set by `setAll` (like token refreshes)
+  // are copied over to a redirect response before returning it.
+  const redirectWithCookies = (url: URL) => {
+    const redirectResponse = NextResponse.redirect(url)
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie)
+    })
+    return redirectResponse
+  }
+
   if (isProtected && !user) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = "/login"
     loginUrl.searchParams.set("next", pathname)
-    return NextResponse.redirect(loginUrl)
+    return redirectWithCookies(loginUrl)
   }
 
   if (isAuthRoute && user) {
     const homeUrl = request.nextUrl.clone()
     homeUrl.pathname = "/profile"
     homeUrl.search = ""
-    return NextResponse.redirect(homeUrl)
+    return redirectWithCookies(homeUrl)
   }
 
   // ── Admins never see the shopping interface ───────────────────────────────
@@ -104,7 +114,7 @@ export async function middleware(request: NextRequest) {
       const adminUrl = request.nextUrl.clone()
       adminUrl.pathname = "/admin"
       adminUrl.search = ""
-      return NextResponse.redirect(adminUrl)
+      return redirectWithCookies(adminUrl)
     }
   }
 
