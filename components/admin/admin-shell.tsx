@@ -1,6 +1,12 @@
 "use client"
 
-import { createContext, useContext, useState, type ReactNode } from "react"
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react"
 
 export type AdminTheme = "dark" | "light"
 export type AdminFontSize = "normal" | "large" | "larger"
@@ -51,20 +57,35 @@ function readFontSize(): AdminFontSize {
 }
 
 export function AdminShell({ children }: { children: ReactNode }) {
-  // Read straight from localStorage on the client's first render. The server
-  // renders the defaults (dark/normal); suppressHydrationWarning on the wrapper
-  // absorbs the one-time data-attribute diff when a preference was saved.
   const [theme, setThemeState] = useState<AdminTheme>(readTheme)
   const [fontSize, setFontSizeState] = useState<AdminFontSize>(readFontSize)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+    document.documentElement.dataset.adminTheme = theme
+  }, [theme, mounted])
+
+  useEffect(() => {
+    if (!mounted) return
+    document.documentElement.dataset.adminFontSize = fontSize
+  }, [fontSize, mounted])
 
   function setTheme(t: AdminTheme) {
     setThemeState(t)
     localStorage.setItem(THEME_KEY, t)
+    document.documentElement.dataset.adminTheme = t
   }
 
   function setFontSize(f: AdminFontSize) {
     setFontSizeState(f)
     localStorage.setItem(FONT_KEY, f)
+    document.documentElement.dataset.adminFontSize = f
   }
 
   return (

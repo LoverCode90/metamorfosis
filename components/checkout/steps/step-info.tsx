@@ -5,6 +5,11 @@ import { Controller, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { CheckCircle, Pencil } from "lucide-react"
+import {
+  usePlacesAutocomplete,
+  type PlaceSuggestion,
+} from "@/hooks/use-places-autocomplete"
+import { MapPin } from "lucide-react"
 import { FloatingField } from "@/components/checkout/floating-field"
 import { CONTINENTAL_STATES } from "@/lib/constants"
 import type { CheckoutAddress } from "@/lib/checkout/types"
@@ -56,7 +61,9 @@ export function StepInfo({
 }: StepInfoProps) {
   const [savedAddress, setSavedAddress] = useState<CheckoutAddress | null>(null)
   const [usingSaved, setUsingSaved] = useState(false)
-  const [loadingAddress, setLoadingAddress] = useState(isAuthenticated)
+  const [loadingAddress, setLoadingAddress] = useState(
+    isAuthenticated && !skipAddressFetch,
+  )
   const fetchedRef = useRef(false)
 
   const {
@@ -106,6 +113,44 @@ export function StepInfo({
   }, [isAuthenticated, reset, skipAddressFetch])
 
   const termsAccepted = useWatch({ control, name: "termsAccepted" })
+  const streetLine1 = useWatch({ control, name: "streetLine1" }) || ""
+  const { suggestions, getPlaceDetails, setSuggestions } =
+    usePlacesAutocomplete(streetLine1)
+
+  async function handlePlaceSelect(placeId: string) {
+    try {
+      const details = await getPlaceDetails(placeId)
+      let street_number = ""
+      let route = ""
+      let city = ""
+      let state = ""
+      let zip = ""
+
+      for (const component of details.address_components || []) {
+        const types = component.types
+        if (types.includes("street_number")) street_number = component.long_name
+        if (types.includes("route")) route = component.short_name
+        if (types.includes("locality")) city = component.long_name
+        if (types.includes("administrative_area_level_1"))
+          state = component.short_name
+        if (types.includes("postal_code")) zip = component.long_name
+      }
+
+      reset(
+        {
+          ...control._formValues,
+          streetLine1: `${street_number} ${route}`.trim(),
+          city,
+          state,
+          zip,
+        },
+        { keepErrors: false },
+      )
+      setSuggestions([])
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   function onSubmit(values: InfoFormValues) {
     if (hasNonReturnable && !values.termsAccepted) return
@@ -232,7 +277,7 @@ export function StepInfo({
           </FloatingField>
         </div>
 
-        <div className="mt-4">
+        <div className="relative mt-4">
           <FloatingField
             label="Street address"
             error={errors.streetLine1?.message}
@@ -240,10 +285,32 @@ export function StepInfo({
           >
             <input
               {...register("streetLine1")}
+              autoComplete="off"
               className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
               placeholder="Street address"
             />
           </FloatingField>
+          {suggestions.length > 0 && (
+            <ul className="border-border bg-background absolute z-10 mt-1 max-h-60 w-full overflow-hidden overflow-y-auto rounded-md border shadow-lg">
+              {suggestions.map((s: PlaceSuggestion) => (
+                <li
+                  key={s.place_id}
+                  onClick={() => handlePlaceSelect(s.place_id)}
+                  className="hover:bg-muted/50 flex cursor-pointer items-start gap-3 px-3 py-2.5 transition-colors"
+                >
+                  <MapPin className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
+                  <div className="flex flex-col">
+                    <span className="text-foreground text-sm font-medium">
+                      {s.main_text}
+                    </span>
+                    <span className="text-muted-foreground text-xs">
+                      {s.secondary_text}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="mt-4">

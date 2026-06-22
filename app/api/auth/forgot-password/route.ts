@@ -124,20 +124,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         options: { redirectTo },
       })
 
-    if (linkError || !link.properties?.action_link) {
+    if (linkError || !link.properties?.hashed_token) {
       console.error(
         "[forgot-password] generateLink failed:",
-        linkError ? JSON.stringify(linkError) : "no action_link returned",
+        linkError ? JSON.stringify(linkError) : "no hashed_token returned",
         "| response keys:",
         link ? Object.keys(link) : "null",
+        "| properties:",
+        link?.properties ? Object.keys(link.properties) : "null",
       )
     } else {
+      const resetUrl = `${appUrl}/auth/callback?token_hash=${link.properties.hashed_token}&type=recovery&next=/reset-password`
+
       // Fire-and-forget — a delivery failure is logged but never disclosed to
       // the caller, preserving the generic response.
       sendPasswordReset({
         to: email,
         name: profile.first_name ?? profile.full_name.split(" ")[0] ?? "",
-        resetUrl: link.properties.action_link,
+        resetUrl,
         expiresInMinutes: RESET_LINK_EXPIRY_MINUTES,
       }).catch((err) =>
         console.error("[forgot-password] reset email failed:", err),

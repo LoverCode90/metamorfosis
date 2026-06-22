@@ -125,12 +125,25 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
   // ── 1. Fetch all catalog objects (ITEM, ITEM_VARIATION, IMAGE, CATEGORY) ──
   const allObjects: CatalogObject[] = []
   for await (const obj of await square.catalog.list({
-    types: "ITEM,ITEM_VARIATION,IMAGE,CATEGORY",
+    types: "ITEM,ITEM_VARIATION,IMAGE,CATEGORY,CUSTOM_ATTRIBUTE_DEFINITION",
   })) {
     allObjects.push(obj)
   }
 
   // ── 2. Build lookup maps from the raw objects ─────────────────────────────
+
+  const selectionMap = new Map<string, string>()
+  for (const obj of allObjects) {
+    if (obj.type === "CUSTOM_ATTRIBUTE_DEFINITION") {
+      const selections =
+        obj.customAttributeDefinitionData?.selectionConfig?.allowedSelections
+      if (selections) {
+        for (const sel of selections) {
+          if (sel.uid && sel.name) selectionMap.set(sel.uid, sel.name)
+        }
+      }
+    }
+  }
 
   const imageUrlMap = new Map<string, string>()
   for (const obj of allObjects) {
@@ -259,9 +272,9 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
       ...(hasImageUrlsColumn ? { image_urls: imageUrls } : {}),
       is_professional: getBoolAttr(attrs, "is_professional") ?? false,
       is_returnable: getBoolAttr(attrs, "is_returnable") ?? true,
-      package_class: getPackageClass(attrs),
+      package_class: getPackageClass(attrs, selectionMap),
       is_color_product: getBoolAttr(attrs, "is_color_product") ?? false,
-      color_family: getColorFamily(attrs),
+      color_family: getColorFamily(attrs, selectionMap),
       color_chart_pdf_url: getColorChartPdfUrl(attrs),
       is_active: true,
     }

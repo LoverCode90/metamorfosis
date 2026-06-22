@@ -22,7 +22,7 @@ import { StepPayment } from "./steps/step-payment"
 export function CheckoutClient() {
   const router = useRouter()
   const { items, totals, clearCart, removeItem } = useCart()
-  const { user, dbProfile } = useUser()
+  const { user, dbProfile, saveAddress } = useUser()
 
   const [wizardStep, setWizardStep] = useState<CheckoutStepId>("info")
   const [address, setAddress] = useState<CheckoutAddress | null>(null)
@@ -61,13 +61,21 @@ export function CheckoutClient() {
     setTermsAccepted(terms)
     setWizardStep("shipping")
 
-    // Persist address to DB on step-advance (fire-and-forget for authenticated users).
     if (user) {
+      saveAddress({
+        fullName: addr.fullName,
+        phone: addr.phone,
+        line1: addr.streetLine1,
+        city: addr.city,
+        region: addr.state,
+        postalCode: addr.zip,
+        country: addr.country,
+      })
       fetch("/api/addresses/default", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(addr),
-      }).catch(() => {})
+      }).catch(console.error)
     }
   }
 

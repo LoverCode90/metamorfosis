@@ -7,11 +7,25 @@ type AttrMap = Record<string, CatalogCustomAttributeValue> | undefined
 /**
  * Read a string custom attribute by key (case-insensitive key lookup).
  */
-export function getStringAttr(attrs: AttrMap, key: string): string | null {
+export function getStringAttr(
+  attrs: AttrMap,
+  key: string,
+  selectionMap?: Map<string, string>,
+): string | null {
   if (!attrs) return null
   const entry = findAttr(attrs, key)
   if (!entry) return null
-  return entry.stringValue?.trim() ?? null
+  if (entry.stringValue) return entry.stringValue.trim()
+  if (
+    entry.selectionUidValues &&
+    entry.selectionUidValues.length > 0 &&
+    selectionMap
+  ) {
+    const uid = entry.selectionUidValues[0]
+    const resolved = selectionMap.get(uid)
+    if (resolved) return resolved.trim()
+  }
+  return null
 }
 
 /**
@@ -81,16 +95,16 @@ function findAttr(
   attrs: Record<string, CatalogCustomAttributeValue>,
   key: string,
 ): CatalogCustomAttributeValue | undefined {
-  const lower = key.toLowerCase()
+  const lower = key.toLowerCase().replace(/\s+/g, "_")
 
   for (const [k, v] of Object.entries(attrs)) {
     const bare = k.includes(":") ? k.split(":").pop()! : k
-    if (bare.toLowerCase() === lower) return v
-    if (v.name?.toLowerCase() === lower) return v
-    if (v.key?.toLowerCase() === lower) return v
+    if (bare.toLowerCase().replace(/\s+/g, "_") === lower) return v
+    if (v.name?.toLowerCase().replace(/\s+/g, "_") === lower) return v
+    if (v.key?.toLowerCase().replace(/\s+/g, "_") === lower) return v
     if (
       v.key?.includes(":") &&
-      v.key.split(":").pop()?.toLowerCase() === lower
+      v.key.split(":").pop()?.toLowerCase().replace(/\s+/g, "_") === lower
     ) {
       return v
     }
@@ -109,10 +123,13 @@ const VALID_PACKAGE_CLASSES: PackageClass[] = [
   "kit_large",
 ]
 
-export function getPackageClass(attrs: AttrMap): PackageClass {
-  const raw = getStringAttr(attrs, "package_class")
+export function getPackageClass(
+  attrs: AttrMap,
+  selectionMap?: Map<string, string>,
+): PackageClass {
+  const raw = getStringAttr(attrs, "package_class", selectionMap)
   if (!raw) return "small"
-  const v = raw.toLowerCase() as PackageClass
+  const v = raw.toLowerCase().replace(/\s+/g, "_") as PackageClass
   return VALID_PACKAGE_CLASSES.includes(v) ? v : "small"
 }
 
@@ -132,10 +149,12 @@ const VALID_FAMILIES: string[] = [
   "special",
 ]
 
-export function getColorFamily(attrs: AttrMap): ColorFamily {
-  const raw = getStringAttr(attrs, "color_family")
+export function getColorFamily(
+  attrs: AttrMap,
+  selectionMap?: Map<string, string>,
+): ColorFamily {
+  const raw = getStringAttr(attrs, "color_family", selectionMap)
   if (!raw) return null
-  return VALID_FAMILIES.includes(raw.toLowerCase())
-    ? (raw.toLowerCase() as ColorFamily)
-    : null
+  const v = raw.toLowerCase().replace(/\s+/g, "_")
+  return VALID_FAMILIES.includes(v) ? (v as ColorFamily) : null
 }

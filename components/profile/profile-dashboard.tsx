@@ -15,6 +15,10 @@ import {
   User,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import {
+  usePlacesAutocomplete,
+  type PlaceSuggestion,
+} from "@/hooks/use-places-autocomplete"
 import type { SavedAddress, UserRole, VerificationStatus } from "@/lib/types"
 import { CONTINENTAL_STATES } from "@/lib/constants"
 import { cn } from "@/lib/utils"
@@ -55,6 +59,41 @@ export function ProfileDashboard() {
   const hasName =
     profile.firstName.trim().length > 0 && profile.lastName.trim().length > 0
   const hasSavedPayment = false
+
+  const { suggestions, getPlaceDetails, setSuggestions } =
+    usePlacesAutocomplete(addrDraft.line1)
+
+  async function handlePlaceSelect(placeId: string) {
+    try {
+      const details = await getPlaceDetails(placeId)
+      let street_number = ""
+      let route = ""
+      let city = ""
+      let state = ""
+      let zip = ""
+
+      for (const component of details.address_components || []) {
+        const types = component.types
+        if (types.includes("street_number")) street_number = component.long_name
+        if (types.includes("route")) route = component.short_name
+        if (types.includes("locality")) city = component.long_name
+        if (types.includes("administrative_area_level_1"))
+          state = component.short_name
+        if (types.includes("postal_code")) zip = component.long_name
+      }
+
+      setAddrDraft((d) => ({
+        ...d,
+        line1: `${street_number} ${route}`.trim(),
+        city,
+        region: state,
+        postalCode: zip,
+      }))
+      setSuggestions([])
+    } catch (e) {
+      console.error(e)
+    }
+  }
 
   const checklist = [
     { id: "name", label: "Add your name", done: hasName },
@@ -257,19 +296,40 @@ export function ProfileDashboard() {
                 </div>
 
                 {/* Street */}
-                <div>
+                <div className="relative">
                   <label className="text-muted-foreground mb-1 block text-xs">
                     Address line 1
                   </label>
                   <input
                     type="text"
-                    autoComplete="street-address"
+                    autoComplete="off"
                     value={addrDraft.line1}
                     onChange={(e) =>
                       setAddrDraft((d) => ({ ...d, line1: e.target.value }))
                     }
                     className="border-border bg-background text-foreground focus:border-foreground h-9 w-full rounded-md border px-3 text-sm transition-colors outline-none"
                   />
+                  {suggestions.length > 0 && (
+                    <ul className="border-border bg-background absolute z-10 mt-1 max-h-60 w-full overflow-hidden overflow-y-auto rounded-md border shadow-lg">
+                      {suggestions.map((s: PlaceSuggestion) => (
+                        <li
+                          key={s.place_id}
+                          onClick={() => handlePlaceSelect(s.place_id)}
+                          className="hover:bg-muted/50 flex cursor-pointer items-start gap-3 px-3 py-2.5 transition-colors"
+                        >
+                          <MapPin className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
+                          <div className="flex flex-col">
+                            <span className="text-foreground text-sm font-medium">
+                              {s.main_text}
+                            </span>
+                            <span className="text-muted-foreground text-xs">
+                              {s.secondary_text}
+                            </span>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
                 {/* City */}
