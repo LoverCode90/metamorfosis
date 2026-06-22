@@ -77,8 +77,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── Admins never see the shopping interface ───────────────────────────────
-  // Bounce admins off all customer-facing routes (profile, catalog, cart,
-  // checkout, wishlist, search) to /admin so they can't accidentally land on
+  // Bounce admins off the home page and all customer-facing routes (profile,
+  // catalog, cart, checkout, wishlist, search) to /admin so they can't land on
   // the shopping view.
   const CUSTOMER_ONLY_PREFIXES = [
     "/profile",
@@ -90,9 +90,11 @@ export async function middleware(request: NextRequest) {
     "/orders",
     "/tracking",
   ]
-  const isCustomerRoute = CUSTOMER_ONLY_PREFIXES.some(
-    (p) => pathname === p || pathname.startsWith(`${p}/`),
-  )
+  const isCustomerRoute =
+    pathname === "/" ||
+    CUSTOMER_ONLY_PREFIXES.some(
+      (p) => pathname === p || pathname.startsWith(`${p}/`),
+    )
   if (user && isCustomerRoute) {
     const { data: profile } = await supabase
       .from("profiles")

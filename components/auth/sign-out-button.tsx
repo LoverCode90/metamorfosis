@@ -20,9 +20,12 @@ import { cn } from "@/lib/utils"
 export function SignOutButton({
   className,
   label = "Sign out",
+  /** When true, the text label is hidden below the `sm` breakpoint (icon only). */
+  hideLabelOnMobile = false,
 }: {
   className?: string
   label?: string
+  hideLabelOnMobile?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const [pending, setPending] = useState(false)
@@ -42,13 +45,16 @@ export function SignOutButton({
       <button
         type="button"
         onClick={() => setOpen(true)}
+        aria-label={label}
         className={cn(
-          "border-border text-destructive hover:bg-destructive/10 flex h-9 items-center gap-1.5 rounded-md border px-4 text-sm font-medium transition-colors",
+          "border-border text-destructive hover:bg-destructive/10 flex h-9 items-center gap-1.5 rounded-md border px-3 text-sm font-medium transition-colors sm:px-4",
           className,
         )}
       >
-        <LogOut className="h-4 w-4" strokeWidth={1.75} />
-        {label}
+        <LogOut className="h-4 w-4 shrink-0" strokeWidth={1.75} />
+        <span className={cn(hideLabelOnMobile && "hidden sm:inline")}>
+          {label}
+        </span>
       </button>
 
       <Dialog open={open} onOpenChange={(o) => !pending && setOpen(o)}>
