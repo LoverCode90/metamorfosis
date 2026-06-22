@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
+import Link from "next/link"
 import { LayoutGrid, List, ShoppingBag, Trash2 } from "lucide-react"
 import { formatUSD } from "@/lib/utils/format"
 import type { Product } from "@/lib/types"
@@ -24,6 +25,7 @@ export function WishlistCard({
   const finalPrice = item.unitPrice - item.discountPerItem
   const hasDiscount = item.discountPerItem > 0
   const lowStock = item.stock <= 10
+  const href = `/products/${item.id}`
 
   return (
     <article className="group flex flex-col">
@@ -35,18 +37,23 @@ export function WishlistCard({
         )}
         <button
           type="button"
-          onClick={onRemove}
+          onClick={(e) => {
+            e.stopPropagation()
+            onRemove()
+          }}
           aria-label={`Remove ${item.name} from wishlist`}
           className="bg-background/90 text-foreground hover:bg-destructive hover:text-background absolute top-2.5 right-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full shadow-sm backdrop-blur transition-colors"
         >
           <Trash2 className="h-4 w-4" strokeWidth={1.75} />
         </button>
-        <img
-          src={item.image || "/placeholder.svg"}
-          alt={item.name}
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+        <Link href={href} aria-label={item.name} tabIndex={-1}>
+          <img
+            src={item.image || "/placeholder.svg"}
+            alt={item.name}
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        </Link>
       </div>
 
       <div className="flex flex-1 flex-col pt-3">
@@ -55,9 +62,12 @@ export function WishlistCard({
             {item.brand}
           </p>
         )}
-        <p className="text-foreground mt-1 text-sm leading-snug font-medium">
+        <Link
+          href={href}
+          className="text-foreground mt-1 text-sm leading-snug font-medium hover:underline hover:underline-offset-2"
+        >
           {item.name}
-        </p>
+        </Link>
         <p className="text-muted-foreground mt-0.5 text-xs">{item.variant}</p>
         <div className="mt-2 flex items-baseline gap-1.5">
           <span className="text-foreground text-sm font-semibold tabular-nums">
@@ -76,7 +86,10 @@ export function WishlistCard({
         )}
         <button
           type="button"
-          onClick={onAdd}
+          onClick={(e) => {
+            e.stopPropagation()
+            onAdd()
+          }}
           className="bg-foreground text-background mt-3 inline-flex h-9 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-semibold transition-opacity hover:opacity-90"
         >
           <ShoppingBag className="h-3.5 w-3.5" strokeWidth={2} />
@@ -98,21 +111,30 @@ export function WishlistRow({
 }) {
   const finalPrice = item.unitPrice - item.discountPerItem
   const hasDiscount = item.discountPerItem > 0
+  const href = `/products/${item.id}`
 
   return (
     <li className="flex items-center gap-4 p-4">
-      <div className="border-border bg-muted h-16 w-16 shrink-0 overflow-hidden rounded-md border">
+      <Link
+        href={href}
+        className="border-border bg-muted h-16 w-16 shrink-0 overflow-hidden rounded-md border"
+        aria-label={item.name}
+        tabIndex={-1}
+      >
         <img
           src={item.image || "/placeholder.svg"}
           alt={item.name}
           loading="lazy"
           className="h-full w-full object-cover"
         />
-      </div>
+      </Link>
       <div className="min-w-0 flex-1">
-        <p className="text-foreground truncate text-sm font-medium">
+        <Link
+          href={href}
+          className="text-foreground truncate text-sm font-medium hover:underline hover:underline-offset-2"
+        >
           {item.name}
-        </p>
+        </Link>
         <p className="text-muted-foreground truncate text-xs">{item.variant}</p>
       </div>
       <div className="flex items-baseline gap-1.5">
@@ -127,7 +149,10 @@ export function WishlistRow({
       </div>
       <button
         type="button"
-        onClick={onAdd}
+        onClick={(e) => {
+          e.stopPropagation()
+          onAdd()
+        }}
         className="bg-foreground text-background inline-flex h-9 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-semibold transition-opacity hover:opacity-90"
       >
         <ShoppingBag className="h-3.5 w-3.5" strokeWidth={2} />
@@ -135,7 +160,10 @@ export function WishlistRow({
       </button>
       <button
         type="button"
-        onClick={onRemove}
+        onClick={(e) => {
+          e.stopPropagation()
+          onRemove()
+        }}
         aria-label={`Remove ${item.name}`}
         className="border-border text-muted-foreground hover:border-destructive hover:text-destructive flex h-9 w-9 items-center justify-center rounded-md border transition-colors"
       >

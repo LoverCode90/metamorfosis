@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
+import { useDebounce } from "@/hooks/use-debounce"
 import Link from "next/link"
 import { ArrowLeft, Search as SearchIcon } from "lucide-react"
 import { ProductCard } from "./product-card"
@@ -13,12 +14,7 @@ import type { CatalogCard } from "@/lib/catalog"
  */
 export function SearchView({ cards }: { cards: CatalogCard[] }) {
   const [query, setQuery] = useState("")
-  const [debounced, setDebounced] = useState("")
-
-  useEffect(() => {
-    const id = setTimeout(() => setDebounced(query.trim()), 300)
-    return () => clearTimeout(id)
-  }, [query])
+  const debounced = useDebounce(query.trim(), 300)
 
   const results = useMemo(() => {
     if (!debounced) return cards

@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { CheckCircle, Pencil } from "lucide-react"
 import { FloatingField } from "@/components/checkout/floating-field"
-import { US_STATES } from "@/lib/constants"
+import { CONTINENTAL_STATES } from "@/lib/constants"
 import type { CheckoutAddress } from "@/lib/checkout/types"
 import { PhoneInput } from "@/components/ui/phone-input"
 import {
@@ -38,10 +38,12 @@ type InfoFormValues = z.infer<typeof schema>
 
 interface StepInfoProps {
   hasNonReturnable: boolean
-  /** Initial values from the user's profile (name, email, phone) */
+  /** Initial values from the user's profile (name, email, phone) or a prior step-info submission */
   defaultValues?: Partial<InfoFormValues>
   /** Whether the user is authenticated — determines if we fetch saved address */
   isAuthenticated: boolean
+  /** When true, skip the auto-fetch of saved address (used when returning from shipping step) */
+  skipAddressFetch?: boolean
   onContinue: (data: CheckoutAddress, termsAccepted: boolean) => void
 }
 
@@ -49,6 +51,7 @@ export function StepInfo({
   hasNonReturnable,
   defaultValues,
   isAuthenticated,
+  skipAddressFetch = false,
   onContinue,
 }: StepInfoProps) {
   const [savedAddress, setSavedAddress] = useState<CheckoutAddress | null>(null)
@@ -73,9 +76,10 @@ export function StepInfo({
     },
   })
 
-  // Fetch saved default address once for authenticated users
+  // Fetch saved default address once for authenticated users (skipped when
+  // returning from a later step — defaultValues already carries the address).
   useEffect(() => {
-    if (!isAuthenticated || fetchedRef.current) return
+    if (!isAuthenticated || fetchedRef.current || skipAddressFetch) return
     fetchedRef.current = true
 
     fetch("/api/addresses/default")
@@ -99,7 +103,7 @@ export function StepInfo({
         setLoadingAddress(false)
       })
       .catch(() => setLoadingAddress(false))
-  }, [isAuthenticated, reset])
+  }, [isAuthenticated, reset, skipAddressFetch])
 
   const termsAccepted = useWatch({ control, name: "termsAccepted" })
 
@@ -183,17 +187,22 @@ export function StepInfo({
         }
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <FloatingField
-            label="Full name"
-            error={errors.fullName?.message}
-            required
-          >
+          <div>
+            <label className="text-muted-foreground mb-1 block text-xs font-medium">
+              Full name <span className="text-destructive">*</span>
+            </label>
             <input
               {...register("fullName")}
-              className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
+              autoComplete="name"
               placeholder="Full name"
+              className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-foreground h-11 w-full rounded-md border px-3 text-sm transition-colors outline-none"
             />
-          </FloatingField>
+            {errors.fullName && (
+              <p className="text-destructive mt-1 text-xs">
+                {errors.fullName.message}
+              </p>
+            )}
+          </div>
           <div>
             <label className="text-muted-foreground mb-1 block text-xs font-medium">
               Phone <span className="text-destructive">*</span>
@@ -269,7 +278,7 @@ export function StepInfo({
               className="border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 py-2.5 text-sm outline-none"
             >
               <option value="">Select state</option>
-              {US_STATES.map((s) => (
+              {CONTINENTAL_STATES.map((s) => (
                 <option key={s.code} value={s.code}>
                   {s.name}
                 </option>

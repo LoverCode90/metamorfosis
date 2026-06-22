@@ -127,7 +127,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (linkError || !link.properties?.action_link) {
       console.error(
         "[forgot-password] generateLink failed:",
-        linkError ?? "no action_link returned",
+        linkError ? JSON.stringify(linkError) : "no action_link returned",
+        "| response keys:",
+        link ? Object.keys(link) : "null",
       )
     } else {
       // Fire-and-forget — a delivery failure is logged but never disclosed to

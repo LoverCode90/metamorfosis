@@ -16,17 +16,22 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import type { SavedAddress, UserRole, VerificationStatus } from "@/lib/types"
+import { CONTINENTAL_STATES } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 import { useUser } from "@/hooks/use-user"
+import { formatPhone, digits as phoneDigits } from "@/lib/utils/phone"
+import { PhoneInput } from "@/components/ui/phone-input"
 import { CompletionRing } from "./completion-ring"
 import { EditableField } from "./editable-field"
 import { VerificationPanel } from "./verification-panel"
 import { AvatarInitials } from "./avatar-initials"
+import { ChangePasswordForm } from "./change-password-form"
 import { SignOutButton } from "@/components/auth/sign-out-button"
 
 export function ProfileDashboard() {
   const router = useRouter()
   const {
+    user,
     profile,
     dbProfile,
     updateProfile,
@@ -35,19 +40,20 @@ export function ProfileDashboard() {
     saveAddress,
   } = useUser()
   const [editingAddress, setEditingAddress] = useState(false)
-  const [addrDraft, setAddrDraft] = useState<SavedAddress>({
+  const [addrDraft, setAddrDraft] = useState<SavedAddress & { phone: string }>({
     fullName: "",
+    phone: "",
     line1: "",
     city: "",
     region: "",
     postalCode: "",
-    country: "",
+    country: "US",
   })
 
   const isAdmin = dbProfile?.role === "admin"
+  const isEmailUser = user?.app_metadata?.provider !== "google"
   const hasName =
     profile.firstName.trim().length > 0 && profile.lastName.trim().length > 0
-  // Saved payment method: no persistence layer yet — keep as false placeholder.
   const hasSavedPayment = false
 
   const checklist = [
@@ -75,6 +81,48 @@ export function ProfileDashboard() {
   const completion = Math.round(
     (checklist.filter((c) => c.done).length / checklist.length) * 100,
   )
+
+  function startEditing() {
+    setAddrDraft({
+      fullName: savedAddress?.fullName ?? "",
+      phone: phoneDigits(savedAddress?.phone ?? ""),
+      line1: savedAddress?.line1 ?? "",
+      city: savedAddress?.city ?? "",
+      region: savedAddress?.region ?? "",
+      postalCode: savedAddress?.postalCode ?? "",
+      country: "US",
+    })
+    setEditingAddress(true)
+  }
+
+  function handleSaveAddress() {
+    const formatted = {
+      ...addrDraft,
+      phone: addrDraft.phone ? formatPhone(addrDraft.phone) : "",
+      country: "US",
+    }
+    saveAddress(formatted)
+    setEditingAddress(false)
+
+    if (user) {
+      const email = dbProfile?.email ?? profile.email
+      fetch("/api/addresses/default", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: formatted.fullName,
+          email,
+          phone: formatted.phone,
+          streetLine1: formatted.line1,
+          streetLine2: "",
+          city: formatted.city,
+          state: formatted.region,
+          zip: formatted.postalCode,
+          country: "US",
+        }),
+      }).catch(() => {})
+    }
+  }
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-12">
@@ -139,7 +187,7 @@ export function ProfileDashboard() {
             rejectionReason={dbProfile?.rejection_reason}
           />
 
-          {/* Saved addresses */}
+          {/* Saved address */}
           <section className="border-border bg-card rounded-2xl border p-6">
             <div className="flex items-center justify-between">
               <h3 className="text-foreground text-sm font-semibold">
@@ -148,19 +196,7 @@ export function ProfileDashboard() {
               {!editingAddress && (
                 <button
                   type="button"
-                  onClick={() => {
-                    setAddrDraft(
-                      savedAddress ?? {
-                        fullName: "",
-                        line1: "",
-                        city: "",
-                        region: "",
-                        postalCode: "",
-                        country: "",
-                      },
-                    )
-                    setEditingAddress(true)
-                  }}
+                  onClick={startEditing}
                   className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs font-medium"
                 >
                   <Pencil className="h-3.5 w-3.5" strokeWidth={1.75} />
@@ -175,12 +211,15 @@ export function ProfileDashboard() {
                   <span className="text-foreground font-medium">
                     {savedAddress.fullName}
                   </span>
+                  {savedAddress.phone && (
+                    <span>{formatPhone(savedAddress.phone)}</span>
+                  )}
                   <span>{savedAddress.line1}</span>
                   <span>
                     {savedAddress.city}, {savedAddress.region}{" "}
                     {savedAddress.postalCode}
                   </span>
-                  <span>{savedAddress.country}</span>
+                  <span>United States</span>
                 </address>
               ) : (
                 <p className="text-muted-foreground mt-4 text-sm">
@@ -189,37 +228,122 @@ export function ProfileDashboard() {
               )
             ) : (
               <div className="mt-4 flex flex-col gap-3">
-                {(
-                  [
-                    { key: "fullName", label: "Full name" },
-                    { key: "line1", label: "Address line 1" },
-                    { key: "city", label: "City" },
-                    { key: "region", label: "State / Province" },
-                    { key: "postalCode", label: "Postal code" },
-                    { key: "country", label: "Country" },
-                  ] as { key: keyof SavedAddress; label: string }[]
-                ).map(({ key, label }) => (
-                  <div key={key}>
-                    <label className="text-muted-foreground mb-1 block text-xs">
-                      {label}
-                    </label>
-                    <input
-                      type="text"
-                      value={addrDraft[key]}
-                      onChange={(e) =>
-                        setAddrDraft((d) => ({ ...d, [key]: e.target.value }))
-                      }
-                      className="border-border bg-background text-foreground focus:border-foreground h-9 w-full rounded-md border px-3 text-sm transition-colors outline-none"
-                    />
+                {/* Full name */}
+                <div>
+                  <label className="text-muted-foreground mb-1 block text-xs">
+                    Full name
+                  </label>
+                  <input
+                    type="text"
+                    autoComplete="name"
+                    value={addrDraft.fullName}
+                    onChange={(e) =>
+                      setAddrDraft((d) => ({ ...d, fullName: e.target.value }))
+                    }
+                    className="border-border bg-background text-foreground focus:border-foreground h-9 w-full rounded-md border px-3 text-sm transition-colors outline-none"
+                  />
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label className="text-muted-foreground mb-1 block text-xs">
+                    Phone
+                  </label>
+                  <PhoneInput
+                    value={addrDraft.phone}
+                    onChange={(v) => setAddrDraft((d) => ({ ...d, phone: v }))}
+                    className="h-9"
+                  />
+                </div>
+
+                {/* Street */}
+                <div>
+                  <label className="text-muted-foreground mb-1 block text-xs">
+                    Address line 1
+                  </label>
+                  <input
+                    type="text"
+                    autoComplete="street-address"
+                    value={addrDraft.line1}
+                    onChange={(e) =>
+                      setAddrDraft((d) => ({ ...d, line1: e.target.value }))
+                    }
+                    className="border-border bg-background text-foreground focus:border-foreground h-9 w-full rounded-md border px-3 text-sm transition-colors outline-none"
+                  />
+                </div>
+
+                {/* City */}
+                <div>
+                  <label className="text-muted-foreground mb-1 block text-xs">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    autoComplete="address-level2"
+                    value={addrDraft.city}
+                    onChange={(e) =>
+                      setAddrDraft((d) => ({ ...d, city: e.target.value }))
+                    }
+                    className="border-border bg-background text-foreground focus:border-foreground h-9 w-full rounded-md border px-3 text-sm transition-colors outline-none"
+                  />
+                </div>
+
+                {/* State dropdown — 48 continental states + DC, no HI/AK */}
+                <div>
+                  <label className="text-muted-foreground mb-1 block text-xs">
+                    State
+                  </label>
+                  <select
+                    value={addrDraft.region}
+                    onChange={(e) =>
+                      setAddrDraft((d) => ({ ...d, region: e.target.value }))
+                    }
+                    className="border-border bg-background text-foreground focus:border-foreground h-9 w-full rounded-md border px-3 text-sm transition-colors outline-none"
+                  >
+                    <option value="">Select state</option>
+                    {CONTINENTAL_STATES.map((s) => (
+                      <option key={s.code} value={s.code}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Postal code */}
+                <div>
+                  <label className="text-muted-foreground mb-1 block text-xs">
+                    Postal code
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="postal-code"
+                    value={addrDraft.postalCode}
+                    onChange={(e) =>
+                      setAddrDraft((d) => ({
+                        ...d,
+                        postalCode: e.target.value,
+                      }))
+                    }
+                    className="border-border bg-background text-foreground focus:border-foreground h-9 w-full rounded-md border px-3 text-sm transition-colors outline-none"
+                  />
+                </div>
+
+                {/* Country — locked to continental US */}
+                <div>
+                  <label className="text-muted-foreground mb-1 block text-xs">
+                    Country
+                  </label>
+                  <div className="border-border bg-muted/40 text-muted-foreground flex h-9 w-full items-center justify-between rounded-md border px-3 text-sm">
+                    <span className="text-foreground">United States</span>
+                    <span className="text-xs">Continental US only</span>
                   </div>
-                ))}
+                </div>
+
                 <div className="flex gap-2 pt-1">
                   <button
                     type="button"
-                    onClick={() => {
-                      saveAddress(addrDraft)
-                      setEditingAddress(false)
-                    }}
+                    onClick={handleSaveAddress}
                     className="bg-accent-violet h-9 rounded-md px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90"
                   >
                     Save address
@@ -262,6 +386,9 @@ export function ProfileDashboard() {
               </button>
             </div>
           </section>
+
+          {/* Change password — email/password users only, not Google OAuth */}
+          {isEmailUser && <ChangePasswordForm />}
 
           <section className="border-border bg-card rounded-2xl border p-6">
             <h3 className="text-foreground mb-4 text-sm font-semibold">
@@ -314,14 +441,6 @@ export function ProfileDashboard() {
   )
 }
 
-/**
- * Single source of truth for profile badges.
- *
- * Rules:
- *  - admin                                    → Admin chip only
- *  - professional|student|salon_owner+verified → role chip + Verified chip
- *  - everything else                           → Standard chip
- */
 function ProfileBadges({
   role,
   verificationStatus,
