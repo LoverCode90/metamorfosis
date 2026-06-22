@@ -64,12 +64,8 @@ export function ResetPasswordForm() {
       return
     }
 
-    // 3. Immediately sign out to clear the temporary recovery session
-    await supabase.auth.signOut()
-
-    // 4. Redirect to login using a hard navigation so the server explicitly sees the cleared cookies
-    // (Next.js client-side router cache sometimes races the cookie deletion)
-    window.location.assign("/login?reset=success&next=/")
+    // 3. Password updated — session is already active, go straight home
+    window.location.assign("/")
   }
 
   return (
