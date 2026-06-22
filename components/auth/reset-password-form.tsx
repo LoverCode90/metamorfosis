@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import {
@@ -13,7 +13,6 @@ import {
 import { PasswordStrength } from "@/components/ui/password-strength"
 
 export function ResetPasswordForm() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const tokenHash = searchParams.get("token_hash")
 
@@ -68,8 +67,9 @@ export function ResetPasswordForm() {
     // 3. Immediately sign out to clear the temporary recovery session
     await supabase.auth.signOut()
 
-    // 4. Redirect to login
-    router.push("/login?reset=success")
+    // 4. Redirect to login using a hard navigation so the server explicitly sees the cleared cookies
+    // (Next.js client-side router cache sometimes races the cookie deletion)
+    window.location.assign("/login?reset=success&next=/")
   }
 
   return (
