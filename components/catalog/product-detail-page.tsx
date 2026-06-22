@@ -84,6 +84,9 @@ export function ProductDetailPage({ product, related }: Props) {
         discountPerItem: 0,
         stock,
         isProfessional: product.isProfessional,
+        isColorProduct: product.isColorProduct,
+        variationId: selectedVariation?.id,
+        squareVariationId: selectedVariation?.squareVariationId,
       },
       qty,
     )
@@ -99,6 +102,9 @@ export function ProductDetailPage({ product, related }: Props) {
       discountPerItem: 0,
       stock,
       isProfessional: product.isProfessional,
+      isColorProduct: product.isColorProduct,
+      variationId: selectedVariation?.id,
+      squareVariationId: selectedVariation?.squareVariationId,
     })
   }
 

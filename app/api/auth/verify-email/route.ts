@@ -68,6 +68,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       id: string
       email: string
       full_name: string
+      first_name: string | null
+      last_name: string | null
       code_hash: string
       expires_at: string
       attempt_count: number
@@ -169,12 +171,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   // ── Code correct — create user ────────────────────────────────────────────
+  const firstName = pending.first_name ?? pending.full_name.split(" ")[0] ?? ""
+  const lastName =
+    pending.last_name ?? pending.full_name.split(" ").slice(1).join(" ").trim()
+
   const { data: created, error: createError } =
     await admin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: { full_name: pending.full_name },
+      user_metadata: {
+        full_name: pending.full_name,
+        first_name: firstName,
+        last_name: lastName,
+      },
     })
 
   if (createError) {
@@ -198,6 +208,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { status: 500 },
     )
   }
+
+  // Backfill the structured name columns on the profile row created by the
+  // handle_new_user trigger (which only sets full_name).
+  await admin
+    .from("profiles")
+    .update({ first_name: firstName, last_name: lastName })
+    .eq("id", created.user.id)
 
   // ── Sign in to establish a session ────────────────────────────────────────
   const supabase = await createClient()
@@ -224,7 +241,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   // Welcome email — fire-and-forget; account is already created so don't fail the response
   sendWelcomeEmail({
     to: email,
-    name: pending.full_name.split(" ")[0],
+    name: firstName,
   }).catch((err) => console.error("[verify-email] welcome email failed:", err))
 
   return NextResponse.json({ ok: true, redirect: "/" }, { status: 200 })

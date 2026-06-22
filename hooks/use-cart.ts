@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { useCartStore } from "@/stores/cart"
 import { useWishlistStore } from "@/stores/wishlist"
 import { useUser } from "@/hooks/use-user"
@@ -51,11 +51,19 @@ export function useCart() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id])
 
-  // ── Clear the session guard on logout ─────────────────────────────────────
+  // ── Clear the session guard on actual logout, not on initial mount ────────
+  // useUser() starts with user === null before resolving — without this ref
+  // every mount of any useCart() consumer would clear the dedupe guard and
+  // re-fire the sync, which on /cart races the loadFromDb([]) write and wipes
+  // the visible cart.
+  const prevUserIdRef = useRef<string | null>(null)
   useEffect(() => {
-    if (!user) {
+    const prev = prevUserIdRef.current
+    const next = user?.id ?? null
+    if (prev !== null && next === null) {
       _syncedUsers.clear()
     }
+    prevUserIdRef.current = next
   }, [user])
 
   // ── addToCart ─────────────────────────────────────────────────────────────

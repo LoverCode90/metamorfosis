@@ -8,10 +8,13 @@ export function CompletionRing({
   value,
   size = 132,
   stroke = 10,
+  ringClassName = "text-foreground",
 }: {
   value: number
   size?: number
   stroke?: number
+  /** Tailwind class controlling the progress stroke color via currentColor. */
+  ringClassName?: string
 }) {
   const radius = (size - stroke) / 2
   const circumference = 2 * Math.PI * radius
@@ -40,7 +43,7 @@ export function CompletionRing({
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          className="text-foreground transition-[stroke-dashoffset] duration-700 ease-out"
+          className={`${ringClassName} transition-[stroke-dashoffset] duration-700 ease-out`}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">

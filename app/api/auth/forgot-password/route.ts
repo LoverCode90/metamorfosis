@@ -105,9 +105,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   // Only send if an account actually exists. The result is never disclosed.
   const { data: profile } = await admin
     .from("profiles")
-    .select("full_name")
+    .select("first_name, full_name")
     .eq("email", email)
-    .maybeSingle<{ full_name: string }>()
+    .maybeSingle<{ first_name: string | null; full_name: string }>()
 
   if (profile) {
     const appUrl =
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       // the caller, preserving the generic response.
       sendPasswordReset({
         to: email,
-        name: profile.full_name.split(" ")[0],
+        name: profile.first_name ?? profile.full_name.split(" ")[0] ?? "",
         resetUrl: link.properties.action_link,
         expiresInMinutes: RESET_LINK_EXPIRY_MINUTES,
       }).catch((err) =>

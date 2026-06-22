@@ -76,6 +76,37 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(homeUrl)
   }
 
+  // ── Admins never see the shopping interface ───────────────────────────────
+  // Bounce admins off all customer-facing routes (profile, catalog, cart,
+  // checkout, wishlist, search) to /admin so they can't accidentally land on
+  // the shopping view.
+  const CUSTOMER_ONLY_PREFIXES = [
+    "/profile",
+    "/products",
+    "/cart",
+    "/checkout",
+    "/wishlist",
+    "/search",
+    "/orders",
+    "/tracking",
+  ]
+  const isCustomerRoute = CUSTOMER_ONLY_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`),
+  )
+  if (user && isCustomerRoute) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle<{ role: string }>()
+    if (profile?.role === "admin") {
+      const adminUrl = request.nextUrl.clone()
+      adminUrl.pathname = "/admin"
+      adminUrl.search = ""
+      return NextResponse.redirect(adminUrl)
+    }
+  }
+
   return response
 }
 

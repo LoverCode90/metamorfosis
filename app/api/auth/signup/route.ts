@@ -61,7 +61,8 @@ export async function POST(request: NextRequest) {
     )
   }
 
-  const { email, fullName, turnstileToken } = parsed.data
+  const { email, firstName, lastName, turnstileToken } = parsed.data
+  const fullName = `${firstName} ${lastName}`.trim()
   const emailDomain = email.split("@")[1]?.toLowerCase() ?? ""
 
   // ── Disposable email check — runs before any Supabase call ────────────────
@@ -141,6 +142,8 @@ export async function POST(request: NextRequest) {
     {
       email,
       full_name: fullName,
+      first_name: firstName,
+      last_name: lastName,
       code_hash: codeHash,
       expires_at: expiresAt,
       attempt_count: 0,
@@ -167,7 +170,7 @@ export async function POST(request: NextRequest) {
   try {
     await sendVerificationCode({
       to: email,
-      name: fullName.split(" ")[0],
+      name: firstName,
       code,
       expiresInMinutes: CODE_EXPIRY_MINUTES,
     })
