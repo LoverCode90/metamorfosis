@@ -33,12 +33,11 @@ export function CheckoutClient() {
 
   const liveTotals = computeTotalsWithShipping(items, shippingCents)
 
-  // ── Checkout gate — restricted (professional OR color) items ───────────────
-  // Any color or professional item requires an APPROVED verification status.
-  // Pending / rejected / not_applicable (and guests) are blocked.
-  const gatedItems = items.filter(
-    (i) => (i.isProfessional || i.isColorProduct) && !i.unavailable,
-  )
+  // ── Checkout gate — professional-only items ────────────────────────────────
+  // Only products explicitly flagged isProfessional require verification.
+  // Color products (isColorProduct) are open to everyone — verification only
+  // unlocks the $2/per-color-item discount, applied server-side in checkout.
+  const gatedItems = items.filter((i) => i.isProfessional && !i.unavailable)
   const isApproved = dbProfile?.verification_status === "approved"
 
   if (gatedItems.length > 0 && (!user || !isApproved)) {
