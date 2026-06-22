@@ -116,11 +116,12 @@ export interface SavedAddress {
 }
 
 export interface UserProfile {
+  firstName: string
+  lastName: string
+  /** Composed "First Last" for places that still want a single string. */
   name: string
   email: string
   location: string
-  bio: string
-  avatar: string
   status: VerificationStatus
 }
 
@@ -140,9 +141,10 @@ export type DbVerificationStatus =
 export interface DbProfile {
   id: string
   email: string
+  first_name: string | null
+  last_name: string | null
   full_name: string
   phone_number: string | null
-  bio: string | null
   role: UserRole
   verification_status: DbVerificationStatus
   license_number: string | null
@@ -153,6 +155,7 @@ export interface DbProfile {
   document_hash: string | null
   expiration_date: string | null
   rejection_reason: string | null
+  bio?: string | null
   created_at: string
   updated_at: string
 }

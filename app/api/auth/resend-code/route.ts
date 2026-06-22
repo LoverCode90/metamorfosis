@@ -48,6 +48,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     .maybeSingle<{
       id: string
       full_name: string
+      first_name: string | null
       resend_count: number
       resend_window_start: string
       resend_block_count: number
@@ -129,7 +130,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   sendVerificationCode({
     to: email,
-    name: pending.full_name.split(" ")[0],
+    name: pending.first_name ?? pending.full_name.split(" ")[0] ?? "",
     code,
     expiresInMinutes: CODE_EXPIRY_MINUTES,
   }).catch((err) =>

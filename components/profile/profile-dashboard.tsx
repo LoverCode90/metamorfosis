@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import type React from "react"
@@ -22,6 +21,8 @@ import { useUser } from "@/hooks/use-user"
 import { CompletionRing } from "./completion-ring"
 import { EditableField } from "./editable-field"
 import { VerificationPanel } from "./verification-panel"
+import { AvatarInitials } from "./avatar-initials"
+import { SignOutButton } from "@/components/auth/sign-out-button"
 
 export function ProfileDashboard() {
   const router = useRouter()
@@ -42,27 +43,34 @@ export function ProfileDashboard() {
     postalCode: "",
     country: "",
   })
+
+  const isAdmin = dbProfile?.role === "admin"
+  const hasName =
+    profile.firstName.trim().length > 0 && profile.lastName.trim().length > 0
+  // Saved payment method: no persistence layer yet — keep as false placeholder.
+  const hasSavedPayment = false
+
   const checklist = [
-    {
-      id: "name",
-      label: "Add your name",
-      done: profile.name.trim().length > 0,
-    },
-    {
-      id: "bio",
-      label: "Write a short bio",
-      done: profile.bio.trim().length >= 20,
-    },
+    { id: "name", label: "Add your name", done: hasName },
     {
       id: "address",
       label: "Save a shipping address",
       done: Boolean(savedAddress),
     },
     {
-      id: "verify",
-      label: "Verify your professional license",
-      done: verificationStatus === "verified",
+      id: "payment",
+      label: "Save a payment method",
+      done: hasSavedPayment,
     },
+    ...(!isAdmin
+      ? [
+          {
+            id: "verify",
+            label: "Verify your professional license",
+            done: verificationStatus === "verified",
+          },
+        ]
+      : []),
   ]
   const completion = Math.round(
     (checklist.filter((c) => c.done).length / checklist.length) * 100,
@@ -82,15 +90,15 @@ export function ProfileDashboard() {
       <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
         <div className="flex flex-col gap-6">
           <section className="border-border bg-card flex flex-col gap-5 rounded-2xl border p-6 sm:flex-row sm:items-center">
-            <img
-              src={profile.avatar || "/placeholder.svg"}
-              alt={profile.name}
-              className="border-border h-20 w-20 shrink-0 rounded-full border object-cover"
+            <AvatarInitials
+              firstName={profile.firstName}
+              lastName={profile.lastName}
+              size={80}
             />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="text-foreground text-lg font-semibold">
-                  {profile.name}
+                  {profile.name || "Your name"}
                 </h2>
                 <ProfileBadges
                   role={dbProfile?.role ?? "standard_customer"}
@@ -110,21 +118,20 @@ export function ProfileDashboard() {
           </section>
 
           <EditableField
-            label="Display name"
-            value={profile.name}
-            onSave={(v) => updateProfile({ full_name: v })}
+            label="First name"
+            value={profile.firstName}
+            onSave={(v) => updateProfile({ first_name: v })}
+          />
+          <EditableField
+            label="Last name"
+            value={profile.lastName}
+            onSave={(v) => updateProfile({ last_name: v })}
           />
           <EditableField
             label="Email address"
             value={profile.email}
             type="email"
             readOnly
-          />
-          <EditableField
-            label="Bio"
-            value={profile.bio}
-            multiline
-            onSave={(v) => updateProfile({ bio: v })}
           />
 
           <VerificationPanel
@@ -260,14 +267,7 @@ export function ProfileDashboard() {
             <h3 className="text-foreground mb-4 text-sm font-semibold">
               Account
             </h3>
-            <form action="/api/auth/signout" method="POST">
-              <button
-                type="submit"
-                className="border-border text-destructive hover:bg-destructive/10 flex h-9 items-center gap-1.5 rounded-md border px-4 text-sm font-medium transition-colors"
-              >
-                Sign out
-              </button>
-            </form>
+            <SignOutButton />
           </section>
         </div>
 
@@ -277,7 +277,10 @@ export function ProfileDashboard() {
               Complete your profile
             </h3>
             <div className="mt-5 flex justify-center">
-              <CompletionRing value={completion} />
+              <CompletionRing
+                value={completion}
+                ringClassName="text-accent-violet"
+              />
             </div>
             <ul className="mt-6 flex flex-col gap-2.5">
               {checklist.map((c) => (
@@ -286,7 +289,7 @@ export function ProfileDashboard() {
                     className={cn(
                       "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
                       c.done
-                        ? "border-foreground bg-foreground text-background"
+                        ? "border-accent-violet bg-accent-violet text-white"
                         : "border-border text-transparent",
                     )}
                   >

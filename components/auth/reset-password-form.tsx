@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
@@ -10,6 +10,7 @@ import {
   ResetPasswordSchema,
   type ResetPasswordInput,
 } from "@/lib/validation/schemas"
+import { PasswordStrength } from "./password-strength"
 
 export function ResetPasswordForm() {
   const router = useRouter()
@@ -20,10 +21,12 @@ export function ResetPasswordForm() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordInput>({
     resolver: zodResolver(ResetPasswordSchema),
   })
+  const passwordValue = useWatch({ control, name: "password" }) ?? ""
 
   async function onSubmit(data: ResetPasswordInput) {
     setServerError(null)
@@ -72,6 +75,7 @@ export function ResetPasswordForm() {
             )}
           </button>
         </div>
+        <PasswordStrength password={passwordValue} />
       </Field>
 
       <Field

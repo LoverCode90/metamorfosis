@@ -13,11 +13,11 @@ import type {
 } from "@/lib/types"
 
 const DEFAULT_PROFILE: UserProfile = {
+  firstName: "",
+  lastName: "",
   name: "",
   email: "",
   location: "",
-  bio: "",
-  avatar: "/professional-hair-colorist-portrait.png",
   status: "regular",
 }
 
@@ -32,7 +32,9 @@ interface UseUserResult {
   isPending: boolean
   isLoading: boolean
   updateProfile: (
-    patch: Partial<Pick<DbProfile, "full_name" | "bio" | "business_name">>,
+    patch: Partial<
+      Pick<DbProfile, "first_name" | "last_name" | "business_name">
+    >,
   ) => Promise<void>
   saveAddress: (address: SavedAddress) => void
   /** Re-fetch the profile from Supabase — call after the license upload API responds. */
@@ -97,7 +99,9 @@ export function useUser(): UseUserResult {
 
   const updateProfile = useCallback(
     async (
-      patch: Partial<Pick<DbProfile, "full_name" | "bio" | "business_name">>,
+      patch: Partial<
+        Pick<DbProfile, "first_name" | "last_name" | "business_name">
+      >,
     ) => {
       if (!user) return
       const { data } = await supabase

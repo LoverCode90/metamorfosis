@@ -1,21 +1,31 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { useForm } from "react-hook-form"
+import { Controller, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { CheckCircle, Pencil } from "lucide-react"
 import { FloatingField } from "@/components/checkout/floating-field"
 import { US_STATES } from "@/lib/constants"
 import type { CheckoutAddress } from "@/lib/checkout/types"
+import { PhoneInput } from "@/components/ui/phone-input"
+import {
+  digits as phoneDigits,
+  formatPhone,
+  phoneErrorMessage,
+  validatePhone,
+} from "@/lib/utils/phone"
 
 const schema = z.object({
   fullName: z.string().min(2, "Full name required"),
   email: z.string().email("Enter a valid email"),
-  phone: z
-    .string()
-    .min(10, "Phone number required")
-    .regex(/^[\d\s\-\(\)\+]+$/, "Invalid phone number"),
+  // PhoneInput stores raw 10-digit string; reject Hawaii/Alaska and partial input.
+  phone: z.string().superRefine((v, ctx) => {
+    const err = validatePhone(v)
+    if (err !== null) {
+      ctx.addIssue({ code: "custom", message: phoneErrorMessage(err) })
+    }
+  }),
   streetLine1: z.string().min(3, "Street address required"),
   streetLine2: z.string().optional(),
   city: z.string().min(2, "City required"),
@@ -49,12 +59,18 @@ export function StepInfo({
   const {
     register,
     handleSubmit,
-    watch,
     reset,
+    control,
     formState: { errors },
   } = useForm<InfoFormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { state: "", ...defaultValues },
+    defaultValues: {
+      state: "",
+      ...defaultValues,
+      // Normalize any pre-filled phone (formatted from profile/saved address)
+      // to the raw 10-digit form the PhoneInput expects.
+      phone: defaultValues?.phone ? phoneDigits(defaultValues.phone) : "",
+    },
   })
 
   // Fetch saved default address once for authenticated users
@@ -72,7 +88,7 @@ export function StepInfo({
           reset({
             fullName: address.fullName,
             email: address.email,
-            phone: address.phone,
+            phone: phoneDigits(address.phone),
             streetLine1: address.streetLine1,
             streetLine2: address.streetLine2,
             city: address.city,
@@ -85,7 +101,7 @@ export function StepInfo({
       .catch(() => setLoadingAddress(false))
   }, [isAuthenticated, reset])
 
-  const termsAccepted = watch("termsAccepted")
+  const termsAccepted = useWatch({ control, name: "termsAccepted" })
 
   function onSubmit(values: InfoFormValues) {
     if (hasNonReturnable && !values.termsAccepted) return
@@ -93,7 +109,8 @@ export function StepInfo({
       {
         fullName: values.fullName,
         email: values.email,
-        phone: values.phone,
+        // Send the human-formatted form downstream; Shippo accepts US national.
+        phone: formatPhone(values.phone),
         streetLine1: values.streetLine1,
         streetLine2: values.streetLine2 ?? "",
         city: values.city,
@@ -177,14 +194,22 @@ export function StepInfo({
               placeholder="Full name"
             />
           </FloatingField>
-          <FloatingField label="Phone" error={errors.phone?.message} required>
-            <input
-              {...register("phone")}
-              type="tel"
-              className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
-              placeholder="Phone"
+          <div>
+            <label className="text-muted-foreground mb-1 block text-xs font-medium">
+              Phone <span className="text-destructive">*</span>
+            </label>
+            <Controller
+              control={control}
+              name="phone"
+              render={({ field, fieldState }) => (
+                <PhoneInput
+                  value={field.value ?? ""}
+                  onChange={field.onChange}
+                  showError={fieldState.isTouched || Boolean(errors.phone)}
+                />
+              )}
             />
-          </FloatingField>
+          </div>
         </div>
 
         <div className="mt-4">

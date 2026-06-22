@@ -1,12 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { useForm } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import { SignupSchema, type SignupInput } from "@/lib/validation/schemas"
 import { TurnstileWidget } from "./turnstile-widget"
+import { PasswordStrength } from "./password-strength"
 
 export function SignUpForm() {
   const router = useRouter()
@@ -17,8 +18,11 @@ export function SignUpForm() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<SignupInput>({ resolver: zodResolver(SignupSchema) })
+
+  const passwordValue = useWatch({ control, name: "password" }) ?? ""
 
   async function onSubmit(data: SignupInput) {
     setServerError(null)
@@ -34,8 +38,6 @@ export function SignUpForm() {
       return
     }
 
-    // Store credentials in sessionStorage so verify-email page can complete account creation.
-    // Cleared on successful verification or on page unload from /verify-email.
     sessionStorage.setItem("signup_email", data.email)
     sessionStorage.setItem("signup_password", data.password)
 
@@ -48,15 +50,26 @@ export function SignUpForm() {
       noValidate
       className="flex flex-col gap-4"
     >
-      <Field label="Full name" error={errors.fullName?.message}>
-        <input
-          type="text"
-          autoComplete="name"
-          placeholder="Jane Smith"
-          {...register("fullName")}
-          className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-foreground h-11 w-full rounded-md border px-3 text-sm transition-colors outline-none"
-        />
-      </Field>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="First name" error={errors.firstName?.message}>
+          <input
+            type="text"
+            autoComplete="given-name"
+            placeholder="Jane"
+            {...register("firstName")}
+            className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-foreground h-11 w-full rounded-md border px-3 text-sm transition-colors outline-none"
+          />
+        </Field>
+        <Field label="Last name" error={errors.lastName?.message}>
+          <input
+            type="text"
+            autoComplete="family-name"
+            placeholder="Smith"
+            {...register("lastName")}
+            className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-foreground h-11 w-full rounded-md border px-3 text-sm transition-colors outline-none"
+          />
+        </Field>
+      </div>
 
       <Field label="Email address" error={errors.email?.message}>
         <input
@@ -73,7 +86,7 @@ export function SignUpForm() {
           <input
             type={showPassword ? "text" : "password"}
             autoComplete="new-password"
-            placeholder="Minimum 8 characters"
+            placeholder="At least 8 chars, 1 uppercase, 1 number, 1 special"
             {...register("password")}
             className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-foreground h-11 w-full rounded-md border px-3 pr-10 text-sm transition-colors outline-none"
           />
@@ -90,6 +103,7 @@ export function SignUpForm() {
             )}
           </button>
         </div>
+        <PasswordStrength password={passwordValue} />
       </Field>
 
       <TurnstileWidget

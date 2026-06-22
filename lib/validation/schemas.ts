@@ -1,10 +1,42 @@
 import { z } from "zod"
 
+// ── Password policy ──────────────────────────────────────────────────────────
+// Min 8 chars, ≥1 uppercase, ≥1 number, ≥1 special character from the explicit set.
+export const PASSWORD_SPECIAL_CHARS = "!@#$%^&*"
+
+export const PasswordRules = {
+  length: (s: string) => s.length >= 8,
+  upper: (s: string) => /[A-Z]/.test(s),
+  number: (s: string) => /\d/.test(s),
+  special: (s: string) => /[!@#$%^&*]/.test(s),
+}
+
+export function passwordScore(password: string): 0 | 1 | 2 | 3 {
+  if (!password) return 0
+  const passed = [
+    PasswordRules.length(password),
+    PasswordRules.upper(password),
+    PasswordRules.number(password),
+    PasswordRules.special(password),
+  ].filter(Boolean).length
+  if (passed === 4) return 3
+  if (passed >= 2) return 2
+  return 1
+}
+
+const StrongPasswordSchema = z
+  .string()
+  .min(8, "Must be at least 8 characters")
+  .regex(/[A-Z]/, "Must contain an uppercase letter")
+  .regex(/\d/, "Must contain a number")
+  .regex(/[!@#$%^&*]/, "Must contain a special character (!@#$%^&*)")
+
 /** Sign-up payload for POST /api/auth/signup. */
 export const SignupSchema = z.object({
   email: z.email("Enter a valid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  fullName: z.string().min(2, "Enter your full name").max(120),
+  password: StrongPasswordSchema,
+  firstName: z.string().min(1, "Enter your first name").max(80).trim(),
+  lastName: z.string().min(1, "Enter your last name").max(80).trim(),
   turnstileToken: z.string().nullable().optional(),
 })
 
@@ -20,7 +52,7 @@ export type ForgotPasswordInput = z.infer<typeof ForgotPasswordSchema>
 /** /reset-password page form */
 export const ResetPasswordSchema = z
   .object({
-    password: z.string().min(8, "Password must be at least 8 characters"),
+    password: StrongPasswordSchema,
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((d) => d.password === d.confirmPassword, {
@@ -37,7 +69,7 @@ export const VerifyEmailSchema = z.object({
     .string()
     .length(4, "Code must be 4 digits")
     .regex(/^\d{4}$/, "Code must be 4 digits"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: StrongPasswordSchema,
 })
 
 export type VerifyEmailInput = z.infer<typeof VerifyEmailSchema>

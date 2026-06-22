@@ -3,7 +3,15 @@
 import { useEffect } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { Heart, Search, ShoppingBag, User } from "lucide-react"
+import {
+  ClipboardList,
+  Heart,
+  LayoutDashboard,
+  Search,
+  ShieldCheck,
+  ShoppingBag,
+  User,
+} from "lucide-react"
 import { Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useCartStore } from "@/stores/cart"
@@ -12,10 +20,17 @@ import { useUiStore } from "@/stores/ui"
 import { useUser } from "@/hooks/use-user"
 import { MobileNav } from "./mobile-nav"
 
-const NAV_LINKS = [
+const CUSTOMER_NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/products", label: "Products" },
   { href: "/about", label: "About" },
+]
+
+const ADMIN_NAV_LINKS = [
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/verifications", label: "Verifications", icon: ShieldCheck },
+  { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
+  { href: "/admin/cases", label: "Cases", icon: ClipboardList },
 ]
 
 export function SiteHeader() {
@@ -23,8 +38,10 @@ export function SiteHeader() {
   const router = useRouter()
   const cartTotals = useCartStore((s) => s.totals)
   const wishlistCount = useWishlistStore((s) => s.items.length)
-  const { user, profile } = useUser()
+  const { user, profile, dbProfile } = useUser()
   const { mobileNavOpen, openMobileNav, closeMobileNav } = useUiStore()
+
+  const isAdmin = dbProfile?.role === "admin"
 
   useEffect(() => {
     document.body.style.overflow = mobileNavOpen ? "hidden" : ""
@@ -32,6 +49,60 @@ export function SiteHeader() {
       document.body.style.overflow = ""
     }
   }, [mobileNavOpen])
+
+  if (isAdmin) {
+    return (
+      <header className="border-border bg-background/85 supports-[backdrop-filter]:bg-background/70 sticky top-0 z-40 border-b backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+          <Link
+            href="/admin"
+            className="flex shrink-0 items-center gap-2"
+            aria-label="Metamorfosis admin home"
+          >
+            <span className="bg-accent-violet text-background flex h-7 w-7 items-center justify-center rounded-sm">
+              <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2.25} />
+            </span>
+            <span className="text-foreground text-sm font-semibold tracking-[0.18em]">
+              METAMORFOSIS · ADMIN
+            </span>
+          </Link>
+
+          <nav className="hidden items-center gap-1 md:flex">
+            {ADMIN_NAV_LINKS.map(({ href, label, icon: Icon }) => {
+              const active =
+                href === "/admin"
+                  ? pathname === "/admin"
+                  : pathname.startsWith(href)
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  className={cn(
+                    "inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors",
+                    active
+                      ? "bg-foreground/10 text-foreground"
+                      : "text-muted-foreground hover:bg-foreground/5 hover:text-foreground",
+                  )}
+                >
+                  <Icon className="h-4 w-4" strokeWidth={1.75} />
+                  {label}
+                </Link>
+              )
+            })}
+          </nav>
+
+          <button
+            type="button"
+            onClick={openMobileNav}
+            aria-label="Open menu"
+            className="text-foreground hover:bg-muted ml-1 flex h-9 w-9 items-center justify-center rounded-md transition-colors md:hidden"
+          >
+            <Menu className="h-5 w-5" strokeWidth={1.75} />
+          </button>
+        </div>
+      </header>
+    )
+  }
 
   return (
     <header className="border-border bg-background/85 supports-[backdrop-filter]:bg-background/70 sticky top-0 z-40 border-b backdrop-blur">
@@ -50,7 +121,7 @@ export function SiteHeader() {
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
-          {NAV_LINKS.map((link) => {
+          {CUSTOMER_NAV_LINKS.map((link) => {
             const active =
               link.href === "/"
                 ? pathname === "/"
@@ -76,7 +147,12 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-1 sm:gap-2">
-          <HeaderIconButton label="Search" className="hidden sm:flex">
+          <HeaderIconButton
+            label="Search"
+            onClick={() => router.push("/search")}
+            active={pathname.startsWith("/search")}
+            className="hidden sm:flex"
+          >
             <Search className="h-5 w-5" strokeWidth={1.75} />
           </HeaderIconButton>
 
