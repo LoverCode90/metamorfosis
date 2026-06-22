@@ -17,14 +17,10 @@ const PER_PAGE = 20
 
 interface ProductsPageProps {
   products: CatalogCard[]
-  maxPrice: number
 }
 
-export function ProductsPage({ products, maxPrice }: ProductsPageProps) {
-  const [filters, setFilters] = useState<ActiveFilters>({
-    ...EMPTY_FILTERS,
-    maxPrice,
-  })
+export function ProductsPage({ products }: ProductsPageProps) {
+  const [filters, setFilters] = useState<ActiveFilters>({ ...EMPTY_FILTERS })
   const [page, setPage] = useState(1)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
@@ -43,7 +39,7 @@ export function ProductsPage({ products, maxPrice }: ProductsPageProps) {
   }
 
   function clearFilters() {
-    setFilters({ ...EMPTY_FILTERS, maxPrice })
+    setFilters({ ...EMPTY_FILTERS })
     setPage(1)
   }
 
@@ -72,7 +68,6 @@ export function ProductsPage({ products, maxPrice }: ProductsPageProps) {
           <div className="sticky top-24">
             <FiltersPanel
               filters={filters}
-              maxPrice={maxPrice}
               onChange={updateFilters}
               onClear={clearFilters}
             />
@@ -149,7 +144,6 @@ export function ProductsPage({ products, maxPrice }: ProductsPageProps) {
       >
         <FiltersPanel
           filters={filters}
-          maxPrice={maxPrice}
           onChange={updateFilters}
           onClear={clearFilters}
         />

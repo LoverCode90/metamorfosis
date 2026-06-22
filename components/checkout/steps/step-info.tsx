@@ -295,6 +295,18 @@ export function StepInfo({
             </FloatingField>
           </div>
         </div>
+
+        {/* Country — locked to the US (continental only). Read-only, clearly
+            shown as fixed rather than a broken/disabled control. */}
+        <div className="mt-4">
+          <label className="text-muted-foreground mb-1 block text-xs font-medium">
+            Country
+          </label>
+          <div className="border-border bg-muted/40 text-muted-foreground flex h-11 w-full items-center justify-between rounded-md border px-3 text-sm">
+            <span className="text-foreground">United States</span>
+            <span className="text-xs">Ships within continental US only</span>
+          </div>
+        </div>
       </div>
 
       <p className="text-muted-foreground text-xs">

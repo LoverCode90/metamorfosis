@@ -32,7 +32,7 @@ export function CartView() {
         </h1>
         <button
           type="button"
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/products")}
           className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-sm font-medium transition-colors"
         >
           <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
@@ -41,7 +41,7 @@ export function CartView() {
       </div>
 
       {isEmpty ? (
-        <EmptyCart onShop={() => router.push("/")} />
+        <EmptyCart onShop={() => router.push("/products")} />
       ) : (
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px] lg:gap-12">
           <div className="order-2 flex flex-col gap-4 lg:order-1">
@@ -54,7 +54,7 @@ export function CartView() {
             <CartSummary
               totals={totals}
               onCheckout={handleCheckout}
-              onContinueShopping={() => router.push("/")}
+              onContinueShopping={() => router.push("/products")}
             />
           </div>
         </div>

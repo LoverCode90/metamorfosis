@@ -213,11 +213,16 @@
 /* ─────────────────────────────────────────────────────────────
    Admin section — opt-in LIGHT theme, scoped to the admin shell.
    The store is always dark; only [data-admin-theme="light"]
-   (set on the admin layout wrapper) overrides the foundational
-   tokens. Every semantic alias derives from these via var(), so
-   re-pointing the base tokens cascades to the whole admin subtree.
+   (set on the admin layout wrapper) flips the admin subtree.
+
+   IMPORTANT: @theme inline inlines `var(--background)` (etc.) directly
+   into the utilities, and those semantic vars were resolved to dark
+   values at :root. Overriding only the base tokens (--bg-base …) does
+   NOT cascade, because --background was already computed at :root. So
+   we must RE-DECLARE the semantic tokens here as well.
 ───────────────────────────────────────────────────────────── */
 [data-admin-theme="light"] {
+  /* Foundational tokens */
   --bg-base: oklch(0.99 0.002 280);
   --bg-surface: oklch(0.975 0.003 280);
   --bg-surface-2: oklch(0.94 0.004 280);
@@ -233,6 +238,24 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.06);
   --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 16px 40px -8px rgb(0 0 0 / 0.14);
+
+  /* Semantic aliases — re-declared so the inlined utilities pick up light. */
+  --background: var(--bg-base);
+  --foreground: var(--fg-primary);
+  --card: var(--bg-surface);
+  --card-foreground: var(--fg-primary);
+  --popover: var(--bg-surface-2);
+  --popover-foreground: var(--fg-primary);
+  --primary: var(--fg-primary);
+  --primary-foreground: var(--bg-base);
+  --secondary: var(--bg-surface);
+  --secondary-foreground: var(--fg-primary);
+  --muted: var(--bg-surface-2);
+  --muted-foreground: var(--fg-secondary);
+  --accent: var(--bg-surface-2);
+  --accent-foreground: var(--fg-primary);
+  --border: var(--border-subtle);
+  --input: var(--bg-inset);
 
   color-scheme: light;
 }

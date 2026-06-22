@@ -49,7 +49,10 @@ export function ProductDetailPage({ product, related }: Props) {
   const lowStock = stock > 0 && stock <= LOW_STOCK_THRESHOLD
   const outOfStock = stock === 0
   const priceCents = selectedVariation?.priceCents ?? product.minPriceCents
-  const wishlisted = isWishlisted(product.squareProductId)
+  // Wishlist heart reflects the SELECTED variation, not the parent product.
+  const wishlisted = isWishlisted(
+    selectedVariation?.id ?? product.squareProductId,
+  )
 
   // Build gallery: variation image first (if unique), then parent images
   const galleryImages = useMemo(() => {
@@ -203,26 +206,31 @@ export function ProductDetailPage({ product, related }: Props) {
             </div>
           )}
 
-          {/* Color chart PDFs */}
+          {/* Color chart PDFs — the DB stores only the filename. */}
           {product.colorChartPdfUrl && (
-            <div className="flex gap-3">
-              <a
-                href={product.colorChartPdfUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors lg:text-sm"
-              >
-                <FileText className="h-3.5 w-3.5" strokeWidth={1.75} />
-                View Chart
-              </a>
-              <a
-                href={product.colorChartPdfUrl}
-                download
-                className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors lg:text-sm"
-              >
-                <Download className="h-3.5 w-3.5" strokeWidth={1.75} />
-                Download Chart
-              </a>
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-3">
+                <a
+                  href={`/color-charts/${product.colorChartPdfUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors lg:text-sm"
+                >
+                  <FileText className="h-3.5 w-3.5" strokeWidth={1.75} />
+                  View Chart
+                </a>
+                <a
+                  href={`/color-charts/${product.colorChartPdfUrl}`}
+                  download
+                  className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors lg:text-sm"
+                >
+                  <Download className="h-3.5 w-3.5" strokeWidth={1.75} />
+                  Download Chart
+                </a>
+              </div>
+              <p className="border-accent-violet/30 bg-accent-violet/10 text-accent-violet rounded-lg border px-4 py-2.5 text-xs font-medium lg:text-sm">
+                We recommend viewing the color chart to see accurate shades.
+              </p>
             </div>
           )}
 
