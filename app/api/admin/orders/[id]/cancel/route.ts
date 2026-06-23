@@ -8,18 +8,20 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const resolvedParams = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   const admin = createAdminClient()
-  
+
   // Verify admin
   const { data: profile } = await admin
     .from("profiles")
@@ -38,7 +40,7 @@ export async function POST(
     if (body.reason) {
       reason = body.reason
     }
-  } catch (err) {}
+  } catch {}
 
   // 1. Fetch order
   const { data: order, error } = await admin
@@ -52,8 +54,16 @@ export async function POST(
   }
 
   // 2. Validate status
-  if (order.status === "shipped" || order.status === "delivered" || order.status === "cancelled" || order.status === "refunded") {
-    return NextResponse.json({ error: "Order cannot be cancelled at this stage" }, { status: 400 })
+  if (
+    order.status === "shipped" ||
+    order.status === "delivered" ||
+    order.status === "cancelled" ||
+    order.status === "refunded"
+  ) {
+    return NextResponse.json(
+      { error: "Order cannot be cancelled at this stage" },
+      { status: 400 },
+    )
   }
 
   try {
@@ -70,11 +80,12 @@ export async function POST(
 
     // 5. Log to audit_logs
     await admin.from("audit_logs").insert({
-      actor_id: user.id,
+      admin_id: user.id,
       action: "admin_cancel_order",
-      entity_type: "order",
-      entity_id: resolvedParams.id,
-      details: { reason },
+      target_table: "orders",
+      target_id: resolvedParams.id,
+      new_value: { status: "cancelled" },
+      notes: reason,
     })
 
     // 6. Send email
@@ -82,7 +93,8 @@ export async function POST(
       const customerEmail = order.shipping_address?.email
       if (customerEmail) {
         await resend.emails.send({
-          from: "Metamorfosis <hello@shopmetamorfosis.com>",
+          from: "Metamorfosis <no-reply@metamorfosisllc.com>",
+          replyTo: "hello@metamorfosisllc.com",
           to: customerEmail,
           subject: `Your Order ${order.square_order_id} has been cancelled`,
           html: `
@@ -95,9 +107,11 @@ export async function POST(
     }
 
     return NextResponse.json({ ok: true })
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[admin-cancel-order]", err)
-    const errorMsg = err?.errors?.[0]?.detail || err?.message || "Failed to cancel order"
+    const e = err as { errors?: { detail?: string }[]; message?: string }
+    const errorMsg =
+      e?.errors?.[0]?.detail || e?.message || "Failed to cancel order"
     return NextResponse.json({ error: errorMsg }, { status: 500 })
   }
 }
