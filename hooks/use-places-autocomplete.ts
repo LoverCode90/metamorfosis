@@ -7,13 +7,16 @@ export interface PlaceSuggestion {
   secondary_text: string
 }
 
-export function usePlacesAutocomplete(inputValue: string) {
+export function usePlacesAutocomplete(
+  inputValue: string,
+  enabled: boolean = true,
+) {
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([])
   // We no longer load the JS SDK, so we're always "loaded"
   const isLoaded = true
 
   useEffect(() => {
-    if (inputValue.length < 5) {
+    if (!enabled || inputValue.length < 5) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSuggestions([])
       return

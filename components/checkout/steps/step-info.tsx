@@ -64,6 +64,7 @@ export function StepInfo({
   const [loadingAddress, setLoadingAddress] = useState(
     isAuthenticated && !skipAddressFetch && !defaultValues?.streetLine1,
   )
+  const [isStreetFocused, setIsStreetFocused] = useState(false)
   const fetchedRef = useRef(false)
 
   const {
@@ -115,7 +116,7 @@ export function StepInfo({
   const termsAccepted = useWatch({ control, name: "termsAccepted" })
   const streetLine1 = useWatch({ control, name: "streetLine1" }) || ""
   const { suggestions, getPlaceDetails, setSuggestions } =
-    usePlacesAutocomplete(streetLine1)
+    usePlacesAutocomplete(streetLine1, isStreetFocused)
 
   async function handlePlaceSelect(placeId: string) {
     try {
@@ -286,12 +287,17 @@ export function StepInfo({
             <input
               {...register("streetLine1")}
               autoComplete="off"
+              onFocus={() => setIsStreetFocused(true)}
+              onBlur={(e) => {
+                register("streetLine1").onBlur(e)
+                setTimeout(() => setIsStreetFocused(false), 200)
+              }}
               className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
               placeholder="Street address"
             />
           </FloatingField>
           {suggestions.length > 0 && (
-            <ul className="border-border bg-background absolute z-10 mt-1 max-h-60 w-full overflow-hidden overflow-y-auto rounded-md border shadow-lg">
+            <ul className="border-border bg-background absolute z-50 mt-1 max-h-60 w-full overflow-hidden overflow-y-auto rounded-md border shadow-2xl">
               {suggestions.map((s: PlaceSuggestion) => (
                 <li
                   key={s.place_id}
