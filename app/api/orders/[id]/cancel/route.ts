@@ -83,6 +83,9 @@ export async function POST(
     return NextResponse.json({ ok: true })
   } catch (err: any) {
     console.error("[cancel-order]", err)
-    return NextResponse.json({ error: err.message || "Failed to cancel order" }, { status: 500 })
+    
+    // Attempt to extract Square ApiError details or fallback to error message
+    const errorMsg = err?.errors?.[0]?.detail || err?.message || "Failed to cancel order"
+    return NextResponse.json({ error: errorMsg }, { status: 500 })
   }
 }

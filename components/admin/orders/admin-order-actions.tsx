@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-
 import {
   Dialog,
   DialogContent,
@@ -12,21 +11,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 
-interface CancelOrderButtonProps {
-  orderId: string
-}
-
-export function CancelOrderButton({ orderId }: CancelOrderButtonProps) {
+export function AdminOrderActions({ orderId }: { orderId: string }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [reason, setReason] = useState("")
 
   const handleCancel = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/orders/${orderId}/cancel`, {
-        method: "POST"
+      const res = await fetch(`/api/admin/orders/${orderId}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason })
       })
       const data = await res.json()
       
@@ -45,32 +44,41 @@ export function CancelOrderButton({ orderId }: CancelOrderButtonProps) {
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        disabled={loading}
-        className="border-destructive/30 text-destructive hover:bg-destructive/10 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50"
-      >
-        {loading ? "Cancelling..." : "Cancel Order"}
-      </button>
+      <Button variant="destructive" onClick={() => setOpen(true)}>
+        Cancel Order
+      </Button>
 
       <Dialog open={open} onOpenChange={(o) => !loading && setOpen(o)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Are you sure you want to cancel this order?</DialogTitle>
+            <DialogTitle>Cancel Order</DialogTitle>
             <DialogDescription>
-              This action cannot be undone. You will receive a full refund to your payment method.
+              This will refund the customer via Square and email them automatically. This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
+          
+          <div className="py-4">
+            <label className="text-sm font-medium text-foreground mb-1 block">
+              Reason (Optional)
+            </label>
+            <Input 
+              value={reason} 
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="e.g. Out of stock"
+              disabled={loading}
+            />
+          </div>
+
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setOpen(false)}
               disabled={loading}
             >
-              Cancel
+              Keep Order
             </Button>
             <Button variant="destructive" onClick={handleCancel} disabled={loading}>
-              {loading ? "Cancelling..." : "Confirm Cancel"}
+              {loading ? "Cancelling..." : "Confirm Cancellation"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -17,7 +17,7 @@ export default async function OrderCasePage(props: {
     redirect(`/login?next=/orders/${params.id}/case`)
   }
 
-  const order = await getUserOrder(user.id, params.id)
+  const order = await getUserOrder(params.id, user.id)
 
   if (!order) {
     redirect("/orders")

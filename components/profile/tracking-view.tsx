@@ -212,7 +212,7 @@ export function TrackingView({ order }: TrackingViewProps) {
                         </p>
                         <p className="text-muted-foreground mt-0.5 text-xs">
                           {i === currentStage
-                            ? "In progress"
+                            ? (isDelivered ? "Completed" : "In progress")
                             : done
                               ? "Completed"
                               : "Pending"}

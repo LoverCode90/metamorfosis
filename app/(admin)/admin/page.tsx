@@ -74,7 +74,6 @@ export default async function AdminPage() {
           label="Orders today"
           value={stats.ordersToday}
           href="/admin/orders"
-          disabled
         />
         <StatCard label="Open cases" value={stats.openCases} href="/admin/cases" />
       </div>
@@ -95,8 +94,7 @@ export default async function AdminPage() {
             href="/admin/orders"
             icon={ShoppingBag}
             label="Manage orders"
-            description="Update order status, process refunds"
-            disabled
+            description="View order details and cancel if needed"
           />
           <QuickLink
             href="/admin/cases"
