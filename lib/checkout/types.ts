@@ -29,7 +29,10 @@ export interface CheckoutPayload {
   items: { variationId: string; quantity: number }[]
   shippingMethod: ShippingMethod
   address: CheckoutAddress
+  /** Non-returnable (chemical) products warning acknowledgment. */
   termsAccepted: boolean
+  /** 2.6% card processing fee acknowledgment (step-payment checkbox). */
+  surchargeConsented: boolean
   turnstileToken: string
   /** Square card nonce from Web Payments SDK */
   sourceId: string
@@ -72,6 +75,7 @@ export interface PlaceOrderError {
     | "UNAUTHORIZED"
     | "TURNSTILE"
     | "RATE_LIMITED"
+    | "CONSENT_REQUIRED"
   item?: string
   available?: number
 }

@@ -92,6 +92,7 @@ export function CheckoutClient() {
   async function handlePaymentSubmit(
     sourceId: string,
     turnstileToken: string,
+    surchargeConsented: boolean,
   ): Promise<PlaceOrderResponse> {
     if (!address) {
       return { ok: false, error: "Address missing", code: "TAMPER" }
@@ -104,6 +105,7 @@ export function CheckoutClient() {
       shippingMethod,
       address,
       termsAccepted,
+      surchargeConsented,
       turnstileToken,
       sourceId,
       ...(!user ? { guestEmail: address.email } : {}),

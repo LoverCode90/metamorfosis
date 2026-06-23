@@ -82,3 +82,14 @@ export const RETURN_WINDOW_DAYS = 14
 
 /** Card processing surcharge applied to the order (2.6%). */
 export const CARD_SURCHARGE_RATE = 0.026
+
+/**
+ * Case reasons that are the store's fault. These get a full refund (surcharge
+ * included); customer-fault reasons are refunded minus the card surcharge.
+ */
+export const STORE_FAULT_REASONS = [
+  "damaged",
+  "wrong_item",
+  "defective",
+] as const
+export type StoreFaultReason = (typeof STORE_FAULT_REASONS)[number]

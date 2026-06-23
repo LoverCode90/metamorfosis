@@ -57,6 +57,10 @@ export async function POST(
     "discount",
     "tax",
     "shipping",
+    "surcharge_consented_at",
+    "surcharge_consented_ip",
+    "chemical_warning_consented_at",
+    "chemical_warning_consented_ip",
   ]
   for (const key of forbidden) {
     if (key in payload) {
@@ -72,6 +76,7 @@ export async function POST(
     shippingMethod,
     address,
     termsAccepted,
+    surchargeConsented,
     turnstileToken,
     sourceId,
     guestEmail,
@@ -121,7 +126,7 @@ export async function POST(
   const { data: variationRows } = await admin
     .from("product_variations")
     .select(
-      "id, square_variation_id, name_en, price_cents, inventory_count, is_active, product_translations(is_professional, is_color_product, is_active)",
+      "id, square_variation_id, name_en, price_cents, inventory_count, is_active, product_translations(is_professional, is_color_product, is_returnable, is_active)",
     )
     .in("id", variationIds)
 
@@ -144,6 +149,7 @@ export async function POST(
         product_translations: {
           is_professional: boolean
           is_color_product: boolean
+          is_returnable: boolean
           is_active: boolean
         } | null
       }[]
@@ -169,14 +175,31 @@ export async function POST(
     }
   }
 
-  // ── Terms acceptance check ─────────────────────────────────────────────────
-  const hasNonReturnable = items.some((item) => {
-    const v = varMap.get(item.variationId)
-    return !!v && v.is_active
-  })
-  if (hasNonReturnable && !termsAccepted) {
+  // ── Consent checks (server-side — client checkboxes can be bypassed) ───────
+  // Surcharge fee acknowledgment is always required.
+  if (!surchargeConsented) {
     return NextResponse.json(
-      { ok: false, error: "Terms not accepted", code: "TAMPER" },
+      {
+        ok: false,
+        error: "Card processing fee must be accepted",
+        code: "CONSENT_REQUIRED",
+      },
+      { status: 400 },
+    )
+  }
+
+  // Non-returnable (chemical) products require the warning acknowledgment.
+  const hasChemicalItems = items.some((item) => {
+    const v = varMap.get(item.variationId)
+    return v?.product_translations?.is_returnable === false
+  })
+  if (hasChemicalItems && !termsAccepted) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Non-returnable products warning must be accepted",
+        code: "CONSENT_REQUIRED",
+      },
       { status: 400 },
     )
   }
@@ -242,7 +265,13 @@ export async function POST(
   }
 
   // ── Create order in Supabase ───────────────────────────────────────────────
+  // REQUIRES MIGRATION: docs/migrations/20260623_surcharge_and_consents.sql
+  // must be run in Supabase before deploying — the surcharge_cents and
+  // *_consented_at/ip columns below do not exist until then, and this insert
+  // runs AFTER the card is charged, so a missing column would charge the
+  // customer without creating an order record.
   const orderNumber = `MF-${Date.now().toString(36).toUpperCase()}`
+  const consentTimestamp = new Date().toISOString()
 
   const { data: order, error: orderError } = await admin
     .from("orders")
@@ -256,9 +285,18 @@ export async function POST(
       discount_cents: priceSheet.discountCents,
       shipping_cents: priceSheet.shippingCents,
       tax_cents: priceSheet.taxCents,
+      surcharge_cents: priceSheet.surchargeCents,
       total_cents: priceSheet.totalCents,
       shipping_address: address,
       terms_accepted: termsAccepted,
+      surcharge_consented_at: consentTimestamp,
+      surcharge_consented_ip: ip,
+      ...(hasChemicalItems && termsAccepted
+        ? {
+            chemical_warning_consented_at: consentTimestamp,
+            chemical_warning_consented_ip: ip,
+          }
+        : {}),
     })
     .select("id")
     .single()

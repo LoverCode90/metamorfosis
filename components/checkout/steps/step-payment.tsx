@@ -20,6 +20,7 @@ interface StepPaymentProps {
   onSubmit: (
     sourceId: string,
     turnstileToken: string,
+    surchargeConsented: boolean,
   ) => Promise<PlaceOrderResponse>
 }
 
@@ -108,7 +109,11 @@ export function StepPayment({
         return
       }
 
-      const response = await onSubmit(result.token, turnstileToken)
+      const response = await onSubmit(
+        result.token,
+        turnstileToken,
+        surchargeAccepted,
+      )
       if (!response.ok) {
         setPaymentError(response.error ?? "Payment failed. Please try again.")
       }

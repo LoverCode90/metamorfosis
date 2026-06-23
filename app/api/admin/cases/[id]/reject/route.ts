@@ -33,7 +33,13 @@ export async function POST(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const json = await req.json()
+    // The admin UI posts with no body, so tolerate an empty request.
+    let json: unknown = {}
+    try {
+      json = await req.json()
+    } catch {
+      json = {}
+    }
     const parsed = rejectSchema.safeParse(json)
 
     if (!parsed.success) {
