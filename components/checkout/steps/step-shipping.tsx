@@ -13,6 +13,8 @@ interface StepShippingProps {
   subtotalCents: number
   address: CheckoutAddress
   variationIds: string[]
+  initialRates?: ShippingRate[] | null
+  onRatesFetched?: (rates: ShippingRate[]) => void
   onContinue: (method: ShippingMethod, amountCents: number) => void
   onBack: () => void
 }
@@ -21,16 +23,20 @@ export function StepShipping({
   subtotalCents,
   address,
   variationIds,
+  initialRates,
+  onRatesFetched,
   onContinue,
   onBack,
 }: StepShippingProps) {
-  const [rates, setRates] = useState<ShippingRate[]>([])
+  const [rates, setRates] = useState<ShippingRate[]>(initialRates ?? [])
   const [freeNote, setFreeNote] = useState<string | undefined>()
   const [oversizedMsg, setOversizedMsg] = useState<string | undefined>()
   const [selected, setSelected] = useState<ShippingMethod>("standard")
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!initialRates)
 
   useEffect(() => {
+    if (initialRates) return
+
     let cancelled = false
     fetch("/api/checkout/shipping-rates", {
       method: "POST",
@@ -46,6 +52,7 @@ export function StepShipping({
         } else {
           setRates(r ?? [])
           setFreeNote(freeThresholdNote)
+          if (r && onRatesFetched) onRatesFetched(r)
         }
         setLoading(false)
       })

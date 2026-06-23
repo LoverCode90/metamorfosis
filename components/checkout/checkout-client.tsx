@@ -7,6 +7,7 @@ import type { CheckoutStepId } from "@/lib/types"
 import type {
   CheckoutAddress,
   ShippingMethod,
+  ShippingRate,
   PlaceOrderResponse,
 } from "@/lib/checkout/types"
 import { useCart } from "@/hooks/use-cart"
@@ -30,6 +31,9 @@ export function CheckoutClient() {
   const [shippingMethod, setShippingMethod] =
     useState<ShippingMethod>("standard")
   const [shippingCents, setShippingCents] = useState(0)
+  const [cachedShippingRates, setCachedShippingRates] = useState<
+    ShippingRate[] | null
+  >(null)
 
   const liveTotals = computeTotalsWithShipping(items, shippingCents)
 
@@ -135,6 +139,7 @@ export function CheckoutClient() {
         city: address.city,
         state: address.state,
         zip: address.zip,
+        termsAccepted,
       }
     : user && dbProfile
       ? {
@@ -177,6 +182,8 @@ export function CheckoutClient() {
               variationIds={items
                 .filter((i) => !i.unavailable && i.variationId)
                 .map((i) => i.variationId)}
+              initialRates={cachedShippingRates}
+              onRatesFetched={(rates) => setCachedShippingRates(rates)}
               onContinue={handleShippingContinue}
               onBack={() => setWizardStep("info")}
             />

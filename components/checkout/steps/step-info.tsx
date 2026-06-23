@@ -62,7 +62,7 @@ export function StepInfo({
   const [savedAddress, setSavedAddress] = useState<CheckoutAddress | null>(null)
   const [usingSaved, setUsingSaved] = useState(false)
   const [loadingAddress, setLoadingAddress] = useState(
-    isAuthenticated && !skipAddressFetch,
+    isAuthenticated && !skipAddressFetch && !defaultValues?.streetLine1,
   )
   const fetchedRef = useRef(false)
 
