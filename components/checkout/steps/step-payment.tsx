@@ -136,7 +136,7 @@ export function StepPayment({
       ) : (
         <div
           ref={cardContainerRef}
-          className={`border-border bg-muted/20 min-h-[100px] rounded-lg border p-4 transition-opacity ${sdkReady ? "opacity-100" : "opacity-50"}`}
+          className={`border-border bg-muted/20 min-h-[100px] w-full overflow-hidden rounded-lg border p-4 transition-opacity ${sdkReady ? "opacity-100" : "opacity-50"}`}
         />
       )}
 

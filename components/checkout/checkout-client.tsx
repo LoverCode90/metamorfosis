@@ -176,7 +176,7 @@ export function CheckoutClient() {
       </div>
 
       <div className="grid gap-10 lg:grid-cols-[1fr_400px] lg:gap-14">
-        <div className="order-1">
+        <div className="order-1 min-w-0">
           {wizardStep === "info" && (
             <StepInfo
               hasNonReturnable={hasNonReturnable}
@@ -208,7 +208,7 @@ export function CheckoutClient() {
           )}
         </div>
 
-        <div className="order-2">
+        <div className="order-2 min-w-0">
           <OrderSummary
             items={items}
             totals={liveTotals}

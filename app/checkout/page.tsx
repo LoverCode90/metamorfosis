@@ -6,5 +6,9 @@ export const metadata: Metadata = {
 }
 
 export default function CheckoutPage() {
-  return <CheckoutClient />
+  return (
+    <div className="overflow-x-hidden">
+      <CheckoutClient />
+    </div>
+  )
 }

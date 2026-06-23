@@ -231,7 +231,7 @@ export function WishlistView() {
               </button>
             </div>
           ) : grid ? (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
               {visible.map((item) => (
                 <WishlistCard
                   key={item.variationId ?? item.id}

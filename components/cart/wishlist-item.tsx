@@ -56,46 +56,31 @@ export function WishlistCard({
         </Link>
       </div>
 
-      <div className="flex flex-1 flex-col pt-3">
+      <div className="flex flex-1 flex-col pt-2">
         {item.brand && (
-          <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+          <p className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
             {item.brand}
           </p>
         )}
         <Link
           href={href}
-          className="text-foreground mt-1 text-sm leading-snug font-medium hover:underline hover:underline-offset-2"
+          className="text-foreground mt-0.5 text-xs leading-snug font-medium hover:underline hover:underline-offset-2"
         >
           {item.name}
         </Link>
-        {item.variant && (
-          <p className="text-muted-foreground mt-0.5 flex flex-wrap gap-1 text-xs">
-            {item.variant.split(" > ").map((cat, idx, arr) => (
-              <span key={idx} className="inline-flex items-center gap-1">
-                <Link
-                  href={`/products?category=${encodeURIComponent(cat.trim())}`}
-                  className="hover:text-foreground hover:underline"
-                >
-                  {cat.trim()}
-                </Link>
-                {idx < arr.length - 1 && <span>&gt;</span>}
-              </span>
-            ))}
-          </p>
-        )}
-        <div className="mt-2 flex items-baseline gap-1.5">
-          <span className="text-foreground text-sm font-semibold tabular-nums">
+        <div className="mt-1.5 flex items-baseline gap-1">
+          <span className="text-foreground text-xs font-semibold tabular-nums">
             {formatUSD(finalPrice)}
           </span>
           {hasDiscount && (
-            <span className="text-muted-foreground text-xs tabular-nums line-through">
+            <span className="text-muted-foreground text-[10px] tabular-nums line-through">
               {formatUSD(item.unitPrice)}
             </span>
           )}
         </div>
         {lowStock && (
-          <p className="text-foreground mt-1 text-xs font-medium">
-            Only {item.stock} left in stock
+          <p className="text-foreground mt-0.5 text-[10px] font-medium">
+            Only {item.stock} left
           </p>
         )}
         <button
@@ -104,9 +89,9 @@ export function WishlistCard({
             e.stopPropagation()
             onAdd()
           }}
-          className="bg-foreground text-background mt-3 inline-flex h-9 items-center justify-center gap-1.5 rounded-md px-3 text-xs font-semibold transition-opacity hover:opacity-90"
+          className="bg-foreground text-background mt-2 inline-flex h-8 items-center justify-center gap-1 rounded-md px-2 text-[11px] font-semibold transition-opacity hover:opacity-90"
         >
-          <ShoppingBag className="h-3.5 w-3.5" strokeWidth={2} />
+          <ShoppingBag className="h-3 w-3" strokeWidth={2} />
           Add to Cart
         </button>
       </div>
