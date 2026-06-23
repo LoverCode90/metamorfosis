@@ -13,6 +13,42 @@ declare global {
   }
 }
 
+// Square Web Payments renders the card fields inside an iframe that does not
+// inherit the app's CSS variables, so the dark theme must be passed explicitly.
+// Hex values are the concrete equivalents of the oklch design tokens.
+const CARD_STYLE = {
+  input: {
+    color: "#f4f5f8", // fg-primary
+    backgroundColor: "#070709", // bg-inset
+    fontSize: "16px", // 16px avoids iOS input zoom
+  },
+  "input::placeholder": {
+    color: "#68686f", // fg-tertiary
+  },
+  ".input-container": {
+    borderColor: "#28292b", // border-subtle
+    borderRadius: "8px",
+  },
+  ".input-container.is-focus": {
+    borderColor: "#4361ee", // accent-violet
+  },
+  ".input-container.is-error": {
+    borderColor: "#f9667a", // accent-rose
+  },
+  ".message-text": {
+    color: "#a3a4ab", // fg-secondary
+  },
+  ".message-icon": {
+    color: "#a3a4ab",
+  },
+  ".message-text.is-error": {
+    color: "#f9667a",
+  },
+  ".message-icon.is-error": {
+    color: "#f9667a",
+  },
+}
+
 interface StepPaymentProps {
   totalCents: number
   surchargeCents: number
@@ -39,6 +75,8 @@ export function StepPayment({
   const [submitting, setSubmitting] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
   const [surchargeAccepted, setSurchargeAccepted] = useState(false)
+  // UI-only for now — no persistence. Wire up to Square card-on-file later.
+  const [saveCard, setSaveCard] = useState(true)
 
   // Support both key names — older builds use NEXT_PUBLIC_SQUARE_APP_ID
   const appId =
@@ -62,7 +100,7 @@ export function StepPayment({
 
     try {
       const payments = window.Square.payments(appId, locationId)
-      const card = await payments.card()
+      const card = await payments.card({ style: CARD_STYLE })
       await card.attach(cardContainerRef.current)
       cardRef.current = card
       setSdkReady(true)
@@ -175,6 +213,18 @@ export function StepPayment({
             2.6% card processing fee ({formatUSD(surchargeCents)})
           </span>{" "}
           will be applied to this order.
+        </span>
+      </label>
+
+      <label className="flex cursor-pointer items-start gap-3">
+        <input
+          type="checkbox"
+          checked={saveCard}
+          onChange={(e) => setSaveCard(e.target.checked)}
+          className="border-border mt-0.5 h-4 w-4 shrink-0 rounded"
+        />
+        <span className="text-muted-foreground text-sm">
+          Save card for future purchases
         </span>
       </label>
 
