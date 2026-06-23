@@ -34,6 +34,18 @@ interface Props {
 export function ProductDetailPage({ product, related }: Props) {
   const { addToCart, toggleWishlist, isWishlisted } = useCart()
 
+  const hardcodedPdfUrl = useMemo(() => {
+    const lowerName = product.nameEn.toLowerCase()
+    if (lowerName.includes("earthia")) return "earthia-color.pdf"
+    if (lowerName.includes("uhd")) return "nutrapel-uhd-cp.pdf"
+    if (lowerName.includes("rbl")) return "rbl-gama.pdf"
+    if (lowerName.includes("color tech zero")) return "color-tech-zero.pdf"
+    if (lowerName.includes("color tech")) return "color-tech-gama.pdf"
+    return null
+  }, [product.nameEn])
+
+  const pdfUrl = product.colorChartPdfUrl || hardcodedPdfUrl
+
   const colorVariations = product.variations.filter((v) => v.hexColor)
   const sizeVariations = product.variations.filter((v) => !v.hexColor)
 
@@ -182,10 +194,15 @@ export function ProductDetailPage({ product, related }: Props) {
             />
           )}
 
-          {/* Size selector */}
-          {!product.isColorProduct && sizeVariations.length > 1 && (
+          {/* Variant selector (Size or Shade name) */}
+          {((!product.isColorProduct && sizeVariations.length > 1) ||
+            (product.isColorProduct &&
+              colorVariations.length === 0 &&
+              sizeVariations.length > 0)) && (
             <div>
-              <p className="text-foreground mb-3 text-sm font-medium">Size</p>
+              <p className="text-foreground mb-3 text-sm font-medium">
+                {product.isColorProduct ? "Shade" : "Size"}
+              </p>
               <div className="flex flex-wrap gap-2">
                 {sizeVariations.map((v) => (
                   <button
@@ -199,19 +216,21 @@ export function ProductDetailPage({ product, related }: Props) {
                         : "border-border text-foreground hover:bg-muted",
                     )}
                   >
-                    {v.sizeLabel ?? v.nameEn}
+                    {product.isColorProduct
+                      ? v.shadeNumber || v.nameEn
+                      : (v.sizeLabel ?? v.nameEn)}
                   </button>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Color chart PDFs — the DB stores only the filename. */}
-          {product.colorChartPdfUrl && (
+          {/* Color chart PDFs */}
+          {pdfUrl && (
             <div className="flex flex-col gap-3">
               <div className="flex gap-3">
                 <a
-                  href={`/color-charts/${product.colorChartPdfUrl}`}
+                  href={`/color-charts/${pdfUrl}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors lg:text-sm"
@@ -220,7 +239,7 @@ export function ProductDetailPage({ product, related }: Props) {
                   View Chart
                 </a>
                 <a
-                  href={`/color-charts/${product.colorChartPdfUrl}`}
+                  href={`/color-charts/${pdfUrl}`}
                   download
                   className="border-border text-foreground hover:bg-muted inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors lg:text-sm"
                 >
