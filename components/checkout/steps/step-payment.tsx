@@ -15,6 +15,7 @@ declare global {
 
 interface StepPaymentProps {
   totalCents: number
+  surchargeCents: number
   onBack: () => void
   onSubmit: (
     sourceId: string,
@@ -24,6 +25,7 @@ interface StepPaymentProps {
 
 export function StepPayment({
   totalCents,
+  surchargeCents,
   onBack,
   onSubmit,
 }: StepPaymentProps) {
@@ -35,6 +37,7 @@ export function StepPayment({
   const [turnstileToken, setTurnstileToken] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
+  const [surchargeAccepted, setSurchargeAccepted] = useState(false)
 
   // Support both key names — older builds use NEXT_PUBLIC_SQUARE_APP_ID
   const appId =
@@ -154,6 +157,22 @@ export function StepPayment({
         </p>
       )}
 
+      <label className="flex cursor-pointer items-start gap-3">
+        <input
+          type="checkbox"
+          checked={surchargeAccepted}
+          onChange={(e) => setSurchargeAccepted(e.target.checked)}
+          className="border-border mt-0.5 h-4 w-4 shrink-0 rounded"
+        />
+        <span className="text-muted-foreground text-sm">
+          I understand a{" "}
+          <span className="text-foreground font-medium">
+            2.6% card processing fee ({formatUSD(surchargeCents)})
+          </span>{" "}
+          will be applied to this order.
+        </span>
+      </label>
+
       <div className="flex gap-3 pt-2">
         <button
           type="button"
@@ -167,7 +186,9 @@ export function StepPayment({
         <button
           type="button"
           onClick={handlePlace}
-          disabled={!sdkReady || !turnstileToken || submitting}
+          disabled={
+            !sdkReady || !turnstileToken || submitting || !surchargeAccepted
+          }
           className="bg-foreground text-background flex h-12 flex-1 items-center justify-center gap-2 rounded-md text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Lock className="h-4 w-4" strokeWidth={1.75} />

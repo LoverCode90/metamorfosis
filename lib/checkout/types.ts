@@ -51,6 +51,7 @@ export interface PriceSheet {
   discountCents: number
   shippingCents: number
   taxCents: number
+  surchargeCents: number
   totalCents: number
 }
 

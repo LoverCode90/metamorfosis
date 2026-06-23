@@ -24,7 +24,7 @@ export function OrderSummary({
   wizardStep,
   onPlaceOrder,
 }: OrderSummaryProps) {
-  const { subtotal, discount, shipping, tax, total } = totals
+  const { subtotal, discount, shipping, tax, surcharge, total } = totals
   const isPaymentStep = wizardStep === "payment"
   const ctaLabel = isPaymentStep ? "Place Secure Order" : null
 
@@ -114,6 +114,16 @@ export function OrderSummary({
               {formatUSD(tax)}
             </dd>
           </div>
+          {surcharge > 0 && (
+            <div className="flex items-center justify-between">
+              <dt className="text-muted-foreground">
+                Card processing fee (2.6%)
+              </dt>
+              <dd className="text-foreground font-medium tabular-nums">
+                {formatUSD(surcharge)}
+              </dd>
+            </div>
+          )}
         </dl>
 
         <Separator className="my-5" />

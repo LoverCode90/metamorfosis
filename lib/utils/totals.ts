@@ -1,4 +1,5 @@
 import type { CartItem, Totals } from "@/lib/types"
+import { CARD_SURCHARGE_RATE } from "@/lib/constants"
 
 export const TAX_RATE = 0.0975 // CA sales tax — rounded estimate; server uses Square's exact calc
 
@@ -38,9 +39,10 @@ export function computeTotals(items: CartItem[]): Totals {
   )
   const shipping = 0 // determined at checkout shipping step
   const tax = round2((subtotal - discount) * TAX_RATE)
-  const total = round2(subtotal - discount + shipping + tax)
+  const surcharge = round2((subtotal - discount) * CARD_SURCHARGE_RATE)
+  const total = round2(subtotal - discount + shipping + tax + surcharge)
   const itemCount = available.reduce((sum, i) => sum + i.quantity, 0)
-  return { subtotal, discount, shipping, tax, total, itemCount }
+  return { subtotal, discount, shipping, tax, surcharge, total, itemCount }
 }
 
 export function computeTotalsWithShipping(
@@ -49,7 +51,9 @@ export function computeTotalsWithShipping(
 ): Totals {
   const base = computeTotals(items)
   const shipping = shippingCents
-  const total = round2(base.subtotal - base.discount + shipping + base.tax)
+  const total = round2(
+    base.subtotal - base.discount + shipping + base.tax + base.surcharge,
+  )
   return { ...base, shipping, total }
 }
 

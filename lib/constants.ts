@@ -79,3 +79,6 @@ export const ALLOWED_LICENSE_MIME_TYPES = [
 
 /** Return window in calendar days (14-day policy). */
 export const RETURN_WINDOW_DAYS = 14
+
+/** Card processing surcharge applied to the order (2.6%). */
+export const CARD_SURCHARGE_RATE = 0.026
