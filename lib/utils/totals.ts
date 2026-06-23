@@ -1,7 +1,7 @@
 import type { CartItem, Totals } from "@/lib/types"
-import { CARD_SURCHARGE_RATE } from "@/lib/constants"
+import { CARD_SURCHARGE_RATE, TAX_RATE } from "@/lib/constants"
 
-export const TAX_RATE = 0.0975 // CA sales tax — rounded estimate; server uses Square's exact calc
+export { TAX_RATE }
 
 /** Per-region flat shipping rates in cents (legacy; Phase 6 replaces with Shippo). */
 export const SHIPPING_TABLE: Record<string, number> = {
@@ -15,12 +15,6 @@ export const SHIPPING_TABLE: Record<string, number> = {
 export function shippingFor(country: string): number {
   return SHIPPING_TABLE[country] ?? 1500
 }
-
-/** Free Standard Shipping threshold in cents. */
-export const FREE_SHIPPING_THRESHOLD_CENTS = parseInt(
-  process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD_CENTS ?? "12000",
-  10,
-)
 
 /** Professional discount per color product, in cents. */
 export const PRO_DISCOUNT_PER_ITEM = 200

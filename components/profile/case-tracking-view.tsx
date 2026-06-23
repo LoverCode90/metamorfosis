@@ -6,9 +6,11 @@ import { Send, Loader2, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { formatCaseStatus } from "@/lib/utils/format"
+import type { CaseWithMessages } from "@/lib/cases/types"
 import Link from "next/link"
 
-export function CaseTrackingView({ caseData }: { caseData: any }) {
+export function CaseTrackingView({ caseData }: { caseData: CaseWithMessages }) {
   const router = useRouter()
   const [message, setMessage] = useState("")
   const [isSending, setIsSending] = useState(false)
@@ -35,14 +37,12 @@ export function CaseTrackingView({ caseData }: { caseData: any }) {
 
       setMessage("")
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong")
     } finally {
       setIsSending(false)
     }
   }
-
-  const formatStatus = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-12">
@@ -64,28 +64,38 @@ export function CaseTrackingView({ caseData }: { caseData: any }) {
       </div>
 
       <div className="mt-8 grid gap-8 md:grid-cols-3">
-        <div className="md:col-span-2 space-y-6">
+        <div className="space-y-6 md:col-span-2">
           <section className="border-border bg-card rounded-2xl border p-6">
-            <h2 className="text-foreground text-lg font-semibold mb-4">Case Details</h2>
+            <h2 className="text-foreground mb-4 text-lg font-semibold">
+              Case Details
+            </h2>
             <div className="space-y-4 text-sm">
               <div className="grid grid-cols-3 gap-4">
                 <span className="text-muted-foreground">Status</span>
-                <span className="col-span-2 font-medium">{formatStatus(caseData.status)}</span>
+                <span className="col-span-2 font-medium">
+                  {formatCaseStatus(caseData.status)}
+                </span>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <span className="text-muted-foreground">Reason</span>
-                <span className="col-span-2">{formatStatus(caseData.reason)}</span>
+                <span className="col-span-2">
+                  {formatCaseStatus(caseData.reason)}
+                </span>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <span className="text-muted-foreground">Explanation</span>
-                <span className="col-span-2 whitespace-pre-wrap">{caseData.explanation}</span>
+                <span className="col-span-2 whitespace-pre-wrap">
+                  {caseData.explanation}
+                </span>
               </div>
             </div>
-            
+
             {caseData.prepaid_label_url && (
-              <div className="mt-6 pt-6 border-t border-border">
-                <h3 className="text-foreground font-medium mb-2">Return Label</h3>
-                <p className="text-muted-foreground text-sm mb-4">
+              <div className="border-border mt-6 border-t pt-6">
+                <h3 className="text-foreground mb-2 font-medium">
+                  Return Label
+                </h3>
+                <p className="text-muted-foreground mb-4 text-sm">
                   Please print this label and attach it to your return package.
                 </p>
                 <a
@@ -100,32 +110,41 @@ export function CaseTrackingView({ caseData }: { caseData: any }) {
             )}
           </section>
 
-          <section className="border-border bg-card rounded-2xl border p-6 flex flex-col h-[500px]">
-            <h2 className="text-foreground text-lg font-semibold mb-4">Messages</h2>
-            
-            <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
+          <section className="border-border bg-card flex h-[500px] flex-col rounded-2xl border p-6">
+            <h2 className="text-foreground mb-4 text-lg font-semibold">
+              Messages
+            </h2>
+
+            <div className="mb-4 flex-1 space-y-4 overflow-y-auto pr-2">
               {caseData.case_messages?.length === 0 ? (
-                <p className="text-muted-foreground text-sm text-center py-8">
-                  No messages yet. Send a message if you need further assistance.
+                <p className="text-muted-foreground py-8 text-center text-sm">
+                  No messages yet. Send a message if you need further
+                  assistance.
                 </p>
               ) : (
-                caseData.case_messages?.map((msg: any) => {
+                caseData.case_messages?.map((msg) => {
                   const isCustomer = msg.sender_id === caseData.customer_id
                   return (
                     <div
                       key={msg.id}
                       className={cn(
-                        "flex flex-col max-w-[80%] rounded-2xl px-4 py-2",
+                        "flex max-w-[80%] flex-col rounded-2xl px-4 py-2",
                         isCustomer
-                          ? "bg-foreground text-background self-end ml-auto rounded-br-sm"
-                          : "bg-muted text-foreground self-start mr-auto rounded-bl-sm"
+                          ? "bg-foreground text-background ml-auto self-end rounded-br-sm"
+                          : "bg-muted text-foreground mr-auto self-start rounded-bl-sm",
                       )}
                     >
-                      <p className="text-sm whitespace-pre-wrap">{msg.message}</p>
-                      <span className={cn(
-                        "text-[10px] mt-1",
-                        isCustomer ? "text-background/70" : "text-muted-foreground"
-                      )}>
+                      <p className="text-sm whitespace-pre-wrap">
+                        {msg.message}
+                      </p>
+                      <span
+                        className={cn(
+                          "mt-1 text-[10px]",
+                          isCustomer
+                            ? "text-background/70"
+                            : "text-muted-foreground",
+                        )}
+                      >
                         {new Date(msg.created_at).toLocaleString()}
                       </span>
                     </div>
@@ -135,10 +154,15 @@ export function CaseTrackingView({ caseData }: { caseData: any }) {
             </div>
 
             {error && (
-              <p className="text-destructive text-sm font-medium mb-2">{error}</p>
+              <p className="text-destructive mb-2 text-sm font-medium">
+                {error}
+              </p>
             )}
 
-            <form onSubmit={handleSendMessage} className="flex gap-2 pt-4 border-t border-border">
+            <form
+              onSubmit={handleSendMessage}
+              className="border-border flex gap-2 border-t pt-4"
+            >
               <Input
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -146,12 +170,18 @@ export function CaseTrackingView({ caseData }: { caseData: any }) {
                 disabled={isSending || caseData.status === "closed"}
                 className="flex-1"
               />
-              <Button 
-                type="submit" 
-                size="icon" 
-                disabled={!message.trim() || isSending || caseData.status === "closed"}
+              <Button
+                type="submit"
+                size="icon"
+                disabled={
+                  !message.trim() || isSending || caseData.status === "closed"
+                }
               >
-                {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {isSending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </Button>
             </form>
           </section>
@@ -159,21 +189,31 @@ export function CaseTrackingView({ caseData }: { caseData: any }) {
 
         <div className="space-y-6">
           <section className="border-border bg-card rounded-2xl border p-6">
-            <h2 className="text-foreground text-sm font-semibold mb-4">Timeline</h2>
-            <div className="space-y-6 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
-              <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                <div className="flex items-center justify-center w-4 h-4 rounded-full border-2 border-foreground bg-background shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2" />
-                <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] ml-4 md:ml-0 md:group-odd:text-right">
-                  <p className="text-sm font-medium text-foreground">Case Opened</p>
-                  <p className="text-xs text-muted-foreground">{new Date(caseData.created_at).toLocaleDateString()}</p>
+            <h2 className="text-foreground mb-4 text-sm font-semibold">
+              Timeline
+            </h2>
+            <div className="before:via-border relative space-y-6 before:absolute before:inset-0 before:ml-2 before:h-full before:w-0.5 before:-translate-x-px before:bg-gradient-to-b before:from-transparent before:to-transparent md:before:mx-auto md:before:translate-x-0">
+              <div className="group is-active relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse">
+                <div className="border-foreground bg-background flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2" />
+                <div className="ml-4 w-[calc(100%-2rem)] md:ml-0 md:w-[calc(50%-1.5rem)] md:group-odd:text-right">
+                  <p className="text-foreground text-sm font-medium">
+                    Case Opened
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    {new Date(caseData.created_at).toLocaleDateString()}
+                  </p>
                 </div>
               </div>
               {caseData.resolved_at && (
-                <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-                  <div className="flex items-center justify-center w-4 h-4 rounded-full border-2 border-foreground bg-background shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2" />
-                  <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] ml-4 md:ml-0 md:group-odd:text-right">
-                    <p className="text-sm font-medium text-foreground">Case Resolved</p>
-                    <p className="text-xs text-muted-foreground">{new Date(caseData.resolved_at).toLocaleDateString()}</p>
+                <div className="group is-active relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse">
+                  <div className="border-foreground bg-background flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2" />
+                  <div className="ml-4 w-[calc(100%-2rem)] md:ml-0 md:w-[calc(50%-1.5rem)] md:group-odd:text-right">
+                    <p className="text-foreground text-sm font-medium">
+                      Case Resolved
+                    </p>
+                    <p className="text-muted-foreground text-xs">
+                      {new Date(caseData.resolved_at).toLocaleDateString()}
+                    </p>
                   </div>
                 </div>
               )}

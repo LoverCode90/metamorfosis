@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Package, Truck, CheckCircle, Clock, XCircle } from "lucide-react"
 import { CancelOrderButton } from "./cancel-order-button"
 import type { DbOrder } from "@/lib/orders/types"
+import { formatDate, formatUSD } from "@/lib/utils/format"
 import { cn } from "@/lib/utils"
 
 interface OrdersListProps {
@@ -29,22 +30,13 @@ const STATUS_CONFIG: Record<
   refunded: { label: "Refunded", color: "text-red-400", icon: XCircle },
 }
 
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
-}
-
-function fmtDollars(cents: number) {
-  return `$${(cents / 100).toFixed(2)}`
-}
-
 export function OrdersList({ orders }: OrdersListProps) {
   const [now, setNow] = useState<number | null>(null)
 
   useEffect(() => {
+    // Read the client clock only after mount to avoid an SSR/client hydration
+    // mismatch when computing the cancellation window.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNow(Date.now())
   }, [])
 
@@ -85,7 +77,8 @@ export function OrdersList({ orders }: OrdersListProps) {
         const isCancellable =
           (order.status === "pending" || order.status === "confirmed") &&
           (!order.cases || order.cases.length === 0) &&
-          now !== null && now - new Date(order.created_at).getTime() <= 2 * 60 * 60 * 1000
+          now !== null &&
+          now - new Date(order.created_at).getTime() <= 2 * 60 * 60 * 1000
 
         return (
           <div
@@ -96,7 +89,7 @@ export function OrdersList({ orders }: OrdersListProps) {
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="text-muted-foreground text-xs">
-                  {fmtDate(order.created_at)}
+                  {formatDate(order.created_at)}
                 </p>
                 <p className="text-foreground mt-0.5 font-semibold tabular-nums">
                   {order.square_order_id.startsWith("MF-")
@@ -138,7 +131,7 @@ export function OrdersList({ orders }: OrdersListProps) {
                 </p>
               </div>
               <p className="text-foreground shrink-0 text-sm font-semibold tabular-nums">
-                {fmtDollars(order.total_cents)}
+                {formatUSD(order.total_cents)}
               </p>
             </div>
 

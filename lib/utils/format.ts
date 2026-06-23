@@ -27,6 +27,14 @@ export function formatDate(iso: string, fmt = "MMM d, yyyy"): string {
 }
 
 /**
+ * Humanizes a snake_case case status or reason for display.
+ * e.g. "pending_review" → "Pending Review".
+ */
+export function formatCaseStatus(value: string): string {
+  return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+/**
  * Estimated delivery window as a human range (e.g. "Jun 26–Jul 2"),
  * computed as 3–7 business days from today (weekends skipped).
  */
