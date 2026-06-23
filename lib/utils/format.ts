@@ -25,3 +25,24 @@ export const formatCents = formatUSD
 export function formatDate(iso: string, fmt = "MMM d, yyyy"): string {
   return format(parseISO(iso), fmt, { locale: enUS })
 }
+
+/**
+ * Estimated delivery window as a human range (e.g. "Jun 26–Jul 2"),
+ * computed as 3–7 business days from today (weekends skipped).
+ */
+export function estimatedDeliveryRange(): string {
+  const addBusinessDays = (date: Date, days: number): Date => {
+    const result = new Date(date)
+    let added = 0
+    while (added < days) {
+      result.setDate(result.getDate() + 1)
+      const dayOfWeek = result.getDay()
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) added++
+    }
+    return result
+  }
+  const today = new Date()
+  const fmt = (date: Date) =>
+    date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+  return `${fmt(addBusinessDays(today, 3))}–${fmt(addBusinessDays(today, 7))}`
+}

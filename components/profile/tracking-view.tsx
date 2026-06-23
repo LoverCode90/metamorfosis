@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import type { DbOrder } from "@/lib/orders/types"
 import { orderStatusToStageIndex } from "@/lib/orders/types"
+import { RETURN_WINDOW_DAYS } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 
 const STAGES = [
@@ -39,6 +40,9 @@ export function TrackingView({ order }: TrackingViewProps) {
   const [now, setNow] = useState<number | null>(null)
 
   useEffect(() => {
+    // Read the client clock only after mount to avoid an SSR/client hydration
+    // mismatch when computing the return window.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNow(Date.now())
   }, [])
 
@@ -48,10 +52,19 @@ export function TrackingView({ order }: TrackingViewProps) {
   const addr = order?.shipping_address
 
   const isDelivered = order?.status === "delivered"
-  const deliveredAt = order?.delivered_at ? new Date(order.delivered_at) : null
-  const isWithin14Days = (deliveredAt && now !== null) ? (now - deliveredAt.getTime() <= 14 * 24 * 60 * 60 * 1000) : false
+  // Fall back to updated_at when the Shippo webhook never set delivered_at but
+  // the order is already marked delivered, so the return window still applies.
+  const deliveredAt = order?.delivered_at
+    ? new Date(order.delivered_at)
+    : isDelivered && order?.updated_at
+      ? new Date(order.updated_at)
+      : null
+  const isWithinReturnWindow =
+    deliveredAt !== null && now !== null
+      ? now - deliveredAt.getTime() <= RETURN_WINDOW_DAYS * 24 * 60 * 60 * 1000
+      : false
   const hasCase = order?.cases && order.cases.length > 0
-  const canReportProblem = isDelivered && isWithin14Days && !hasCase
+  const canReportProblem = isDelivered && isWithinReturnWindow && !hasCase
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-12">
@@ -212,7 +225,9 @@ export function TrackingView({ order }: TrackingViewProps) {
                         </p>
                         <p className="text-muted-foreground mt-0.5 text-xs">
                           {i === currentStage
-                            ? (isDelivered ? "Completed" : "In progress")
+                            ? isDelivered
+                              ? "Completed"
+                              : "In progress"
                             : done
                               ? "Completed"
                               : "Pending"}

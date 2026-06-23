@@ -8,22 +8,47 @@ import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
 import type { DbOrder } from "@/lib/orders/types"
 
-const REASONS = [
+// Non-returnable (chemical) products can only be reported for store-fault
+// reasons; returnable products offer the full set.
+const CHEMICAL_REASONS = [
   { value: "damaged", label: "Arrived damaged" },
   { value: "wrong_item", label: "Wrong item received" },
   { value: "defective", label: "Item is defective" },
+] as const
+
+const ALL_REASONS = [
+  ...CHEMICAL_REASONS,
   { value: "not_as_described", label: "Not as described" },
   { value: "no_longer_needed", label: "No longer needed" },
   { value: "ordered_by_mistake", label: "Ordered by mistake" },
   { value: "other", label: "Other" },
-]
+] as const
+
+function reasonsForItem(item: DbOrder["order_items"][number] | undefined) {
+  const isChemicalItem =
+    item?.product_variations?.product_translations?.is_returnable === false
+  return isChemicalItem ? CHEMICAL_REASONS : ALL_REASONS
+}
 
 export function CaseForm({ order }: { order: DbOrder }) {
   const router = useRouter()
   const [variationId, setVariationId] = useState(
     order.order_items[0]?.variation_id ?? "",
   )
-  const [reason, setReason] = useState(REASONS[0].value)
+  const availableReasons = reasonsForItem(
+    order.order_items.find((item) => item.variation_id === variationId),
+  )
+  const [reason, setReason] = useState<string>(availableReasons[0].value)
+
+  const handleVariationChange = (newVariationId: string) => {
+    setVariationId(newVariationId)
+    const newReasons = reasonsForItem(
+      order.order_items.find((item) => item.variation_id === newVariationId),
+    )
+    if (!newReasons.some((r) => r.value === reason)) {
+      setReason(newReasons[0].value)
+    }
+  }
   const [explanation, setExplanation] = useState("")
   const [files, setFiles] = useState<File[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -132,7 +157,7 @@ export function CaseForm({ order }: { order: DbOrder }) {
           <select
             id="variationId"
             value={variationId}
-            onChange={(e) => setVariationId(e.target.value)}
+            onChange={(e) => handleVariationChange(e.target.value)}
             className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring flex h-10 w-full items-center justify-between rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             required
           >
@@ -153,7 +178,7 @@ export function CaseForm({ order }: { order: DbOrder }) {
             className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring flex h-10 w-full items-center justify-between rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             required
           >
-            {REASONS.map((r) => (
+            {availableReasons.map((r) => (
               <option key={r.value} value={r.value}>
                 {r.label}
               </option>

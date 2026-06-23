@@ -16,13 +16,13 @@ export async function getUserOrders(userId: string): Promise<DbOrder[]> {
       `id, square_order_id, status, shipping_method,
        subtotal_cents, discount_cents, shipping_cents, tax_cents, total_cents,
        shipping_address, tracking_number, carrier, tracking_url,
-       estimated_delivery_date, delivered_at, created_at,
+       estimated_delivery_date, delivered_at, created_at, updated_at,
        cases(id, status),
        order_items (
          id, variation_id, quantity, unit_price_cents, discount_cents,
          product_variations (
            name_en, image_url,
-           product_translations ( square_product_id )
+           product_translations ( square_product_id, is_returnable )
          )
        )`,
     )
@@ -50,13 +50,13 @@ export async function getUserOrder(
       `id, square_order_id, status, shipping_method,
        subtotal_cents, discount_cents, shipping_cents, tax_cents, total_cents,
        shipping_address, tracking_number, carrier, tracking_url,
-       estimated_delivery_date, delivered_at, created_at,
+       estimated_delivery_date, delivered_at, created_at, updated_at,
        cases(id, status),
        order_items (
          id, variation_id, quantity, unit_price_cents, discount_cents,
          product_variations (
            name_en, image_url,
-           product_translations ( square_product_id )
+           product_translations ( square_product_id, is_returnable )
          )
        )`,
     )

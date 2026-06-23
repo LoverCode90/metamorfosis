@@ -3,7 +3,7 @@
 
 import { AlertCircle, Heart, RotateCcw, Trash2, Truck } from "lucide-react"
 import Link from "next/link"
-import { formatUSD } from "@/lib/utils/format"
+import { estimatedDeliveryRange, formatUSD } from "@/lib/utils/format"
 import type { CartItem } from "@/lib/types"
 import { QtyStepper } from "@/components/shared/qty-stepper"
 import { useCart } from "@/hooks/use-cart"
@@ -63,7 +63,7 @@ export function CartLineItem({ item }: { item: CartItem }) {
           <div className="mt-2 space-y-0.5 text-xs sm:mt-2.5 sm:space-y-1">
             <p className="flex items-center gap-1.5 text-emerald-600">
               <Truck className="h-3.5 w-3.5" strokeWidth={1.75} />
-              Arrives Dec 18–20
+              Arrives {estimatedDeliveryRange()}
             </p>
             <p className="text-muted-foreground flex items-center gap-1.5">
               <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.75} />
