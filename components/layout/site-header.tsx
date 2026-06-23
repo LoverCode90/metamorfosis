@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import {
@@ -38,10 +38,16 @@ export function SiteHeader() {
   const router = useRouter()
   const cartTotals = useCartStore((s) => s.totals)
   const wishlistCount = useWishlistStore((s) => s.items.length)
-  const { user, profile, dbProfile } = useUser()
+  const { user, profile, dbProfile, isLoading } = useUser()
   const { mobileNavOpen, openMobileNav, closeMobileNav } = useUiStore()
+  const [mounted, setMounted] = useState(false)
 
   const isAdmin = dbProfile?.role === "admin"
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     document.body.style.overflow = mobileNavOpen ? "hidden" : ""
@@ -159,6 +165,7 @@ export function SiteHeader() {
           <HeaderIconButton
             label="Wishlist"
             badge={wishlistCount}
+            loading={!mounted || (user !== null && isLoading)}
             onClick={() => router.push("/wishlist")}
             active={pathname === "/wishlist"}
             className="hidden sm:flex"
@@ -169,6 +176,7 @@ export function SiteHeader() {
           <HeaderIconButton
             label="Shopping bag"
             badge={cartTotals.itemCount}
+            loading={!mounted || (user !== null && isLoading)}
             onClick={() => router.push("/cart")}
             active={pathname === "/cart" || pathname === "/checkout"}
           >
@@ -221,6 +229,7 @@ interface HeaderIconButtonProps {
   label: string
   children: React.ReactNode
   badge?: number
+  loading?: boolean
   onClick?: () => void
   active?: boolean
   className?: string
@@ -230,6 +239,7 @@ function HeaderIconButton({
   label,
   children,
   badge,
+  loading,
   onClick,
   active,
   className,
@@ -246,11 +256,13 @@ function HeaderIconButton({
       )}
     >
       {children}
-      {badge !== undefined && badge > 0 && (
+      {loading ? (
+        <span className="bg-muted border-border absolute -top-0.5 -right-0.5 flex h-4 min-w-4 animate-pulse items-center justify-center rounded-full border" />
+      ) : badge !== undefined && badge > 0 ? (
         <span className="bg-foreground text-background absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold">
           {badge}
         </span>
-      )}
+      ) : null}
     </button>
   )
 }

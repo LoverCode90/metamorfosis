@@ -23,7 +23,7 @@ import { StepPayment } from "./steps/step-payment"
 export function CheckoutClient() {
   const router = useRouter()
   const { items, totals, clearCart, removeItem } = useCart()
-  const { user, dbProfile, saveAddress } = useUser()
+  const { user, dbProfile, savedAddress, saveAddress } = useUser()
 
   const [wizardStep, setWizardStep] = useState<CheckoutStepId>("info")
   const [address, setAddress] = useState<CheckoutAddress | null>(null)
@@ -141,16 +141,27 @@ export function CheckoutClient() {
         zip: address.zip,
         termsAccepted,
       }
-    : user && dbProfile
+    : user && savedAddress
       ? {
-          fullName: dbProfile.full_name,
-          email: dbProfile.email,
-          phone: dbProfile.phone_number ?? "",
+          fullName: savedAddress.fullName,
+          email: dbProfile?.email || "",
+          phone: savedAddress.phone || dbProfile?.phone_number || "",
+          streetLine1: savedAddress.line1 || "",
+          streetLine2: "",
+          city: savedAddress.city || "",
+          state: savedAddress.region || "",
+          zip: savedAddress.postalCode || "",
         }
-      : undefined
+      : user && dbProfile
+        ? {
+            fullName: dbProfile.full_name,
+            email: dbProfile.email,
+            phone: dbProfile.phone_number ?? "",
+          }
+        : undefined
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+    <div className="mx-auto max-w-6xl overflow-x-hidden px-4 py-8 sm:px-6 sm:py-10">
       <button
         type="button"
         onClick={() => router.push("/cart")}

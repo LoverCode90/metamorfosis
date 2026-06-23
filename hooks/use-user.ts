@@ -65,8 +65,25 @@ export function useUser(): UseUserResult {
         setProfile(mapDbProfile(data))
         setVerificationStatus(mapVerificationStatus(data.verification_status))
       }
+
+      fetch("/api/addresses/default")
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.address) {
+            saveAddress({
+              fullName: json.address.fullName,
+              line1: json.address.streetLine1,
+              city: json.address.city,
+              region: json.address.state,
+              postalCode: json.address.zip,
+              country: json.address.country,
+              phone: json.address.phone,
+            })
+          }
+        })
+        .catch(console.error)
     },
-    [supabase],
+    [supabase, saveAddress],
   )
 
   useEffect(() => {
