@@ -75,7 +75,7 @@ export function ProductCard({ product: card }: { product: CatalogCard }) {
 
   return (
     <>
-      <article className="group relative flex flex-col">
+      <article className="group relative flex h-full flex-col">
         <button
           type="button"
           onClick={handleWishlist}
@@ -89,7 +89,7 @@ export function ProductCard({ product: card }: { product: CatalogCard }) {
             "absolute top-2.5 right-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur transition-colors",
             wishlisted
               ? "bg-foreground text-background"
-              : "bg-background/90 text-foreground hover:bg-muted shadow-sm",
+              : "bg-black/60 text-white shadow-md hover:bg-black/80",
           )}
         >
           <Heart

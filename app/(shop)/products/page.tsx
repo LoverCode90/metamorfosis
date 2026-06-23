@@ -8,8 +8,14 @@ export const metadata: Metadata = {
     "Browse our full professional catalog of hair color, care, and tools.",
 }
 
+import { Suspense } from "react"
+
 export default async function Products() {
   const products = await fetchCatalogCards()
 
-  return <ProductsPage products={products} />
+  return (
+    <Suspense>
+      <ProductsPage products={products} />
+    </Suspense>
+  )
 }

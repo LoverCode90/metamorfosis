@@ -152,7 +152,7 @@
   /* Fonts */
   --font-sans: var(--font-geist-sans), "Geist Fallback";
   --font-mono: var(--font-geist-mono), "Geist Mono Fallback";
-  --font-display: var(--font-instrument-serif), "Georgia", serif;
+  --font-display: var(--font-outfit), sans-serif;
   --font-heading: var(--font-display);
 
   /* Radii */
@@ -204,9 +204,10 @@
     @apply font-sans tracking-tight;
   }
 
-  /* Smooth scrolling */
+  /* Smooth scrolling and base font size bump */
   html {
     scroll-behavior: smooth;
+    font-size: 106.25%; /* Slightly scale up all rems (17px base) */
   }
 }
 

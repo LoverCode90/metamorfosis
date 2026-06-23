@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { SlidersHorizontal } from "lucide-react"
 import {
   EMPTY_FILTERS,
@@ -20,7 +21,13 @@ interface ProductsPageProps {
 }
 
 export function ProductsPage({ products }: ProductsPageProps) {
-  const [filters, setFilters] = useState<ActiveFilters>({ ...EMPTY_FILTERS })
+  const searchParams = useSearchParams()
+  const categoryParam = searchParams.get("category")
+
+  const [filters, setFilters] = useState<ActiveFilters>({
+    ...EMPTY_FILTERS,
+    categories: categoryParam ? [categoryParam] : [],
+  })
   const [page, setPage] = useState(1)
   const [drawerOpen, setDrawerOpen] = useState(false)
 

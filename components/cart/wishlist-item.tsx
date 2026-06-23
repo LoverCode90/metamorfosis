@@ -68,7 +68,21 @@ export function WishlistCard({
         >
           {item.name}
         </Link>
-        <p className="text-muted-foreground mt-0.5 text-xs">{item.variant}</p>
+        {item.variant && (
+          <p className="text-muted-foreground mt-0.5 flex flex-wrap gap-1 text-xs">
+            {item.variant.split(" > ").map((cat, idx, arr) => (
+              <span key={idx} className="inline-flex items-center gap-1">
+                <Link
+                  href={`/products?category=${encodeURIComponent(cat.trim())}`}
+                  className="hover:text-foreground hover:underline"
+                >
+                  {cat.trim()}
+                </Link>
+                {idx < arr.length - 1 && <span>&gt;</span>}
+              </span>
+            ))}
+          </p>
+        )}
         <div className="mt-2 flex items-baseline gap-1.5">
           <span className="text-foreground text-sm font-semibold tabular-nums">
             {formatUSD(finalPrice)}
@@ -135,7 +149,21 @@ export function WishlistRow({
         >
           {item.name}
         </Link>
-        <p className="text-muted-foreground truncate text-xs">{item.variant}</p>
+        {item.variant && (
+          <p className="text-muted-foreground flex gap-1 truncate text-xs">
+            {item.variant.split(" > ").map((cat, idx, arr) => (
+              <span key={idx} className="inline-flex items-center gap-1">
+                <Link
+                  href={`/products?category=${encodeURIComponent(cat.trim())}`}
+                  className="hover:text-foreground hover:underline"
+                >
+                  {cat.trim()}
+                </Link>
+                {idx < arr.length - 1 && <span>&gt;</span>}
+              </span>
+            ))}
+          </p>
+        )}
       </div>
       <div className="flex items-baseline gap-1.5">
         <span className="text-foreground text-sm font-semibold tabular-nums">
