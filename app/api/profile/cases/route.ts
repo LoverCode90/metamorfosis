@@ -14,14 +14,19 @@ const caseSchema = z.object({
     "ordered_by_mistake",
     "other",
   ]),
-  explanation: z.string().min(100, "Explanation must be at least 100 characters"),
-  evidenceUrls: z.array(z.string().url()).max(3).optional().default([]),
+  explanation: z.string().min(40, "Explanation must be at least 40 characters"),
+  // Stored as Supabase Storage paths (e.g. "userId/caseId/1.jpg"), not full
+  // URLs, so validate as non-empty strings rather than z.string().url().
+  evidenceUrls: z.array(z.string().min(1)).max(3).optional().default([]),
 })
 
 export async function POST(req: Request) {
   try {
     const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -31,10 +36,14 @@ export async function POST(req: Request) {
     const parsed = caseSchema.safeParse(json)
 
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid data", details: parsed.error.issues }, { status: 400 })
+      return NextResponse.json(
+        { error: "Invalid data", details: parsed.error.issues },
+        { status: 400 },
+      )
     }
 
-    const { orderId, variationId, reason, explanation, evidenceUrls } = parsed.data
+    const { orderId, variationId, reason, explanation, evidenceUrls } =
+      parsed.data
 
     // 1. Verify order belongs to user and is delivered within 14 days
     const { data: order, error: orderError } = await supabase
@@ -49,7 +58,10 @@ export async function POST(req: Request) {
     }
 
     if (!order.delivered_at) {
-      return NextResponse.json({ error: "Order is not yet delivered" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Order is not yet delivered" },
+        { status: 400 },
+      )
     }
 
     const deliveredDate = new Date(order.delivered_at)
@@ -57,7 +69,10 @@ export async function POST(req: Request) {
     fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
 
     if (deliveredDate < fourteenDaysAgo) {
-      return NextResponse.json({ error: "Order was delivered more than 14 days ago" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Order was delivered more than 14 days ago" },
+        { status: 400 },
+      )
     }
 
     // 2. Max 1 open case per order
@@ -73,7 +88,10 @@ export async function POST(req: Request) {
     }
 
     if (existingCase) {
-      return NextResponse.json({ error: "An open case already exists for this order" }, { status: 400 })
+      return NextResponse.json(
+        { error: "An open case already exists for this order" },
+        { status: 400 },
+      )
     }
 
     // 3. Create case
@@ -86,18 +104,24 @@ export async function POST(req: Request) {
         reason,
         explanation,
         evidence_images_urls: evidenceUrls,
-        status: "open"
+        status: "open",
       })
       .select("id")
       .single()
 
     if (createError || !newCase) {
-      return NextResponse.json({ error: "Failed to create case" }, { status: 500 })
+      return NextResponse.json(
+        { error: "Failed to create case" },
+        { status: 500 },
+      )
     }
 
     return NextResponse.json({ success: true, caseId: newCase.id })
   } catch (error) {
     console.error("[POST /api/profile/cases]", error)
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    )
   }
 }
