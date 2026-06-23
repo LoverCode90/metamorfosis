@@ -41,6 +41,7 @@ export interface DbOrder {
   delivered_at: string | null
   created_at: string
   order_items: DbOrderItem[]
+  cases?: { id: string; status: string }[]
 }
 
 /**

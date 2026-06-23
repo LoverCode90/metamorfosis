@@ -13,8 +13,8 @@ import type { PackageClass } from "@/lib/square/attributes"
 interface ShippingRatesBody {
   subtotalCents: number
   address?: CheckoutAddress
-  /** cart_item variation UUIDs — server looks up packageClass + weightLb */
-  variationIds?: string[]
+  /** cart items with quantities for accurate packing */
+  items?: { variationId: string; quantity: number }[]
 }
 
 const FREE_THRESHOLD_CENTS = parseInt(
@@ -31,7 +31,7 @@ const FREE_THRESHOLD_CENTS = parseInt(
  */
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as ShippingRatesBody
-  const { subtotalCents, address, variationIds } = body
+  const { subtotalCents, address, items } = body
 
   if (typeof subtotalCents !== "number" || subtotalCents < 0) {
     return NextResponse.json(
@@ -46,13 +46,14 @@ export async function POST(request: NextRequest) {
   // ── Attempt live Shippo rates ─────────────────────────────────────────────
   if (
     address &&
-    variationIds &&
-    variationIds.length > 0 &&
+    items &&
+    items.length > 0 &&
     process.env.SHIPPO_API_KEY
   ) {
     try {
       // Resolve packageClass + weightLb from the DB so client doesn't need them
       const admin = createAdminClient()
+      const variationIds = items.map(i => i.variationId)
       const { data: varRows } = await admin
         .from("product_variations")
         .select(
@@ -60,20 +61,21 @@ export async function POST(request: NextRequest) {
         )
         .in("id", variationIds)
 
-      // Map variationId → pack input (quantity comes from the cart client,
-      // but for packing purposes we send 1 per variation ID present — the
-      // caller deduplicates; we'll receive one entry per unique variation)
+      // Map variationId → pack input using exact quantities from cart
       const packInputs: PackInput[] = (
         varRows as unknown as {
           id: string
           weight_lb: number | null
           product_translations: { package_class: PackageClass } | null
         }[]
-      ).map((row) => ({
-        packageClass: row.product_translations?.package_class ?? "small",
-        weightLb: row.weight_lb,
-        quantity: 1,
-      }))
+      ).map((row) => {
+        const cartItem = items.find(i => i.variationId === row.id)
+        return {
+          packageClass: row.product_translations?.package_class ?? "small",
+          weightLb: row.weight_lb,
+          quantity: cartItem?.quantity ?? 1,
+        }
+      })
 
       const { parcels, oversized } = packItems(packInputs)
 

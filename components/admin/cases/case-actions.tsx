@@ -51,33 +51,26 @@ export function CaseActions({ caseId, isReturnable, status }: CaseActionsProps) 
       )}
       <div className="flex flex-wrap gap-3">
         <Button
-          onClick={() => handleAction("approve-refund")}
+          onClick={() => handleAction("refund")}
           disabled={!!isProcessing}
           className="bg-green-600 hover:bg-green-700 text-white"
         >
-          {isProcessing === "approve-refund" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isProcessing === "refund" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Approve Refund
         </Button>
 
         {isReturnable && (
           <Button
-            onClick={() => handleAction("generate-label")}
+            onClick={() => handleAction("return-label")}
             disabled={!!isProcessing}
             variant="outline"
           >
-            {isProcessing === "generate-label" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isProcessing === "return-label" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Generate Return Label
           </Button>
         )}
 
-        <Button
-          onClick={() => handleAction("request-info")}
-          disabled={!!isProcessing}
-          variant="outline"
-        >
-          {isProcessing === "request-info" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          Request More Info
-        </Button>
+
 
         <Button
           onClick={() => handleAction("reject")}

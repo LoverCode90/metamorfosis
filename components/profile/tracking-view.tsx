@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
+import { useEffect, useState } from "react"
 import { ArrowLeft, Check, MapPin, Package, Truck, XCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -35,6 +36,12 @@ interface TrackingViewProps {
 
 export function TrackingView({ order }: TrackingViewProps) {
   const router = useRouter()
+  const [now, setNow] = useState<number | null>(null)
+
+  useEffect(() => {
+    setNow(Date.now())
+  }, [])
+
   const currentStage = order ? orderStatusToStageIndex(order.status) : 0
   const isCancelled =
     order?.status === "cancelled" || order?.status === "refunded"
@@ -42,8 +49,9 @@ export function TrackingView({ order }: TrackingViewProps) {
 
   const isDelivered = order?.status === "delivered"
   const deliveredAt = order?.delivered_at ? new Date(order.delivered_at) : null
-  const isWithin14Days = deliveredAt ? (Date.now() - deliveredAt.getTime() <= 14 * 24 * 60 * 60 * 1000) : false
-  const canReportProblem = isDelivered && isWithin14Days
+  const isWithin14Days = (deliveredAt && now !== null) ? (now - deliveredAt.getTime() <= 14 * 24 * 60 * 60 * 1000) : false
+  const hasCase = order?.cases && order.cases.length > 0
+  const canReportProblem = isDelivered && isWithin14Days && !hasCase
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-12">

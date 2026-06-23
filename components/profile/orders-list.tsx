@@ -1,8 +1,10 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Package, Truck, CheckCircle, Clock, XCircle } from "lucide-react"
+import { CancelOrderButton } from "./cancel-order-button"
 import type { DbOrder } from "@/lib/orders/types"
 import { cn } from "@/lib/utils"
 
@@ -40,6 +42,12 @@ function fmtDollars(cents: number) {
 }
 
 export function OrdersList({ orders }: OrdersListProps) {
+  const [now, setNow] = useState<number | null>(null)
+
+  useEffect(() => {
+    setNow(Date.now())
+  }, [])
+
   if (orders.length === 0) {
     return (
       <div className="border-border flex flex-col items-center justify-center rounded-2xl border border-dashed py-20 text-center">
@@ -73,6 +81,11 @@ export function OrdersList({ orders }: OrdersListProps) {
         const addr = order.shipping_address
         const itemCount = order.order_items.reduce((s, i) => s + i.quantity, 0)
         const firstItem = order.order_items[0]
+
+        const isCancellable =
+          (order.status === "pending" || order.status === "confirmed") &&
+          (!order.cases || order.cases.length === 0) &&
+          now !== null && now - new Date(order.created_at).getTime() <= 2 * 60 * 60 * 1000
 
         return (
           <div
@@ -156,12 +169,15 @@ export function OrdersList({ orders }: OrdersListProps) {
                     : "Tracking not yet available"}
                 </p>
               )}
-              <Link
-                href={`/tracking?orderId=${order.id}`}
-                className="border-border text-foreground hover:bg-muted rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
-              >
-                Track order
-              </Link>
+              <div className="flex items-center gap-2">
+                {isCancellable && <CancelOrderButton orderId={order.id} />}
+                <Link
+                  href={`/tracking?orderId=${order.id}`}
+                  className="border-border text-foreground hover:bg-muted rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
+                >
+                  Track order
+                </Link>
+              </div>
             </div>
           </div>
         )

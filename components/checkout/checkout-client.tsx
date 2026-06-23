@@ -190,9 +190,9 @@ export function CheckoutClient() {
             <StepShipping
               subtotalCents={Math.round(totals.subtotal * 100)}
               address={address}
-              variationIds={items
+              cartItems={items
                 .filter((i) => !i.unavailable && i.variationId)
-                .map((i) => i.variationId)}
+                .map((i) => ({ variationId: i.variationId!, quantity: i.quantity }))}
               initialRates={cachedShippingRates}
               onRatesFetched={(rates) => setCachedShippingRates(rates)}
               onContinue={handleShippingContinue}

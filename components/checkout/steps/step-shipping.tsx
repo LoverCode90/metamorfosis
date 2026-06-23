@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 interface StepShippingProps {
   subtotalCents: number
   address: CheckoutAddress
-  variationIds: string[]
+  cartItems: { variationId: string; quantity: number }[]
   initialRates?: ShippingRate[] | null
   onRatesFetched?: (rates: ShippingRate[]) => void
   onContinue: (method: ShippingMethod, amountCents: number) => void
@@ -22,7 +22,7 @@ interface StepShippingProps {
 export function StepShipping({
   subtotalCents,
   address,
-  variationIds,
+  cartItems,
   initialRates,
   onRatesFetched,
   onContinue,
@@ -41,7 +41,7 @@ export function StepShipping({
     fetch("/api/checkout/shipping-rates", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ subtotalCents, address, variationIds }),
+      body: JSON.stringify({ subtotalCents, address, items: cartItems }),
     })
       .then((r) => r.json())
       .then(({ rates: r, freeThresholdNote, oversized, message }) => {
