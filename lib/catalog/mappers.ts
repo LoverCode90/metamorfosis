@@ -113,6 +113,7 @@ export function mapCard(
     nameEn: row.name_en,
     categoriesHierarchy: row.categories_hierarchy,
     isProfessional: row.is_professional,
+    isReturnable: row.is_returnable,
     isColorProduct: row.is_color_product,
     imageUrl: row.image_url,
     imageUrls: parseImageUrls(row.image_urls),

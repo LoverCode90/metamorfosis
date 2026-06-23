@@ -1,5 +1,5 @@
-/** Cart total threshold in cents for free shipping ($70.00). */
-export const FREE_SHIPPING_THRESHOLD_CENTS = 7_000
+/** Cart total threshold in cents for free shipping ($120.00). */
+export const FREE_SHIPPING_THRESHOLD_CENTS = 12_000
 
 /** All 50 US state codes and names for address forms. */
 export const US_STATES: { code: string; name: string }[] = [

@@ -4,11 +4,9 @@ import { useState } from "react"
 import { ChevronDown, PartyPopper, Tag, Truck } from "lucide-react"
 import { formatUSD } from "@/lib/utils/format"
 import type { Totals } from "@/lib/types"
+import { FREE_SHIPPING_THRESHOLD_CENTS } from "@/lib/constants"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
-
-/** Free-shipping threshold in cents ($120). */
-const FREE_SHIPPING_CENTS = 12_000
 
 interface CartSummaryProps {
   totals: Totals
@@ -25,6 +23,11 @@ export function CartSummary({
 }: CartSummaryProps) {
   const [promoOpen, setPromoOpen] = useState(false)
   const [promo, setPromo] = useState("")
+
+  // Real shipping cost is computed by Shippo at checkout step 2; here we can
+  // only tell whether the order already qualifies for free standard shipping.
+  const qualifiesForFreeShipping =
+    totals.subtotal - totals.discount >= FREE_SHIPPING_THRESHOLD_CENTS
 
   return (
     <aside className="lg:sticky lg:top-24">
@@ -99,8 +102,15 @@ export function CartSummary({
               <Truck className="h-4 w-4" strokeWidth={1.75} />
               Shipping
             </dt>
-            <dd className="font-medium tracking-wide text-emerald-600 uppercase">
-              Free
+            <dd
+              className={cn(
+                "font-medium",
+                qualifiesForFreeShipping
+                  ? "tracking-wide text-emerald-600 uppercase"
+                  : "text-foreground tabular-nums",
+              )}
+            >
+              {qualifiesForFreeShipping ? "Free" : "Calculated at checkout"}
             </dd>
           </div>
           <div className="flex items-center justify-between">
@@ -149,9 +159,12 @@ export function CartSummary({
  * (smoothly) as progress crosses 40% and 80%.
  */
 function FreeShippingBar({ subtotalCents }: { subtotalCents: number }) {
-  const pct = Math.min(100, (subtotalCents / FREE_SHIPPING_CENTS) * 100)
-  const unlocked = subtotalCents >= FREE_SHIPPING_CENTS
-  const remaining = Math.max(0, FREE_SHIPPING_CENTS - subtotalCents)
+  const pct = Math.min(
+    100,
+    (subtotalCents / FREE_SHIPPING_THRESHOLD_CENTS) * 100,
+  )
+  const unlocked = subtotalCents >= FREE_SHIPPING_THRESHOLD_CENTS
+  const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD_CENTS - subtotalCents)
 
   const fillColor =
     pct >= 80 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-red-500"
@@ -173,7 +186,8 @@ function FreeShippingBar({ subtotalCents }: { subtotalCents: number }) {
               className="text-muted-foreground h-4 w-4"
               strokeWidth={1.75}
             />
-            Free shipping on orders over {formatUSD(FREE_SHIPPING_CENTS)}
+            Free shipping on orders over{" "}
+            {formatUSD(FREE_SHIPPING_THRESHOLD_CENTS)}
           </>
         )}
       </p>

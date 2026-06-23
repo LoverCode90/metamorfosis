@@ -25,6 +25,7 @@ interface DbCartItem {
       image_url: string | null
       is_professional: boolean
       is_color_product: boolean
+      is_returnable: boolean
       is_active: boolean
     } | null
   } | null
@@ -67,7 +68,8 @@ export async function loadCartFromDb(userId: string): Promise<CartItem[]> {
          price_cents, inventory_count, hex_color, shade_number,
          size_label, image_url, is_active,
          product_translations(
-           name_en, image_url, is_professional, is_color_product, is_active
+           name_en, image_url, is_professional, is_color_product,
+           is_returnable, is_active
          )
        )`,
     )
@@ -91,6 +93,7 @@ export async function loadCartFromDb(userId: string): Promise<CartItem[]> {
         quantity: row.quantity,
         isProfessional: p?.is_professional ?? false,
         isColorProduct: p?.is_color_product ?? false,
+        isReturnable: p?.is_returnable ?? true,
         unavailable: !v.is_active || !p?.is_active,
       }
     })

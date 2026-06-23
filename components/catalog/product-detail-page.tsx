@@ -100,6 +100,7 @@ export function ProductDetailPage({ product, related }: Props) {
         stock,
         isProfessional: product.isProfessional,
         isColorProduct: product.isColorProduct,
+        isReturnable: product.isReturnable,
         variationId: selectedVariation?.id,
         squareVariationId: selectedVariation?.squareVariationId,
       },

@@ -17,7 +17,7 @@ export function shippingFor(country: string): number {
 
 /** Free Standard Shipping threshold in cents. */
 export const FREE_SHIPPING_THRESHOLD_CENTS = parseInt(
-  process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD_CENTS ?? "7000",
+  process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD_CENTS ?? "12000",
   10,
 )
 
