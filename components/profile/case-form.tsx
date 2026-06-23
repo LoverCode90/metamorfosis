@@ -60,10 +60,14 @@ export function CaseForm({ order }: { order: DbOrder }) {
       const caseId = crypto.randomUUID()
       const evidenceUrls: string[] = []
 
+      const { data: { session }, error: sessionErr } = await supabase.auth.getSession()
+      if (sessionErr || !session) throw new Error("User not authenticated")
+      const userId = session.user.id
+
       for (let i = 0; i < files.length; i++) {
         const file = files[i]
         const ext = file.name.split(".").pop()
-        const path = `${caseId}/${i + 1}.${ext}`
+        const path = `${userId}/${caseId}/${i + 1}.${ext}`
 
         const { error: uploadErr } = await supabase.storage
           .from("case-evidence")
