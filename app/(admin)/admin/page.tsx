@@ -11,7 +11,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 async function getStats() {
   const admin = createAdminClient()
 
-  const [pendingResult, ordersResult, auditResult] = await Promise.all([
+  const [pendingResult, ordersResult, auditResult, casesResult] = await Promise.all([
     admin
       .from("profiles")
       .select("id", { count: "exact", head: true })
@@ -28,11 +28,16 @@ async function getStats() {
       .select("id, action, target_table, created_at")
       .order("created_at", { ascending: false })
       .limit(5),
+    admin
+      .from("cases")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "open"),
   ])
 
   return {
     pendingVerifications: pendingResult.count ?? 0,
     ordersToday: ordersResult.count ?? 0,
+    openCases: casesResult.count ?? 0,
     recentActivity: (auditResult.data ?? []) as {
       id: string
       action: string
@@ -71,7 +76,7 @@ export default async function AdminPage() {
           href="/admin/orders"
           disabled
         />
-        <StatCard label="Open cases" value={0} href="/admin/cases" disabled />
+        <StatCard label="Open cases" value={stats.openCases} href="/admin/cases" />
       </div>
 
       {/* Quick actions */}
@@ -98,7 +103,6 @@ export default async function AdminPage() {
             icon={ClipboardList}
             label="Handle cases"
             description="Review returns and support tickets"
-            disabled
           />
         </div>
       </section>

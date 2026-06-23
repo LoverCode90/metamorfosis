@@ -3,6 +3,7 @@
 
 import { ArrowLeft, Check, MapPin, Package, Truck, XCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import type { DbOrder } from "@/lib/orders/types"
 import { orderStatusToStageIndex } from "@/lib/orders/types"
 import { cn } from "@/lib/utils"
@@ -38,6 +39,11 @@ export function TrackingView({ order }: TrackingViewProps) {
   const isCancelled =
     order?.status === "cancelled" || order?.status === "refunded"
   const addr = order?.shipping_address
+
+  const isDelivered = order?.status === "delivered"
+  const deliveredAt = order?.delivered_at ? new Date(order.delivered_at) : null
+  const isWithin14Days = deliveredAt ? (Date.now() - deliveredAt.getTime() <= 14 * 24 * 60 * 60 * 1000) : false
+  const canReportProblem = isDelivered && isWithin14Days
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-12">
@@ -286,6 +292,17 @@ export function TrackingView({ order }: TrackingViewProps) {
                 </span>
               </div>
             </div>
+
+            {canReportProblem && (
+              <div className="border-border mt-6 border-t pt-6">
+                <Link
+                  href={`/orders/${order.id}/case`}
+                  className="bg-muted text-foreground hover:bg-muted/80 flex w-full items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold transition-colors"
+                >
+                  Report a problem
+                </Link>
+              </div>
+            )}
           </section>
         </>
       )}
