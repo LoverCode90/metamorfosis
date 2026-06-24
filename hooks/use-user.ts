@@ -33,7 +33,10 @@ interface UseUserResult {
   isLoading: boolean
   updateProfile: (
     patch: Partial<
-      Pick<DbProfile, "first_name" | "last_name" | "business_name">
+      Pick<
+        DbProfile,
+        "first_name" | "last_name" | "business_name" | "phone_number"
+      >
     >,
   ) => Promise<void>
   saveAddress: (address: SavedAddress) => void
@@ -117,7 +120,10 @@ export function useUser(): UseUserResult {
   const updateProfile = useCallback(
     async (
       patch: Partial<
-        Pick<DbProfile, "first_name" | "last_name" | "business_name">
+        Pick<
+          DbProfile,
+          "first_name" | "last_name" | "business_name" | "phone_number"
+        >
       >,
     ) => {
       if (!user) return

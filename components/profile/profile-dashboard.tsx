@@ -1,166 +1,135 @@
 "use client"
 
-import { Check, Package } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { cn } from "@/lib/utils"
+import { Loader2, Lock, MapPin, Package, ShieldCheck, User } from "lucide-react"
 import { useUser } from "@/hooks/use-user"
-import { CompletionRing } from "./completion-ring"
-import { VerificationPanel } from "./verification-panel"
-import { ChangePasswordForm } from "./change-password-form"
-import { ProfileHeader } from "./profile-header"
-import { ProfileInfoSection } from "./profile-info-section"
-import { ProfileAddressSection } from "./profile-address-section"
+import { AvatarInitials } from "./avatar-initials"
+import { ProfileBadges } from "./profile-badges"
+import { ProfileNavRow } from "./profile-nav-row"
 import { SignOutButton } from "@/components/auth/sign-out-button"
 
 export function ProfileDashboard() {
-  const router = useRouter()
   const {
     user,
     profile,
     dbProfile,
-    updateProfile,
     verificationStatus,
     savedAddress,
-    saveAddress,
+    isLoading,
   } = useUser()
 
   const isAdmin = dbProfile?.role === "admin"
-  const isEmailUser = user?.app_metadata?.provider !== "google"
+  const isGoogleUser = user?.app_metadata?.provider === "google"
   const hasName =
     profile.firstName.trim().length > 0 && profile.lastName.trim().length > 0
-  const hasSavedPayment = false
 
+  // Profile-completion checklist drives the thin progress bar.
   const checklist = [
-    { id: "name", label: "Add your name", done: hasName },
-    {
-      id: "address",
-      label: "Save a shipping address",
-      done: Boolean(savedAddress),
-    },
-    { id: "payment", label: "Save a payment method", done: hasSavedPayment },
-    ...(!isAdmin
-      ? [
-          {
-            id: "verify",
-            label: "Verify your professional license",
-            done: verificationStatus === "verified",
-          },
-        ]
-      : []),
+    hasName,
+    Boolean(savedAddress),
+    ...(!isAdmin ? [verificationStatus === "verified"] : []),
   ]
   const completion = Math.round(
-    (checklist.filter((c) => c.done).length / checklist.length) * 100,
+    (checklist.filter(Boolean).length / checklist.length) * 100,
   )
 
-  return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-12">
-      <div className="flex flex-col gap-1">
-        <p className="text-muted-foreground text-xs font-medium tracking-[0.3em] uppercase">
-          My Account
-        </p>
-        <h1 className="text-foreground text-2xl font-semibold tracking-tight sm:text-3xl">
-          Profile
-        </h1>
-      </div>
+  const rows = [
+    {
+      href: "/profile/personal",
+      icon: User,
+      title: "Personal Info",
+      description: "Name, phone, email",
+      show: true,
+    },
+    {
+      href: "/profile/addresses",
+      icon: MapPin,
+      title: "Addresses",
+      description: "Your shipping address",
+      show: true,
+    },
+    {
+      href: "/profile/security",
+      icon: Lock,
+      title: "Security",
+      description: "Change your password",
+      show: !isGoogleUser,
+    },
+    {
+      href: "/orders",
+      icon: Package,
+      title: "Orders",
+      description: "Your order history",
+      show: true,
+    },
+    {
+      href: "/profile/verification",
+      icon: ShieldCheck,
+      title: "Professional Verification",
+      description: "License status",
+      show: !isAdmin,
+    },
+  ].filter((row) => row.show)
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_320px]">
-        <div className="flex flex-col gap-6">
-          <ProfileHeader
-            profile={profile}
+  if (isLoading) {
+    return (
+      <div className="text-muted-foreground flex justify-center py-24">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:py-12">
+      {/* Header — centered avatar + name + email */}
+      <div className="flex flex-col items-center text-center">
+        <AvatarInitials
+          firstName={profile.firstName}
+          lastName={profile.lastName}
+          size={96}
+        />
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+          <h1 className="text-foreground text-xl font-semibold tracking-tight">
+            {profile.name || "Your name"}
+          </h1>
+          <ProfileBadges
             role={dbProfile?.role ?? "standard_customer"}
             verificationStatus={verificationStatus}
           />
-
-          <ProfileInfoSection profile={profile} updateProfile={updateProfile} />
-
-          <VerificationPanel
-            status={verificationStatus}
-            rejectionReason={dbProfile?.rejection_reason}
-          />
-
-          <ProfileAddressSection
-            savedAddress={savedAddress}
-            saveAddress={saveAddress}
-            user={user}
-            email={dbProfile?.email ?? profile.email}
-          />
-
-          <section className="border-border bg-card rounded-2xl border p-6">
-            <h3 className="text-foreground text-sm font-semibold">Activity</h3>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => router.push("/orders")}
-                className="border-border bg-background hover:bg-muted flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-colors"
-              >
-                <span className="bg-muted flex h-9 w-9 items-center justify-center rounded-lg">
-                  <Package
-                    className="text-foreground h-4 w-4"
-                    strokeWidth={1.75}
-                  />
-                </span>
-                <span className="text-foreground text-sm font-semibold">
-                  My Orders
-                </span>
-                <span className="text-muted-foreground text-xs">
-                  View order history &amp; receipts
-                </span>
-                <span className="text-foreground mt-1 text-xs font-medium underline underline-offset-2">
-                  View orders
-                </span>
-              </button>
-            </div>
-          </section>
-
-          {/* Change password — email/password users only, not Google OAuth */}
-          {isEmailUser && <ChangePasswordForm />}
-
-          <section className="border-border bg-card rounded-2xl border p-6">
-            <h3 className="text-foreground mb-4 text-sm font-semibold">
-              Account
-            </h3>
-            <SignOutButton />
-          </section>
         </div>
+        <p className="text-muted-foreground mt-1 text-sm">{profile.email}</p>
+      </div>
 
-        <aside className="lg:sticky lg:top-24 lg:self-start">
-          <section className="border-border bg-card rounded-2xl border p-6">
-            <h3 className="text-foreground text-sm font-semibold">
-              Complete your profile
-            </h3>
-            <div className="mt-5 flex justify-center">
-              <CompletionRing
-                value={completion}
-                ringClassName="text-accent-violet"
-              />
-            </div>
-            <ul className="mt-6 flex flex-col gap-2.5">
-              {checklist.map((c) => (
-                <li key={c.id} className="flex items-center gap-2.5 text-sm">
-                  <span
-                    className={cn(
-                      "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
-                      c.done
-                        ? "border-accent-violet bg-accent-violet text-white"
-                        : "border-border text-transparent",
-                    )}
-                  >
-                    <Check className="h-3 w-3" strokeWidth={3} />
-                  </span>
-                  <span
-                    className={cn(
-                      c.done
-                        ? "text-muted-foreground line-through"
-                        : "text-foreground",
-                    )}
-                  >
-                    {c.label}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </section>
-        </aside>
+      {/* Thin profile-completion bar */}
+      {completion < 100 && (
+        <div className="mt-8">
+          <div className="text-muted-foreground mb-2 flex items-center justify-between text-xs font-medium">
+            <span>Complete your profile</span>
+            <span>{completion}%</span>
+          </div>
+          <div className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
+            <div
+              className="bg-accent-violet h-full rounded-full transition-all"
+              style={{ width: `${completion}%` }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Navigable rows */}
+      <div className="mt-8 flex flex-col gap-3">
+        {rows.map((row) => (
+          <ProfileNavRow
+            key={row.href}
+            href={row.href}
+            icon={row.icon}
+            title={row.title}
+            description={row.description}
+          />
+        ))}
+      </div>
+
+      <div className="mt-8 flex justify-center">
+        <SignOutButton />
       </div>
     </div>
   )
