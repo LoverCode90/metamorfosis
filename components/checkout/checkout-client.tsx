@@ -12,7 +12,7 @@ import type {
 } from "@/lib/checkout/types"
 import { useCart } from "@/hooks/use-cart"
 import { useUser } from "@/hooks/use-user"
-import { computeTotalsWithShipping } from "@/lib/utils/totals"
+import { computeTotalsWithShipping, TAX_RATE } from "@/lib/utils/totals"
 import { CheckoutStepper } from "./checkout-stepper"
 import { CheckoutGate } from "./checkout-gate"
 import { OrderSummary } from "./order-summary"
@@ -34,8 +34,9 @@ export function CheckoutClient() {
   const [cachedShippingRates, setCachedShippingRates] = useState<
     ShippingRate[] | null
   >(null)
+  const [taxRate, setTaxRate] = useState(TAX_RATE)
 
-  const liveTotals = computeTotalsWithShipping(items, shippingCents)
+  const liveTotals = computeTotalsWithShipping(items, shippingCents, taxRate)
 
   // ── Checkout gate — professional-only items ────────────────────────────────
   // Only products explicitly flagged isProfessional require verification.
@@ -58,12 +59,24 @@ export function CheckoutClient() {
     )
   }
 
-  const hasNonReturnable = items.some((i) => !i.unavailable)
+  const hasNonReturnable = items.some(
+    (i) => !i.unavailable && i.isReturnable === false,
+  )
 
   function handleInfoContinue(addr: CheckoutAddress, terms: boolean) {
     setAddress(addr)
     setTermsAccepted(terms)
     setWizardStep("shipping")
+
+    fetch(
+      `/api/checkout/tax-rate?zip=${encodeURIComponent(addr.zip)}&state=${encodeURIComponent(addr.state)}`,
+    )
+      .then((r) => r.json())
+      .then((json: unknown) => {
+        const { rate } = json as { rate: number }
+        if (typeof rate === "number") setTaxRate(rate)
+      })
+      .catch(() => {}) // silently keep existing taxRate on failure
 
     if (user) {
       saveAddress({

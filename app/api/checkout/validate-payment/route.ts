@@ -8,6 +8,7 @@ import {
   applyProfessionalDiscount,
 } from "@/lib/checkout/discount"
 import { buildPriceSheet } from "@/lib/checkout/totals"
+import { getTaxRate } from "@/lib/tax"
 import {
   hasTamperedPriceFields,
   fetchVariationMap,
@@ -194,7 +195,13 @@ export async function POST(
   const taxExempt =
     role === "admin" ||
     (role === "salon_owner" && verificationStatus === "approved")
-  const priceSheet = buildPriceSheet(withDiscount, shippingMethod, taxExempt)
+  const taxRate = taxExempt ? 0 : await getTaxRate(address.zip, address.state)
+  const priceSheet = buildPriceSheet(
+    withDiscount,
+    shippingMethod,
+    taxExempt,
+    taxRate,
+  )
 
   // ── Charge card ────────────────────────────────────────────────────────────
   const locationId = process.env.SQUARE_LOCATION_ID!

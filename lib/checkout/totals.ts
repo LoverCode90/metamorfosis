@@ -36,6 +36,7 @@ export function buildPriceSheet(
   }[],
   shippingMethod: ShippingMethod,
   taxExempt = false,
+  taxRate = TAX_RATE,
 ): PriceSheet {
   const items = itemsWithDiscount.map((i) => ({
     ...i,
@@ -57,7 +58,7 @@ export function buildPriceSheet(
   )
   const taxCents = taxExempt
     ? 0
-    : Math.round((subtotalCents - discountCents) * TAX_RATE)
+    : Math.round((subtotalCents - discountCents) * taxRate)
   const surchargeCents = Math.round(
     (subtotalCents - discountCents) * CARD_SURCHARGE_RATE,
   )

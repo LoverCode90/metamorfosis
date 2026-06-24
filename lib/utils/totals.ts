@@ -21,7 +21,7 @@ export const PRO_DISCOUNT_PER_ITEM = 200
 
 const round2 = (n: number) => Math.round(n * 100) / 100
 
-export function computeTotals(items: CartItem[]): Totals {
+export function computeTotals(items: CartItem[], taxRate = TAX_RATE): Totals {
   const available = items.filter((i) => !i.unavailable)
   const subtotal = available.reduce(
     (sum, i) => sum + i.unitPrice * i.quantity,
@@ -32,7 +32,7 @@ export function computeTotals(items: CartItem[]): Totals {
     0,
   )
   const shipping = 0 // determined at checkout shipping step
-  const tax = round2((subtotal - discount) * TAX_RATE)
+  const tax = round2((subtotal - discount) * taxRate)
   const surcharge = round2((subtotal - discount) * CARD_SURCHARGE_RATE)
   const total = round2(subtotal - discount + shipping + tax + surcharge)
   const itemCount = available.reduce((sum, i) => sum + i.quantity, 0)
@@ -42,8 +42,9 @@ export function computeTotals(items: CartItem[]): Totals {
 export function computeTotalsWithShipping(
   items: CartItem[],
   shippingCents: number,
+  taxRate = TAX_RATE,
 ): Totals {
-  const base = computeTotals(items)
+  const base = computeTotals(items, taxRate)
   const shipping = shippingCents
   const total = round2(
     base.subtotal - base.discount + shipping + base.tax + base.surcharge,
