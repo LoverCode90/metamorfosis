@@ -17,15 +17,19 @@ export default async function AdminOrdersPage(props: {
 
   let query = admin
     .from("orders")
-    .select("id, square_order_id, status, total_cents, created_at, shipping_address")
+    .select(
+      "id, square_order_id, status, total_cents, created_at, shipping_address",
+    )
     .order("created_at", { ascending: false })
     .limit(50)
 
   if (searchParams.query) {
-    query = query.or(`id.ilike.%${searchParams.query}%,square_order_id.ilike.%${searchParams.query}%`)
+    query = query.or(
+      `id.ilike.%${searchParams.query}%,square_order_id.ilike.%${searchParams.query}%`,
+    )
   }
 
-  const { data: orders, error } = await query
+  const { data: orders } = await query
 
   return (
     <div className="space-y-6">
@@ -43,7 +47,7 @@ export default async function AdminOrdersPage(props: {
       <div className="border-border bg-card overflow-hidden rounded-2xl border">
         <div className="border-border border-b p-4">
           <form className="relative max-w-sm">
-            <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
             <Input
               name="query"
               placeholder="Search by order ID..."
@@ -68,17 +72,31 @@ export default async function AdminOrdersPage(props: {
             <tbody className="divide-border divide-y">
               {orders?.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-muted-foreground px-6 py-8 text-center">
+                  <td
+                    colSpan={6}
+                    className="text-muted-foreground px-6 py-8 text-center"
+                  >
                     No orders found.
                   </td>
                 </tr>
               ) : (
                 orders?.map((order) => {
-                  const addr = order.shipping_address as any
-                  const customerName = addr ? `${addr.first_name} ${addr.last_name}` : "Unknown"
-                  
+                  // TODO: `shipping_address` is stored with two inconsistent shapes —
+                  // camelCase in DbOrder (fullName, streetLine1…) vs snake_case Square-style
+                  // here (first_name, last_name…). Unify on a single canonical address shape.
+                  const addr = order.shipping_address as {
+                    first_name?: string
+                    last_name?: string
+                  } | null
+                  const customerName = addr
+                    ? `${addr.first_name} ${addr.last_name}`
+                    : "Unknown"
+
                   return (
-                    <tr key={order.id} className="hover:bg-muted/50 transition-colors">
+                    <tr
+                      key={order.id}
+                      className="hover:bg-muted/50 transition-colors"
+                    >
                       <td className="px-6 py-4 font-medium">
                         {order.id.slice(0, 8)}
                       </td>

@@ -18,8 +18,8 @@ export function EvidenceGallery({ caseId }: { caseId: string }) {
         }
         const data = await res.json()
         setUrls(data.urls)
-      } catch (err: any) {
-        setError(err.message)
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to load evidence")
       } finally {
         setLoading(false)
       }
@@ -30,7 +30,7 @@ export function EvidenceGallery({ caseId }: { caseId: string }) {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-muted-foreground text-sm">
+      <div className="text-muted-foreground flex items-center gap-2 text-sm">
         <Loader2 className="h-4 w-4 animate-spin" />
         Loading evidence...
       </div>
@@ -42,7 +42,11 @@ export function EvidenceGallery({ caseId }: { caseId: string }) {
   }
 
   if (urls.length === 0) {
-    return <p className="text-muted-foreground text-sm">No evidence photos provided.</p>
+    return (
+      <p className="text-muted-foreground text-sm">
+        No evidence photos provided.
+      </p>
+    )
   }
 
   return (

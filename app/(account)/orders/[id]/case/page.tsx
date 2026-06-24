@@ -11,7 +11,9 @@ export default async function OrderCasePage(props: {
 }) {
   const params = await props.params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) {
     redirect(`/login?next=/orders/${params.id}/case`)
@@ -26,23 +28,27 @@ export default async function OrderCasePage(props: {
   // Check if a case already exists
   const { data: caseData } = await supabase
     .from("cases")
-    .select(`
+    .select(
+      `
       *,
       case_messages (
         id, case_id, sender_id, message, created_at
       )
-    `)
+    `,
+    )
     .eq("order_id", params.id)
     .maybeSingle()
 
   if (caseData) {
     // Sort messages ascending
-    caseData.case_messages = caseData.case_messages?.sort(
-      (a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-    ) || []
+    caseData.case_messages =
+      caseData.case_messages?.sort(
+        (a: { created_at: string }, b: { created_at: string }) =>
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      ) || []
     return <CaseTrackingView caseData={caseData} />
   }
 
   // If no case exists, allow creating one
-  return <CaseForm order={order as any} /> // DbOrder from lib/orders/types
+  return <CaseForm order={order} />
 }
