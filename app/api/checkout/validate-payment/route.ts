@@ -8,6 +8,14 @@ import {
   applyProfessionalDiscount,
 } from "@/lib/checkout/discount"
 import { buildPriceSheet } from "@/lib/checkout/totals"
+import {
+  hasTamperedPriceFields,
+  fetchVariationMap,
+  hasProfessionalItem,
+  hasChemicalItems,
+  buildDiscountableItems,
+} from "@/lib/checkout/validate-payload"
+import { persistOrder } from "@/lib/checkout/persist-order"
 import { clearDbCart } from "@/lib/cart/db"
 import { saveCheckoutAddress } from "@/lib/addresses/db"
 import { sendOrderConfirmation } from "@/lib/email/resend"
@@ -49,26 +57,11 @@ export async function POST(
     Record<string, unknown>
 
   // ── Reject any client-sent price fields ────────────────────────────────────
-  const forbidden = [
-    "price",
-    "total",
-    "subtotal",
-    "amount",
-    "discount",
-    "tax",
-    "shipping",
-    "surcharge_consented_at",
-    "surcharge_consented_ip",
-    "chemical_warning_consented_at",
-    "chemical_warning_consented_ip",
-  ]
-  for (const key of forbidden) {
-    if (key in payload) {
-      return NextResponse.json(
-        { ok: false, error: "Tampered payload", code: "TAMPER" },
-        { status: 400 },
-      )
-    }
+  if (hasTamperedPriceFields(payload)) {
+    return NextResponse.json(
+      { ok: false, error: "Tampered payload", code: "TAMPER" },
+      { status: 400 },
+    )
   }
 
   const {
@@ -123,56 +116,25 @@ export async function POST(
 
   // ── Fetch variation data from Supabase (mirrors Square prices post-sync) ───
   const variationIds = items.map((i) => i.variationId)
-  const { data: variationRows } = await admin
-    .from("product_variations")
-    .select(
-      "id, square_variation_id, name_en, price_cents, inventory_count, is_active, product_translations(is_professional, is_color_product, is_returnable, is_active)",
-    )
-    .in("id", variationIds)
+  const varMap = await fetchVariationMap(admin, variationIds)
 
-  if (!variationRows || variationRows.length !== variationIds.length) {
+  if (!varMap) {
     return NextResponse.json(
       { ok: false, error: "One or more items not found", code: "TAMPER" },
       { status: 400 },
     )
   }
 
-  const varMap = new Map(
-    (
-      variationRows as unknown as {
-        id: string
-        square_variation_id: string
-        name_en: string
-        price_cents: number
-        inventory_count: number
-        is_active: boolean
-        product_translations: {
-          is_professional: boolean
-          is_color_product: boolean
-          is_returnable: boolean
-          is_active: boolean
-        } | null
-      }[]
-    ).map((v) => [v.id, v]),
-  )
-
-  // ── Professional items gate ────────────────────────────────────────────────
-  // Admins bypass all purchase restrictions.
-  if (role !== "admin") {
-    for (const item of items) {
-      const v = varMap.get(item.variationId)
-      if (!v) continue
-      if (v.product_translations?.is_professional && !user) {
-        return NextResponse.json(
-          {
-            ok: false,
-            error: "Sign in required for professional products",
-            code: "UNAUTHORIZED",
-          },
-          { status: 401 },
-        )
-      }
-    }
+  // ── Professional items gate (admins bypass all purchase restrictions) ──────
+  if (role !== "admin" && !user && hasProfessionalItem(items, varMap)) {
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Sign in required for professional products",
+        code: "UNAUTHORIZED",
+      },
+      { status: 401 },
+    )
   }
 
   // ── Consent checks (server-side — client checkboxes can be bypassed) ───────
@@ -189,11 +151,8 @@ export async function POST(
   }
 
   // Non-returnable (chemical) products require the warning acknowledgment.
-  const hasChemicalItems = items.some((item) => {
-    const v = varMap.get(item.variationId)
-    return v?.product_translations?.is_returnable === false
-  })
-  if (hasChemicalItems && !termsAccepted) {
+  const chemicalItems = hasChemicalItems(items, varMap)
+  if (chemicalItems && !termsAccepted) {
     return NextResponse.json(
       {
         ok: false,
@@ -230,18 +189,7 @@ export async function POST(
 
   // ── Build price sheet ──────────────────────────────────────────────────────
   const eligible = isDiscountEligible(role, verificationStatus)
-
-  const discountableItems = items.map((i) => {
-    const v = varMap.get(i.variationId)!
-    return {
-      variationId: i.variationId,
-      name: v.name_en,
-      quantity: i.quantity,
-      unitPriceCents: v.price_cents,
-      isColorProduct: v.product_translations?.is_color_product ?? false,
-    }
-  })
-
+  const discountableItems = buildDiscountableItems(items, varMap)
   const withDiscount = applyProfessionalDiscount(discountableItems, eligible)
   const taxExempt =
     role === "admin" ||
@@ -264,45 +212,26 @@ export async function POST(
     )
   }
 
-  // ── Create order in Supabase ───────────────────────────────────────────────
-  // REQUIRES MIGRATION: docs/migrations/20260623_surcharge_and_consents.sql
-  // must be run in Supabase before deploying — the surcharge_cents and
-  // *_consented_at/ip columns below do not exist until then, and this insert
-  // runs AFTER the card is charged, so a missing column would charge the
-  // customer without creating an order record.
+  // ── Create order in Supabase (+ items, inventory decrement) ────────────────
   const orderNumber = `MF-${Date.now().toString(36).toUpperCase()}`
   const consentTimestamp = new Date().toISOString()
 
-  const { data: order, error: orderError } = await admin
-    .from("orders")
-    .insert({
-      square_order_id: chargeResult.squareOrderId || chargeResult.paymentId,
-      user_id: user?.id ?? null,
-      guest_email: user ? null : (guestEmail ?? address.email),
-      status: "confirmed",
-      shipping_method: shippingMethod,
-      subtotal_cents: priceSheet.subtotalCents,
-      discount_cents: priceSheet.discountCents,
-      shipping_cents: priceSheet.shippingCents,
-      tax_cents: priceSheet.taxCents,
-      surcharge_cents: priceSheet.surchargeCents,
-      total_cents: priceSheet.totalCents,
-      shipping_address: address,
-      terms_accepted: termsAccepted,
-      surcharge_consented_at: consentTimestamp,
-      surcharge_consented_ip: ip,
-      ...(hasChemicalItems && termsAccepted
-        ? {
-            chemical_warning_consented_at: consentTimestamp,
-            chemical_warning_consented_ip: ip,
-          }
-        : {}),
-    })
-    .select("id")
-    .single()
+  const orderId = await persistOrder(admin, {
+    squareOrderId: chargeResult.squareOrderId || chargeResult.paymentId,
+    userId: user?.id ?? null,
+    guestEmail: user ? null : (guestEmail ?? address.email),
+    shippingMethod,
+    priceSheet,
+    address,
+    termsAccepted,
+    hasChemicalItems: chemicalItems,
+    consentTimestamp,
+    consentIp: ip,
+    items,
+    varMap,
+  })
 
-  if (orderError || !order) {
-    console.error("[validate-payment] Order insert failed:", orderError)
+  if (!orderId) {
     return NextResponse.json(
       {
         ok: false,
@@ -311,28 +240,6 @@ export async function POST(
       },
       { status: 500 },
     )
-  }
-
-  // ── Create order_items ─────────────────────────────────────────────────────
-  await admin.from("order_items").insert(
-    priceSheet.items.map((item) => ({
-      order_id: order.id,
-      variation_id: item.variationId,
-      quantity: item.quantity,
-      unit_price_cents: item.unitPriceCents,
-      discount_cents: item.discountCents,
-    })),
-  )
-
-  // ── Decrement inventory ────────────────────────────────────────────────────
-  for (const item of items) {
-    const v = varMap.get(item.variationId)!
-    await admin
-      .from("product_variations")
-      .update({
-        inventory_count: Math.max(0, v.inventory_count - item.quantity),
-      })
-      .eq("id", item.variationId)
   }
 
   // ── Clear cart ─────────────────────────────────────────────────────────────
@@ -365,7 +272,7 @@ export async function POST(
 
   return NextResponse.json({
     ok: true,
-    orderId: order.id,
+    orderId,
     orderNumber,
     totalCents: priceSheet.totalCents,
   })
