@@ -11,7 +11,7 @@ export const SHIPPING_RATES_CENTS: Record<ShippingMethod, number> = {
 }
 
 const FREE_SHIPPING_THRESHOLD_CENTS = parseInt(
-  process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD_CENTS ?? "7000",
+  process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD_CENTS ?? "12000",
   10,
 )
 

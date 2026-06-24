@@ -9,11 +9,17 @@ const refundSchema = z.object({
   reason: z.string().optional().default("Customer requested refund"),
 })
 
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
     const { id: caseId } = await params
     const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -34,7 +40,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const parsed = refundSchema.safeParse(json)
 
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid data", details: parsed.error.issues }, { status: 400 })
+      return NextResponse.json(
+        { error: "Invalid data", details: parsed.error.issues },
+        { status: 400 },
+      )
     }
 
     const { amountCents, reason } = parsed.data
@@ -54,15 +63,23 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     const squareOrderId = caseData.orders?.square_order_id
     if (!squareOrderId) {
-      return NextResponse.json({ error: "No Square Order ID found" }, { status: 400 })
+      return NextResponse.json(
+        { error: "No Square Order ID found" },
+        { status: 400 },
+      )
     }
 
     // 2. Call Square refund
     try {
       await refundOrder(squareOrderId, amountCents, reason)
-    } catch (refundError: any) {
+    } catch (refundError: unknown) {
       console.error("Square refund failed:", refundError)
-      return NextResponse.json({ error: "Square refund failed", details: refundError.message }, { status: 500 })
+      const msg =
+        refundError instanceof Error ? refundError.message : String(refundError)
+      return NextResponse.json(
+        { error: "Square refund failed", details: msg },
+        { status: 500 },
+      )
     }
 
     // 3. Update case status to closed
@@ -78,29 +95,30 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       .update({ status: "refunded" })
       .eq("id", caseData.order_id)
 
-    // 5. Delete evidence files
-    const { data: files } = await supabaseAdmin.storage.from("case-evidence").list(caseId)
-    if (files && files.length > 0) {
-      const filePaths = files.map(f => `${caseId}/${f.name}`)
-      await supabaseAdmin.storage.from("case-evidence").remove(filePaths)
+    // 5. Delete evidence files (paths stored on the case row are the source of
+    // truth; the storage folder is keyed by the client-generated id, not caseId)
+    const evidencePaths: string[] = caseData.evidence_images_urls ?? []
+    if (evidencePaths.length > 0) {
+      await supabaseAdmin.storage.from("case-evidence").remove(evidencePaths)
     }
 
     // 6. Write to audit_logs
-    await supabaseAdmin
-      .from("audit_logs")
-      .insert({
-        admin_id: user.id,
-        action: "case_status_changed",
-        target_table: "cases",
-        target_id: caseId,
-        previous_value: caseData,
-        new_value: { status: "closed", resolved_at: resolvedAt },
-        notes: `Refunded ${amountCents} cents. Reason: ${reason}`,
-      })
+    await supabaseAdmin.from("audit_logs").insert({
+      admin_id: user.id,
+      action: "case_status_changed",
+      target_table: "cases",
+      target_id: caseId,
+      previous_value: caseData,
+      new_value: { status: "closed", resolved_at: resolvedAt },
+      notes: `Refunded ${amountCents} cents. Reason: ${reason}`,
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("[POST /api/admin/cases/[id]/refund]", error)
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    )
   }
 }

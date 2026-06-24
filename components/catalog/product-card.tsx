@@ -24,6 +24,7 @@ function toProduct(card: CatalogCard): Product {
     stock: card.totalStock,
     isProfessional: card.isProfessional,
     isColorProduct: card.isColorProduct,
+    isReturnable: card.isReturnable,
     variationId: card.defaultVariationId ?? undefined,
     squareVariationId: card.defaultSquareVariationId ?? undefined,
   }

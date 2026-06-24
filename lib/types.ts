@@ -43,6 +43,8 @@ export interface Product {
   squareVariationId?: string
   /** Whether this item is a color product — drives the $2 professional discount */
   isColorProduct?: boolean
+  /** Whether this item is returnable — drives the cart "free returns" line. */
+  isReturnable?: boolean
 }
 
 export interface CartItem extends Product {

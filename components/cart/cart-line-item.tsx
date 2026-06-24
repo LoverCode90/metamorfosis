@@ -3,7 +3,8 @@
 
 import { AlertCircle, Heart, RotateCcw, Trash2, Truck } from "lucide-react"
 import Link from "next/link"
-import { formatUSD } from "@/lib/utils/format"
+import { estimatedDeliveryRange, formatUSD } from "@/lib/utils/format"
+import { RETURN_WINDOW_DAYS } from "@/lib/constants"
 import type { CartItem } from "@/lib/types"
 import { QtyStepper } from "@/components/shared/qty-stepper"
 import { useCart } from "@/hooks/use-cart"
@@ -63,12 +64,14 @@ export function CartLineItem({ item }: { item: CartItem }) {
           <div className="mt-2 space-y-0.5 text-xs sm:mt-2.5 sm:space-y-1">
             <p className="flex items-center gap-1.5 text-emerald-600">
               <Truck className="h-3.5 w-3.5" strokeWidth={1.75} />
-              Arrives Dec 18–20
+              Arrives {estimatedDeliveryRange()}
             </p>
-            <p className="text-muted-foreground flex items-center gap-1.5">
-              <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.75} />
-              Free returns within 30 days
-            </p>
+            {item.isReturnable !== false && (
+              <p className="text-muted-foreground flex items-center gap-1.5">
+                <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.75} />
+                Free returns within {RETURN_WINDOW_DAYS} days
+              </p>
+            )}
           </div>
 
           <div className="mt-3 flex items-end justify-between gap-2 sm:mt-4 sm:gap-3">

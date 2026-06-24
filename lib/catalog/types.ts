@@ -44,6 +44,7 @@ export interface CatalogCard {
   nameEn: string
   categoriesHierarchy: string
   isProfessional: boolean
+  isReturnable: boolean
   isColorProduct: boolean
   imageUrl: string | null
   imageUrls: string[]

@@ -9,6 +9,7 @@ export interface DbOrderItem {
     image_url: string | null
     product_translations: {
       square_product_id: string
+      is_returnable: boolean
     } | null
   } | null
 }
@@ -40,6 +41,7 @@ export interface DbOrder {
   estimated_delivery_date: string | null
   delivered_at: string | null
   created_at: string
+  updated_at: string
   order_items: DbOrderItem[]
   cases?: { id: string; status: string }[]
 }

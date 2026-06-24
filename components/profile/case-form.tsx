@@ -7,22 +7,48 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { createClient } from "@/lib/supabase/client"
 import type { DbOrder } from "@/lib/orders/types"
-import { cn } from "@/lib/utils"
 
-const REASONS = [
+// Non-returnable (chemical) products can only be reported for store-fault
+// reasons; returnable products offer the full set.
+const CHEMICAL_REASONS = [
   { value: "damaged", label: "Arrived damaged" },
   { value: "wrong_item", label: "Wrong item received" },
   { value: "defective", label: "Item is defective" },
+] as const
+
+const ALL_REASONS = [
+  ...CHEMICAL_REASONS,
   { value: "not_as_described", label: "Not as described" },
   { value: "no_longer_needed", label: "No longer needed" },
   { value: "ordered_by_mistake", label: "Ordered by mistake" },
   { value: "other", label: "Other" },
-]
+] as const
+
+function reasonsForItem(item: DbOrder["order_items"][number] | undefined) {
+  const isChemicalItem =
+    item?.product_variations?.product_translations?.is_returnable === false
+  return isChemicalItem ? CHEMICAL_REASONS : ALL_REASONS
+}
 
 export function CaseForm({ order }: { order: DbOrder }) {
   const router = useRouter()
-  const [variationId, setVariationId] = useState(order.order_items[0]?.variation_id ?? "")
-  const [reason, setReason] = useState(REASONS[0].value)
+  const [variationId, setVariationId] = useState(
+    order.order_items[0]?.variation_id ?? "",
+  )
+  const availableReasons = reasonsForItem(
+    order.order_items.find((item) => item.variation_id === variationId),
+  )
+  const [reason, setReason] = useState<string>(availableReasons[0].value)
+
+  const handleVariationChange = (newVariationId: string) => {
+    setVariationId(newVariationId)
+    const newReasons = reasonsForItem(
+      order.order_items.find((item) => item.variation_id === newVariationId),
+    )
+    if (!newReasons.some((r) => r.value === reason)) {
+      setReason(newReasons[0].value)
+    }
+  }
   const [explanation, setExplanation] = useState("")
   const [files, setFiles] = useState<File[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -48,8 +74,8 @@ export function CaseForm({ order }: { order: DbOrder }) {
     e.preventDefault()
     setError("")
 
-    if (explanation.length < 100) {
-      setError("Explanation must be at least 100 characters.")
+    if (explanation.length < 40) {
+      setError("Explanation must be at least 40 characters.")
       return
     }
 
@@ -60,7 +86,10 @@ export function CaseForm({ order }: { order: DbOrder }) {
       const caseId = crypto.randomUUID()
       const evidenceUrls: string[] = []
 
-      const { data: { session }, error: sessionErr } = await supabase.auth.getSession()
+      const {
+        data: { session },
+        error: sessionErr,
+      } = await supabase.auth.getSession()
       if (sessionErr || !session) throw new Error("User not authenticated")
       const userId = session.user.id
 
@@ -97,8 +126,8 @@ export function CaseForm({ order }: { order: DbOrder }) {
       }
 
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong")
     } finally {
       setIsSubmitting(false)
     }
@@ -111,7 +140,8 @@ export function CaseForm({ order }: { order: DbOrder }) {
           Report a Problem
         </h2>
         <p className="text-muted-foreground mt-1 text-sm">
-          Select an item and provide details. We'll help you resolve this issue.
+          Select an item and provide details. We&apos;ll help you resolve this
+          issue.
         </p>
       </div>
 
@@ -127,8 +157,8 @@ export function CaseForm({ order }: { order: DbOrder }) {
           <select
             id="variationId"
             value={variationId}
-            onChange={(e) => setVariationId(e.target.value)}
-            className="border-border bg-background text-foreground flex h-10 w-full items-center justify-between rounded-md border px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            onChange={(e) => handleVariationChange(e.target.value)}
+            className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring flex h-10 w-full items-center justify-between rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             required
           >
             {order.order_items.map((item) => (
@@ -145,10 +175,10 @@ export function CaseForm({ order }: { order: DbOrder }) {
             id="reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            className="border-border bg-background text-foreground flex h-10 w-full items-center justify-between rounded-md border px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring flex h-10 w-full items-center justify-between rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             required
           >
-            {REASONS.map((r) => (
+            {availableReasons.map((r) => (
               <option key={r.value} value={r.value}>
                 {r.label}
               </option>
@@ -157,18 +187,20 @@ export function CaseForm({ order }: { order: DbOrder }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="explanation">Explanation (minimum 100 characters)</Label>
+          <Label htmlFor="explanation">
+            Explanation (minimum 40 characters)
+          </Label>
           <textarea
             id="explanation"
             value={explanation}
             onChange={(e) => setExplanation(e.target.value)}
-            className="border-border bg-background text-foreground flex min-h-[120px] w-full rounded-md border px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:ring-ring flex min-h-[120px] w-full rounded-md border px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             placeholder="Please describe the issue in detail..."
-            minLength={100}
+            minLength={40}
             required
           />
-          <p className="text-muted-foreground text-xs text-right">
-            {explanation.length} / 100
+          <p className="text-muted-foreground text-right text-xs">
+            {explanation.length} / 40
           </p>
         </div>
 
@@ -188,7 +220,7 @@ export function CaseForm({ order }: { order: DbOrder }) {
                 <button
                   type="button"
                   onClick={() => removeFile(i)}
-                  className="bg-background/80 hover:bg-background absolute right-1 top-1 rounded-full p-1 transition-colors"
+                  className="bg-background/80 hover:bg-background absolute top-1 right-1 rounded-full p-1 transition-colors"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -214,7 +246,7 @@ export function CaseForm({ order }: { order: DbOrder }) {
       <Button
         type="submit"
         className="w-full"
-        disabled={isSubmitting || explanation.length < 100}
+        disabled={isSubmitting || explanation.length < 40}
       >
         {isSubmitting ? (
           <>
