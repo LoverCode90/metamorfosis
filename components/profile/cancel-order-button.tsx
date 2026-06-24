@@ -26,17 +26,17 @@ export function CancelOrderButton({ orderId }: CancelOrderButtonProps) {
     setLoading(true)
     try {
       const res = await fetch(`/api/orders/${orderId}/cancel`, {
-        method: "POST"
+        method: "POST",
       })
       const data = await res.json()
-      
+
       if (data.ok) {
         setOpen(false)
         router.refresh()
       } else {
         alert(data.error || "Failed to cancel order")
       }
-    } catch (err) {
+    } catch {
       alert("An unexpected error occurred.")
     } finally {
       setLoading(false)
@@ -56,9 +56,12 @@ export function CancelOrderButton({ orderId }: CancelOrderButtonProps) {
       <Dialog open={open} onOpenChange={(o) => !loading && setOpen(o)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Are you sure you want to cancel this order?</DialogTitle>
+            <DialogTitle>
+              Are you sure you want to cancel this order?
+            </DialogTitle>
             <DialogDescription>
-              This action cannot be undone. You will receive a full refund to your payment method.
+              This action cannot be undone. You will receive a full refund to
+              your payment method.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -69,7 +72,11 @@ export function CancelOrderButton({ orderId }: CancelOrderButtonProps) {
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleCancel} disabled={loading}>
+            <Button
+              variant="destructive"
+              onClick={handleCancel}
+              disabled={loading}
+            >
               {loading ? "Cancelling..." : "Confirm Cancel"}
             </Button>
           </DialogFooter>

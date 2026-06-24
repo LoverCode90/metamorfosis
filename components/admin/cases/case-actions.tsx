@@ -11,7 +11,11 @@ interface CaseActionsProps {
   status: string
 }
 
-export function CaseActions({ caseId, isReturnable, status }: CaseActionsProps) {
+export function CaseActions({
+  caseId,
+  isReturnable,
+  status,
+}: CaseActionsProps) {
   const router = useRouter()
   const [isProcessing, setIsProcessing] = useState<string | null>(null)
   const [error, setError] = useState("")
@@ -31,8 +35,8 @@ export function CaseActions({ caseId, isReturnable, status }: CaseActionsProps) 
       }
 
       router.refresh()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong")
     } finally {
       setIsProcessing(null)
     }
@@ -53,9 +57,11 @@ export function CaseActions({ caseId, isReturnable, status }: CaseActionsProps) 
         <Button
           onClick={() => handleAction("refund")}
           disabled={!!isProcessing}
-          className="bg-green-600 hover:bg-green-700 text-white"
+          className="bg-green-600 text-white hover:bg-green-700"
         >
-          {isProcessing === "refund" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isProcessing === "refund" && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
           Approve Refund
         </Button>
 
@@ -65,19 +71,21 @@ export function CaseActions({ caseId, isReturnable, status }: CaseActionsProps) 
             disabled={!!isProcessing}
             variant="outline"
           >
-            {isProcessing === "return-label" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isProcessing === "return-label" && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
             Generate Return Label
           </Button>
         )}
-
-
 
         <Button
           onClick={() => handleAction("reject")}
           disabled={!!isProcessing}
           variant="destructive"
         >
-          {isProcessing === "reject" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isProcessing === "reject" && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
           Reject Case
         </Button>
       </div>

@@ -10,7 +10,8 @@ export type {
   ActiveFilters,
   ColorFamily,
 } from "./types"
-export { EMPTY_FILTERS, LOW_STOCK_THRESHOLD } from "./types"
+export { EMPTY_FILTERS } from "./types"
+export { LOW_STOCK_THRESHOLD } from "@/lib/constants"
 
 import type { ActiveFilters, CatalogCard } from "./types"
 

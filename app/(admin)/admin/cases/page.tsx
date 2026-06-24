@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/auth/helpers"
+import { formatCaseStatus } from "@/lib/utils/format"
+import type { AdminCaseListItem } from "@/lib/cases/types"
 import { formatDistanceToNow } from "date-fns"
 
 export const metadata = { title: "Cases Admin — Metamorfosis Beauty" }
@@ -9,9 +11,10 @@ export default async function AdminCasesPage() {
   await requireAdmin()
   const admin = createAdminClient()
 
-  const { data: cases } = await admin
+  const { data } = await admin
     .from("cases")
-    .select(`
+    .select(
+      `
       id,
       status,
       reason,
@@ -23,10 +26,11 @@ export default async function AdminCasesPage() {
       orders (
         square_order_id
       )
-    `)
+    `,
+    )
     .order("created_at", { ascending: false })
 
-  const formatStatus = (s: string) => s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+  const cases = (data as unknown as AdminCaseListItem[] | null) ?? []
 
   return (
     <div className="space-y-8">
@@ -52,9 +56,9 @@ export default async function AdminCasesPage() {
             </tr>
           </thead>
           <tbody className="divide-border divide-y">
-            {cases?.map((c: any) => (
+            {cases.map((c) => (
               <tr key={c.id} className="hover:bg-muted/30 transition-colors">
-                <td className="px-5 py-3 text-foreground font-medium">
+                <td className="text-foreground px-5 py-3 font-medium">
                   {c.profiles?.full_name}
                   <div className="text-muted-foreground text-xs font-normal">
                     {c.profiles?.email}
@@ -65,7 +69,7 @@ export default async function AdminCasesPage() {
                     ? c.orders.square_order_id
                     : `#${c.orders?.square_order_id.slice(0, 8).toUpperCase()}`}
                 </td>
-                <td className="px-5 py-3">{formatStatus(c.reason)}</td>
+                <td className="px-5 py-3">{formatCaseStatus(c.reason)}</td>
                 <td className="px-5 py-3">
                   <span
                     className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -78,25 +82,30 @@ export default async function AdminCasesPage() {
                             : "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
                     }`}
                   >
-                    {formatStatus(c.status)}
+                    {formatCaseStatus(c.status)}
                   </span>
                 </td>
-                <td className="px-5 py-3 text-muted-foreground whitespace-nowrap">
-                  {formatDistanceToNow(new Date(c.created_at), { addSuffix: true })}
+                <td className="text-muted-foreground px-5 py-3 whitespace-nowrap">
+                  {formatDistanceToNow(new Date(c.created_at), {
+                    addSuffix: true,
+                  })}
                 </td>
                 <td className="px-5 py-3 text-right">
                   <Link
                     href={`/admin/cases/${c.id}`}
-                    className="text-foreground hover:underline font-medium text-sm"
+                    className="text-foreground text-sm font-medium hover:underline"
                   >
                     View
                   </Link>
                 </td>
               </tr>
             ))}
-            {cases?.length === 0 && (
+            {cases.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-5 py-8 text-center text-muted-foreground">
+                <td
+                  colSpan={6}
+                  className="text-muted-foreground px-5 py-8 text-center"
+                >
                   No cases found.
                 </td>
               </tr>

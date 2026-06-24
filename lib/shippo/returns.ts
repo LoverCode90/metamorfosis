@@ -1,15 +1,30 @@
 import "server-only"
 
-export async function createReturnLabel(shippoTransactionId: string) {
+interface ShippoRate {
+  object_id: string
+  amount: string
+}
+
+interface ShippoLabel {
+  label_url?: string
+  object_id?: string
+}
+
+export async function createReturnLabel(
+  shippoTransactionId: string,
+): Promise<ShippoLabel> {
   const apiKey = process.env.SHIPPO_API_KEY
   if (!apiKey) throw new Error("SHIPPO_API_KEY is not set")
 
   // As per Shippo docs, passing 'return_of' to /v1/shipments/ creates a return shipment.
   // Wait, actually, Shippo docs say we can just POST to /v1/shipments/ with extra: { is_return: true }
   // Let's get the original transaction first to find the shipment ID
-  const txRes = await fetch(`https://api.goshippo.com/transactions/${shippoTransactionId}`, {
-    headers: { Authorization: `ShippoToken ${apiKey}` },
-  })
+  const txRes = await fetch(
+    `https://api.goshippo.com/transactions/${shippoTransactionId}`,
+    {
+      headers: { Authorization: `ShippoToken ${apiKey}` },
+    },
+  )
   if (!txRes.ok) throw new Error("Failed to fetch original shippo transaction")
   const txData = await txRes.json()
 
@@ -18,11 +33,15 @@ export async function createReturnLabel(shippoTransactionId: string) {
   // Let's create a shipment with return_of. wait, no, the simplest is to just swap the addresses.
   // Actually, wait, Shippo's exact feature for returns uses the "returnOf" field or similar?
   // Let's just swap addresses to be extremely safe!
-  
-  const shippmentRes = await fetch(`https://api.goshippo.com/shipments/${txData.shipment}`, {
-    headers: { Authorization: `ShippoToken ${apiKey}` },
-  })
-  if (!shippmentRes.ok) throw new Error("Failed to fetch original shippo shipment")
+
+  const shippmentRes = await fetch(
+    `https://api.goshippo.com/shipments/${txData.shipment}`,
+    {
+      headers: { Authorization: `ShippoToken ${apiKey}` },
+    },
+  )
+  if (!shippmentRes.ok)
+    throw new Error("Failed to fetch original shippo shipment")
   const shipmentData = await shippmentRes.json()
 
   // New shipment
@@ -31,18 +50,18 @@ export async function createReturnLabel(shippoTransactionId: string) {
     address_to: shipmentData.address_from,
     parcels: shipmentData.parcels,
     extra: {
-      is_return: true
+      is_return: true,
     },
-    async: false
+    async: false,
   }
 
   const createShipRes = await fetch(`https://api.goshippo.com/shipments/`, {
     method: "POST",
-    headers: { 
+    headers: {
       Authorization: `ShippoToken ${apiKey}`,
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(newShipmentBody)
+    body: JSON.stringify(newShipmentBody),
   })
 
   if (!createShipRes.ok) {
@@ -56,16 +75,23 @@ export async function createReturnLabel(shippoTransactionId: string) {
     throw new Error("No return rates available from Shippo")
   }
 
-  const cheapestRate = rates.reduce((min: any, rate: any) => parseFloat(rate.amount) < parseFloat(min.amount) ? rate : min, rates[0])
+  const cheapestRate = (rates as ShippoRate[]).reduce(
+    (min: ShippoRate, rate: ShippoRate) =>
+      parseFloat(rate.amount) < parseFloat(min.amount) ? rate : min,
+    rates[0],
+  )
 
   // Purchase label
   const purchaseRes = await fetch(`https://api.goshippo.com/transactions/`, {
     method: "POST",
-    headers: { 
+    headers: {
       Authorization: `ShippoToken ${apiKey}`,
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify({ rate: cheapestRate.object_id, label_file_type: "PDF" })
+    body: JSON.stringify({
+      rate: cheapestRate.object_id,
+      label_file_type: "PDF",
+    }),
   })
 
   if (!purchaseRes.ok) {

@@ -1,4 +1,8 @@
 // ---------------------------------------------------------------------------
+// @deprecated — dead v0 no-op transport. The live email system is
+// lib/email/resend.ts (Resend). Nothing imports this file; kept only to avoid
+// breaking any stray reference. Remove once confirmed fully unused.
+//
 // Transactional email abstraction.
 //
 // This is a deliberately provider-agnostic seam. The app calls `sendEmail(...)`
@@ -56,7 +60,13 @@ export interface EmailTransport {
 /** Default transport — logs instead of sending. Replace in production. */
 class ConsoleTransport implements EmailTransport {
   async send(message: EmailMessage): Promise<EmailResult> {
-    console.log("[v0] sendEmail →", message.template, "to", message.to, message.data ?? {})
+    console.log(
+      "[v0] sendEmail →",
+      message.template,
+      "to",
+      message.to,
+      message.data ?? {},
+    )
     return {
       ok: true,
       id: `local-${Date.now().toString(36)}`,

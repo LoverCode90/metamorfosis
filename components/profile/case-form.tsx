@@ -212,6 +212,7 @@ export function CaseForm({ order }: { order: DbOrder }) {
                 key={i}
                 className="border-border relative flex aspect-square items-center justify-center overflow-hidden rounded-md border"
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={URL.createObjectURL(file)}
                   alt="Preview"

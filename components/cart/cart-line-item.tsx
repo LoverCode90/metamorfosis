@@ -8,8 +8,7 @@ import { RETURN_WINDOW_DAYS } from "@/lib/constants"
 import type { CartItem } from "@/lib/types"
 import { QtyStepper } from "@/components/shared/qty-stepper"
 import { useCart } from "@/hooks/use-cart"
-
-const LOW_STOCK_THRESHOLD = 5
+import { LOW_STOCK_THRESHOLD } from "@/lib/constants"
 
 export function CartLineItem({ item }: { item: CartItem }) {
   const { increment, decrement, removeItem, moveToWishlist } = useCart()

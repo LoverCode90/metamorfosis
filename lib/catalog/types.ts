@@ -71,8 +71,3 @@ export const EMPTY_FILTERS: ActiveFilters = {
   categories: [],
   maxPrice: Infinity,
 }
-
-export const LOW_STOCK_THRESHOLD = parseInt(
-  process.env.NEXT_PUBLIC_LOW_STOCK_THRESHOLD ?? "4",
-  10,
-)

@@ -1,5 +1,11 @@
-/** Cart total threshold in cents for free shipping ($120.00). */
-export const FREE_SHIPPING_THRESHOLD_CENTS = 12_000
+/** Cart total threshold in cents for free shipping (defaults to $120.00). */
+export const FREE_SHIPPING_THRESHOLD_CENTS = parseInt(
+  process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD_CENTS ?? "12000",
+  10,
+)
+
+/** CA base sales tax rate. Square computes the exact tax at charge time. */
+export const TAX_RATE = 0.0975
 
 /** All 50 US state codes and names for address forms. */
 export const US_STATES: { code: string; name: string }[] = [
@@ -62,7 +68,10 @@ export const CONTINENTAL_STATES = US_STATES.filter(
 )
 
 /** Low-stock warning shown when variation inventory falls at or below this. */
-export const LOW_STOCK_THRESHOLD = 4
+export const LOW_STOCK_THRESHOLD = parseInt(
+  process.env.NEXT_PUBLIC_LOW_STOCK_THRESHOLD ?? "4",
+  10,
+)
 
 /** Professional discount per color product in cents ($2.00). */
 export const PRO_COLOR_DISCOUNT_CENTS = 200

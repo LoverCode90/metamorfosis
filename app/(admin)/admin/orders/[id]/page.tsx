@@ -4,6 +4,24 @@ import { ArrowLeft, Clock } from "lucide-react"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { AdminOrderActions } from "@/components/admin/orders/admin-order-actions"
+import type { DbOrderItem } from "@/lib/orders/types"
+
+// TODO: `shipping_address` is stored with two inconsistent shapes — camelCase in
+// DbOrder (fullName, streetLine1, city, state, zip) vs snake_case Square-style here
+// (first_name, address_line_1, locality, administrative_district_level_1, postal_code).
+// Unify on a single canonical address shape and migrate existing rows.
+type AdminShippingAddress = {
+  first_name?: string
+  last_name?: string
+  email?: string
+  phone?: string
+  address_line_1?: string
+  address_line_2?: string
+  locality?: string
+  administrative_district_level_1?: string
+  postal_code?: string
+  country?: string
+}
 
 export const metadata = {
   title: "Order Details | Admin — Metamorfosis Beauty",
@@ -18,7 +36,8 @@ export default async function AdminOrderDetailPage(props: {
 
   const { data: order } = await admin
     .from("orders")
-    .select(`
+    .select(
+      `
       *,
       order_items (
         id, variation_id, quantity, unit_price_cents, discount_cents,
@@ -27,14 +46,17 @@ export default async function AdminOrderDetailPage(props: {
           product_translations ( square_product_id )
         )
       )
-    `)
+    `,
+    )
     .eq("id", params.id)
     .single()
 
   if (!order) return notFound()
 
-  const addr = order.shipping_address as any
-  const canCancel = ["pending", "confirmed", "processing"].includes(order.status)
+  const addr = order.shipping_address as AdminShippingAddress | null
+  const canCancel = ["pending", "confirmed", "processing"].includes(
+    order.status,
+  )
 
   return (
     <div className="space-y-6">
@@ -65,12 +87,17 @@ export default async function AdminOrderDetailPage(props: {
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-2 space-y-6">
+        <div className="space-y-6 md:col-span-2">
           <div className="border-border bg-card rounded-2xl border p-6">
-            <h2 className="text-foreground mb-4 text-base font-semibold">Items</h2>
+            <h2 className="text-foreground mb-4 text-base font-semibold">
+              Items
+            </h2>
             <ul className="divide-border divide-y">
-              {order.order_items?.map((item: any) => (
-                <li key={item.id} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
+              {order.order_items?.map((item: DbOrderItem) => (
+                <li
+                  key={item.id}
+                  className="flex items-center justify-between py-4 first:pt-0 last:pb-0"
+                >
                   <div>
                     <p className="text-foreground text-sm font-medium">
                       {item.product_variations?.name_en || "Unknown Item"}
@@ -80,7 +107,8 @@ export default async function AdminOrderDetailPage(props: {
                     </p>
                   </div>
                   <p className="text-foreground text-sm font-medium">
-                    ${((item.unit_price_cents * item.quantity) / 100).toFixed(2)}
+                    $
+                    {((item.unit_price_cents * item.quantity) / 100).toFixed(2)}
                   </p>
                 </li>
               ))}
@@ -90,17 +118,19 @@ export default async function AdminOrderDetailPage(props: {
 
         <div className="space-y-6">
           <div className="border-border bg-card rounded-2xl border p-6 text-sm">
-            <h2 className="text-foreground mb-4 text-base font-semibold">Summary</h2>
+            <h2 className="text-foreground mb-4 text-base font-semibold">
+              Summary
+            </h2>
             <div className="space-y-2">
-              <div className="flex justify-between text-muted-foreground">
+              <div className="text-muted-foreground flex justify-between">
                 <span>Subtotal</span>
                 <span>${(order.subtotal_cents / 100).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-muted-foreground">
+              <div className="text-muted-foreground flex justify-between">
                 <span>Shipping</span>
                 <span>${(order.shipping_cents / 100).toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-muted-foreground">
+              <div className="text-muted-foreground flex justify-between">
                 <span>Tax</span>
                 <span>${(order.tax_cents / 100).toFixed(2)}</span>
               </div>
@@ -110,7 +140,7 @@ export default async function AdminOrderDetailPage(props: {
                   <span>-${(order.discount_cents / 100).toFixed(2)}</span>
                 </div>
               )}
-              <div className="border-border mt-4 flex justify-between border-t pt-4 font-medium text-foreground">
+              <div className="border-border text-foreground mt-4 flex justify-between border-t pt-4 font-medium">
                 <span>Total</span>
                 <span>${(order.total_cents / 100).toFixed(2)}</span>
               </div>
@@ -118,10 +148,12 @@ export default async function AdminOrderDetailPage(props: {
           </div>
 
           <div className="border-border bg-card rounded-2xl border p-6 text-sm">
-            <h2 className="text-foreground mb-4 text-base font-semibold">Customer Details</h2>
+            <h2 className="text-foreground mb-4 text-base font-semibold">
+              Customer Details
+            </h2>
             {addr ? (
-              <div className="space-y-1 text-muted-foreground">
-                <p className="font-medium text-foreground">
+              <div className="text-muted-foreground space-y-1">
+                <p className="text-foreground font-medium">
                   {addr.first_name} {addr.last_name}
                 </p>
                 <p>{addr.email}</p>
@@ -130,13 +162,16 @@ export default async function AdminOrderDetailPage(props: {
                   <p>{addr.address_line_1}</p>
                   {addr.address_line_2 && <p>{addr.address_line_2}</p>}
                   <p>
-                    {addr.locality}, {addr.administrative_district_level_1} {addr.postal_code}
+                    {addr.locality}, {addr.administrative_district_level_1}{" "}
+                    {addr.postal_code}
                   </p>
                   <p>{addr.country}</p>
                 </div>
               </div>
             ) : (
-              <p className="text-muted-foreground">No customer details available.</p>
+              <p className="text-muted-foreground">
+                No customer details available.
+              </p>
             )}
           </div>
         </div>

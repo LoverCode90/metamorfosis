@@ -1,6 +1,10 @@
 import "server-only"
 
-import { CARD_SURCHARGE_RATE } from "@/lib/constants"
+import {
+  CARD_SURCHARGE_RATE,
+  FREE_SHIPPING_THRESHOLD_CENTS,
+  TAX_RATE,
+} from "@/lib/constants"
 import type { PriceSheet, ShippingMethod } from "./types"
 
 /** Fixed shipping rates in cents (Phase 5 — Shippo replaces in Phase 6). */
@@ -10,14 +14,6 @@ export const SHIPPING_RATES_CENTS: Record<ShippingMethod, number> = {
   overnight: 2500,
   pickup: 0,
 }
-
-const FREE_SHIPPING_THRESHOLD_CENTS = parseInt(
-  process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD_CENTS ?? "12000",
-  10,
-)
-
-/** CA base sales tax rate. Square computes exact tax at charge time. */
-const TAX_RATE = 0.0975
 
 export function computeShippingCents(
   method: ShippingMethod,
