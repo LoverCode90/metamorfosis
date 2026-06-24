@@ -119,6 +119,16 @@ export function CartSummary({
               {formatUSD(totals.tax)}
             </dd>
           </div>
+          {totals.surcharge > 0 && (
+            <div className="flex items-center justify-between">
+              <dt className="text-muted-foreground">
+                Card processing fee (2.6%)
+              </dt>
+              <dd className="text-foreground font-medium tabular-nums">
+                {formatUSD(totals.surcharge)}
+              </dd>
+            </div>
+          )}
         </dl>
 
         <Separator className="my-4 sm:my-5" />

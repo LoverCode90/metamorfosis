@@ -69,6 +69,7 @@ export interface Totals {
   discount: number
   shipping: number
   tax: number
+  surcharge: number
   total: number
   itemCount: number
 }

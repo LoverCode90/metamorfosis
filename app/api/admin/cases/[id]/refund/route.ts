@@ -2,10 +2,12 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { refundOrder } from "@/lib/square/refund"
+import { STORE_FAULT_REASONS } from "@/lib/constants"
 import { z } from "zod"
 
+// The refund amount is computed server-side from the order — never trust a
+// client-sent amount.
 const refundSchema = z.object({
-  amountCents: z.number().int().positive(),
   reason: z.string().optional().default("Customer requested refund"),
 })
 
@@ -36,7 +38,13 @@ export async function POST(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const json = await req.json()
+    // The admin UI posts with no body, so tolerate an empty request.
+    let json: unknown = {}
+    try {
+      json = await req.json()
+    } catch {
+      json = {}
+    }
     const parsed = refundSchema.safeParse(json)
 
     if (!parsed.success) {
@@ -46,14 +54,14 @@ export async function POST(
       )
     }
 
-    const { amountCents, reason } = parsed.data
+    const { reason } = parsed.data
 
     const supabaseAdmin = createAdminClient()
 
     // 1. Get the case and related order
     const { data: caseData, error: caseError } = await supabaseAdmin
       .from("cases")
-      .select("*, orders(id, square_order_id)")
+      .select("*, orders(id, square_order_id, total_cents, surcharge_cents)")
       .eq("id", caseId)
       .single()
 
@@ -69,9 +77,28 @@ export async function POST(
       )
     }
 
+    // Store-fault returns get a full refund (surcharge included); customer-fault
+    // returns are refunded minus the non-refundable card surcharge. Computed
+    // server-side — the admin never sends the amount.
+    const isStoreFault = (STORE_FAULT_REASONS as readonly string[]).includes(
+      caseData.reason,
+    )
+    const totalCents = caseData.orders?.total_cents ?? 0
+    const surchargeCents = caseData.orders?.surcharge_cents ?? 0
+    const refundAmountCents = isStoreFault
+      ? totalCents
+      : totalCents - surchargeCents
+
+    if (refundAmountCents <= 0) {
+      return NextResponse.json(
+        { error: "Nothing to refund for this order" },
+        { status: 400 },
+      )
+    }
+
     // 2. Call Square refund
     try {
-      await refundOrder(squareOrderId, amountCents, reason)
+      await refundOrder(squareOrderId, refundAmountCents, reason)
     } catch (refundError: unknown) {
       console.error("Square refund failed:", refundError)
       const msg =
@@ -110,7 +137,9 @@ export async function POST(
       target_id: caseId,
       previous_value: caseData,
       new_value: { status: "closed", resolved_at: resolvedAt },
-      notes: `Refunded ${amountCents} cents. Reason: ${reason}`,
+      notes: `Refunded ${refundAmountCents} cents (${
+        isStoreFault ? "store fault — full" : "customer fault — minus surcharge"
+      }). Reason: ${reason}`,
     })
 
     return NextResponse.json({ success: true })

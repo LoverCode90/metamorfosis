@@ -92,6 +92,7 @@ export function CheckoutClient() {
   async function handlePaymentSubmit(
     sourceId: string,
     turnstileToken: string,
+    surchargeConsented: boolean,
   ): Promise<PlaceOrderResponse> {
     if (!address) {
       return { ok: false, error: "Address missing", code: "TAMPER" }
@@ -104,6 +105,7 @@ export function CheckoutClient() {
       shippingMethod,
       address,
       termsAccepted,
+      surchargeConsented,
       turnstileToken,
       sourceId,
       ...(!user ? { guestEmail: address.email } : {}),
@@ -192,7 +194,10 @@ export function CheckoutClient() {
               address={address}
               cartItems={items
                 .filter((i) => !i.unavailable && i.variationId)
-                .map((i) => ({ variationId: i.variationId!, quantity: i.quantity }))}
+                .map((i) => ({
+                  variationId: i.variationId!,
+                  quantity: i.quantity,
+                }))}
               initialRates={cachedShippingRates}
               onRatesFetched={(rates) => setCachedShippingRates(rates)}
               onContinue={handleShippingContinue}
@@ -202,6 +207,7 @@ export function CheckoutClient() {
           {wizardStep === "payment" && (
             <StepPayment
               totalCents={Math.round(liveTotals.total * 100)}
+              surchargeCents={Math.round(liveTotals.surcharge * 100)}
               onBack={() => setWizardStep("shipping")}
               onSubmit={handlePaymentSubmit}
             />

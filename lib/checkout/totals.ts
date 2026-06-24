@@ -1,5 +1,6 @@
 import "server-only"
 
+import { CARD_SURCHARGE_RATE } from "@/lib/constants"
 import type { PriceSheet, ShippingMethod } from "./types"
 
 /** Fixed shipping rates in cents (Phase 5 — Shippo replaces in Phase 6). */
@@ -61,7 +62,11 @@ export function buildPriceSheet(
   const taxCents = taxExempt
     ? 0
     : Math.round((subtotalCents - discountCents) * TAX_RATE)
-  const totalCents = subtotalCents - discountCents + shippingCents + taxCents
+  const surchargeCents = Math.round(
+    (subtotalCents - discountCents) * CARD_SURCHARGE_RATE,
+  )
+  const totalCents =
+    subtotalCents - discountCents + shippingCents + taxCents + surchargeCents
 
   return {
     items: items.map(
@@ -85,6 +90,7 @@ export function buildPriceSheet(
     discountCents,
     shippingCents,
     taxCents,
+    surchargeCents,
     totalCents,
   }
 }
