@@ -1,183 +1,38 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useState } from "react"
 import { ArrowLeft, Lock, ShieldCheck } from "lucide-react"
 import { formatUSD } from "@/lib/utils/format"
 import { TurnstileWidget } from "@/components/auth/turnstile-widget"
 import { SavedCard } from "../saved-card"
+import { useSquarePayment } from "@/hooks/use-square-payment"
 import type { PlaceOrderResponse } from "@/lib/checkout/types"
-
-declare global {
-  interface Window {
-    Square?: any
-  }
-}
-
-// Square Web Payments renders the card fields inside an iframe that does not
-// inherit the app's CSS variables, so the dark theme must be passed explicitly.
-// Hex values are the concrete equivalents of the oklch design tokens.
-const CARD_STYLE = {
-  input: {
-    color: "#f4f5f8", // fg-primary
-    backgroundColor: "#070709", // bg-inset
-    fontSize: "16px", // 16px avoids iOS input zoom
-  },
-  "input::placeholder": {
-    color: "#68686f", // fg-tertiary
-  },
-  ".input-container": {
-    borderColor: "#28292b", // border-subtle
-    borderRadius: "8px",
-  },
-  ".input-container.is-focus": {
-    borderColor: "#4361ee", // accent-violet
-  },
-  ".input-container.is-error": {
-    borderColor: "#f9667a", // accent-rose
-  },
-  ".message-text": {
-    color: "#a3a4ab", // fg-secondary
-  },
-  ".message-icon": {
-    color: "#a3a4ab",
-  },
-  ".message-text.is-error": {
-    color: "#f9667a",
-  },
-  ".message-icon.is-error": {
-    color: "#f9667a",
-  },
-}
 
 interface StepPaymentProps {
   totalCents: number
   surchargeCents: number
   savedCardId?: string | null
   onBack: () => void
-  onSubmit: (
-    sourceId: string,
-    turnstileToken: string,
-    surchargeConsented: boolean,
-    saveCardConsented: boolean,
-  ) => Promise<PlaceOrderResponse>
+  onSubmit: (sid: string, tkn: string, sur: boolean, save: boolean) => Promise<PlaceOrderResponse>
 }
 
-export function StepPayment({
-  totalCents,
-  surchargeCents,
-  savedCardId,
-  onBack,
-  onSubmit,
-}: StepPaymentProps) {
-  const cardContainerRef = useRef<HTMLDivElement>(null)
-
-  const cardRef = useRef<any>(null)
-  const [sdkReady, setSdkReady] = useState(false)
-  const [sdkError, setSdkError] = useState<string | null>(null)
+export function StepPayment({ totalCents, surchargeCents, savedCardId, onBack, onSubmit }: StepPaymentProps) {
   const [turnstileToken, setTurnstileToken] = useState("")
-  const [submitting, setSubmitting] = useState(false)
-  const [paymentError, setPaymentError] = useState<string | null>(null)
   const [surchargeAccepted, setSurchargeAccepted] = useState(false)
   const [saveCard, setSaveCard] = useState(true)
-  const [useSavedCard, setUseSavedCard] = useState(
-    !!savedCardId && savedCardId.startsWith("ccof:"),
-  )
 
-  // Support both key names — older builds use NEXT_PUBLIC_SQUARE_APP_ID
-  const appId =
-    process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID ??
-    process.env.NEXT_PUBLIC_SQUARE_APP_ID ??
-    ""
-  const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID ?? ""
+  const {
+    cardContainerRef,
+    sdkReady,
+    sdkError,
+    paymentError,
+    submitting,
+    useSavedCard,
+    setUseSavedCard,
+    handlePlace,
+  } = useSquarePayment({ savedCardId, onSubmit })
+
   const isTest = process.env.NEXT_PUBLIC_PAYMENT_MODE === "test"
-
-  // ── Load Square Web Payments SDK ───────────────────────────────────────────
-  async function initCard() {
-    if (!window.Square || !cardContainerRef.current) return
-
-    if (!appId || !locationId) {
-      setSdkError(
-        "Square credentials are missing. " +
-          "Set NEXT_PUBLIC_SQUARE_APPLICATION_ID and NEXT_PUBLIC_SQUARE_LOCATION_ID in .env.local and restart the server.",
-      )
-      return
-    }
-
-    try {
-      const payments = window.Square.payments(appId, locationId)
-      const card = await payments.card({ style: CARD_STYLE })
-      await card.attach(cardContainerRef.current)
-      cardRef.current = card
-      setSdkReady(true)
-    } catch (err) {
-      setSdkError("Payment form could not be loaded. Please refresh.")
-      console.error("[step-payment] Square card attach error:", err)
-    }
-  }
-
-  useEffect(() => {
-    if (useSavedCard) return
-
-    // Production credentials require the production SDK URL.
-    // NEXT_PUBLIC_PAYMENT_MODE=test skips the real charge on the server.
-    const src = "https://web.squarecdn.com/v1/square.js"
-
-    if (window.Square) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      initCard()
-      return
-    }
-
-    const script = document.createElement("script")
-    script.src = src
-    script.onload = () => initCard()
-    script.onerror = () => setSdkError("Failed to load Square payment SDK.")
-    document.head.appendChild(script)
-    return () => {
-      /* cleanup not needed — script persists */
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useSavedCard])
-
-  async function handlePlace() {
-    if (!turnstileToken) return
-    if (!useSavedCard && !cardRef.current) return
-    setSubmitting(true)
-    setPaymentError(null)
-
-    try {
-      let sourceId = ""
-      if (useSavedCard && savedCardId) {
-        sourceId = savedCardId
-      } else {
-        const result = await cardRef.current.tokenize()
-        if (result.status !== "OK") {
-          setPaymentError(
-            result.errors?.[0]?.message ??
-              "Card error — please check your details.",
-          )
-          return
-        }
-        sourceId = result.token
-      }
-
-      const response = await onSubmit(
-        sourceId,
-        turnstileToken,
-        surchargeAccepted,
-        useSavedCard ? false : saveCard,
-      )
-      if (!response.ok) {
-        setPaymentError(response.error ?? "Payment failed. Please try again.")
-      }
-      // On success, parent (CheckoutClient) handles redirect
-    } catch (err) {
-      setPaymentError("Unexpected error. Please try again.")
-      console.error("[step-payment] submit error:", err)
-    } finally {
-      setSubmitting(false)
-    }
-  }
 
   return (
     <div className="space-y-6">
@@ -185,113 +40,46 @@ export function StepPayment({
 
       {isTest && (
         <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-400">
-          Test mode — no charge will occur. Use any valid card format to
-          complete checkout.
+          Test mode — no charge will occur.
         </div>
       )}
 
       {useSavedCard ? (
         <div className="space-y-4">
-          <p className="text-foreground text-sm font-medium">
-            Pay with saved card
-          </p>
-          <SavedCard
-            isValid
-            buttonLabel="Use a different card"
-            onUpdateCard={() => setUseSavedCard(false)}
-          />
+          <p className="text-foreground text-sm font-medium">Pay with saved card</p>
+          <SavedCard isValid buttonLabel="Use a different card" onUpdateCard={() => setUseSavedCard(false)} />
         </div>
       ) : (
-        <>
+        <div className="space-y-2">
           {sdkError ? (
-            <p className="border-destructive/30 bg-destructive/5 text-destructive rounded-lg border px-4 py-3 text-sm">
-              {sdkError}
-            </p>
+            <p className="border-destructive/30 bg-destructive/5 text-destructive rounded-lg border px-4 py-3 text-sm">{sdkError}</p>
           ) : (
-            <div
-              ref={cardContainerRef}
-              className={`border-border bg-muted/20 min-h-[100px] w-full overflow-hidden rounded-lg border p-4 transition-opacity ${sdkReady ? "opacity-100" : "opacity-50"}`}
-            />
+            <div ref={cardContainerRef} className={`border-border bg-muted/20 min-h-25 w-full rounded-lg border p-4 ${sdkReady ? "opacity-100" : "opacity-50"}`} />
           )}
-
-          {!sdkReady && !sdkError && (
-            <p className="text-muted-foreground text-xs">
-              Loading secure payment form…
-            </p>
-          )}
-        </>
+          {!sdkReady && !sdkError && <p className="text-muted-foreground text-xs">Loading secure payment form…</p>}
+        </div>
       )}
 
       <TurnstileWidget onVerify={setTurnstileToken} />
-
-      {paymentError && (
-        <p className="border-destructive/30 bg-destructive/5 text-destructive rounded-lg border px-4 py-3 text-sm">
-          {paymentError}
-        </p>
-      )}
+      {paymentError && <p className="border-destructive/30 bg-destructive/5 text-destructive rounded-lg border px-4 py-3 text-sm">{paymentError}</p>}
 
       <label className="flex cursor-pointer items-start gap-3">
-        <input
-          type="checkbox"
-          checked={surchargeAccepted}
-          onChange={(e) => setSurchargeAccepted(e.target.checked)}
-          className="border-border mt-0.5 h-4 w-4 shrink-0 rounded"
-        />
+        <input type="checkbox" checked={surchargeAccepted} onChange={(e) => setSurchargeAccepted(e.target.checked)} className="mt-0.5 h-4 w-4 rounded" />
         <span className="text-muted-foreground text-sm">
-          I understand a{" "}
-          <span className="text-foreground font-medium">
-            2.6% card processing fee ({formatUSD(surchargeCents)})
-          </span>{" "}
-          will be applied to this order.
+          I understand a <span className="text-foreground font-medium">2.6% fee ({formatUSD(surchargeCents)})</span> will apply.
         </span>
       </label>
 
       {!useSavedCard && (
         <label className="flex cursor-pointer items-start gap-3">
-          <input
-            type="checkbox"
-            checked={saveCard}
-            onChange={(e) => setSaveCard(e.target.checked)}
-            className="border-border mt-0.5 h-4 w-4 shrink-0 rounded"
-          />
-          <span className="text-muted-foreground text-sm">
-            Save card for future purchases
-          </span>
+          <input type="checkbox" checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)} className="mt-0.5 h-4 w-4 rounded" />
+          <span className="text-muted-foreground text-sm">Save card for future purchases</span>
         </label>
       )}
 
       <div className="flex gap-3 pt-2">
-        <button
-          type="button"
-          onClick={onBack}
-          disabled={submitting}
-          className="border-border text-foreground hover:bg-muted flex h-12 items-center gap-2 rounded-md border px-5 text-sm font-medium transition-colors disabled:opacity-50"
-        >
-          <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
-          Back
-        </button>
-        <button
-          type="button"
-          onClick={handlePlace}
-          disabled={
-            (!useSavedCard && !sdkReady) ||
-            !turnstileToken ||
-            submitting ||
-            !surchargeAccepted
-          }
-          className="bg-foreground text-background flex h-12 flex-1 items-center justify-center gap-2 rounded-md text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <Lock className="h-4 w-4" strokeWidth={1.75} />
-          {submitting
-            ? "Processing…"
-            : `Place Order — ${formatUSD(totalCents)}`}
-        </button>
-      </div>
-
-      <div className="text-muted-foreground flex items-center gap-2 text-xs">
-        <ShieldCheck className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
-        Your payment info is tokenized by Square — we never see your card
-        number.
+        <button type="button" onClick={onBack} disabled={submitting} className="border border-border flex h-12 items-center gap-2 rounded-md px-5 text-sm font-medium"><ArrowLeft className="h-4 w-4" />Back</button>
+        <button type="button" onClick={() => handlePlace(turnstileToken, surchargeAccepted, saveCard)} disabled={(!useSavedCard && !sdkReady) || !turnstileToken || submitting || !surchargeAccepted} className="bg-foreground text-background flex h-12 flex-1 items-center justify-center gap-2 rounded-md text-sm font-semibold disabled:opacity-50"><Lock className="h-4 w-4" />{submitting ? "Processing…" : `Place Order — ${formatUSD(totalCents)}`}</button>
       </div>
     </div>
   )
