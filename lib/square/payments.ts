@@ -1,5 +1,3 @@
-import "server-only"
-
 import { SquareClient, SquareEnvironment } from "square"
 import crypto from "crypto"
 
@@ -47,7 +45,6 @@ export async function chargeCard(
   const idempotencyKey = crypto.randomUUID()
 
   try {
-    // Invoke createPayment using modern SDK syntax, extracting result object
     const result = await client.payments.create({
       sourceId,
       idempotencyKey,
@@ -88,6 +85,11 @@ export async function getOrCreateCustomer(
   email: string,
   fullName: string,
 ): Promise<string | null> {
+  // Bypass if payment mode is simulation/test to avoid production Square rejection on test profiles
+  if (process.env.NEXT_PUBLIC_PAYMENT_MODE === "test") {
+    return `cust-test-${crypto.randomUUID().slice(0, 8)}`
+  }
+
   const client = createPaymentsClient()
 
   try {
@@ -129,9 +131,13 @@ export async function createCardOnFile(
   sourceId: string,
   customerId: string,
 ): Promise<string | null> {
-  // If sourceId is already a permanent card on file token, return it directly
   if (sourceId.startsWith("ccof:")) {
     return sourceId
+  }
+
+  // Bypass if payment mode is simulation/test to securely save a simulated token inside Supabase
+  if (process.env.NEXT_PUBLIC_PAYMENT_MODE === "test") {
+    return `ccof:test-${crypto.randomUUID().slice(0, 8)}`
   }
 
   const client = createPaymentsClient()
