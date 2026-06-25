@@ -1,4 +1,4 @@
-import "server-only"
+// Shared calculation logic for both server and client components
 
 import {
   CARD_SURCHARGE_RATE,

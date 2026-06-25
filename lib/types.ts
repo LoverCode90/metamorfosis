@@ -160,6 +160,8 @@ export interface DbProfile {
   expiration_date: string | null
   rejection_reason: string | null
   bio?: string | null
+  square_customer_id?: string | null
+  square_card_id?: string | null
   created_at: string
   updated_at: string
 }

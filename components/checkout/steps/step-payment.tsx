@@ -4,11 +4,11 @@ import { useEffect, useRef, useState } from "react"
 import { ArrowLeft, Lock, ShieldCheck } from "lucide-react"
 import { formatUSD } from "@/lib/utils/format"
 import { TurnstileWidget } from "@/components/auth/turnstile-widget"
+import { SavedCard } from "../saved-card"
 import type { PlaceOrderResponse } from "@/lib/checkout/types"
 
 declare global {
   interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     Square?: any
   }
 }
@@ -52,22 +52,25 @@ const CARD_STYLE = {
 interface StepPaymentProps {
   totalCents: number
   surchargeCents: number
+  savedCardId?: string | null
   onBack: () => void
   onSubmit: (
     sourceId: string,
     turnstileToken: string,
     surchargeConsented: boolean,
+    saveCardConsented: boolean,
   ) => Promise<PlaceOrderResponse>
 }
 
 export function StepPayment({
   totalCents,
   surchargeCents,
+  savedCardId,
   onBack,
   onSubmit,
 }: StepPaymentProps) {
   const cardContainerRef = useRef<HTMLDivElement>(null)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   const cardRef = useRef<any>(null)
   const [sdkReady, setSdkReady] = useState(false)
   const [sdkError, setSdkError] = useState<string | null>(null)
@@ -75,8 +78,10 @@ export function StepPayment({
   const [submitting, setSubmitting] = useState(false)
   const [paymentError, setPaymentError] = useState<string | null>(null)
   const [surchargeAccepted, setSurchargeAccepted] = useState(false)
-  // UI-only for now — no persistence. Wire up to Square card-on-file later.
   const [saveCard, setSaveCard] = useState(true)
+  const [useSavedCard, setUseSavedCard] = useState(
+    !!savedCardId && savedCardId.startsWith("ccof:"),
+  )
 
   // Support both key names — older builds use NEXT_PUBLIC_SQUARE_APP_ID
   const appId =
@@ -111,6 +116,8 @@ export function StepPayment({
   }
 
   useEffect(() => {
+    if (useSavedCard) return
+
     // Production credentials require the production SDK URL.
     // NEXT_PUBLIC_PAYMENT_MODE=test skips the real charge on the server.
     const src = "https://web.squarecdn.com/v1/square.js"
@@ -130,27 +137,35 @@ export function StepPayment({
       /* cleanup not needed — script persists */
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [useSavedCard])
 
   async function handlePlace() {
-    if (!cardRef.current || !turnstileToken) return
+    if (!turnstileToken) return
+    if (!useSavedCard && !cardRef.current) return
     setSubmitting(true)
     setPaymentError(null)
 
     try {
-      const result = await cardRef.current.tokenize()
-      if (result.status !== "OK") {
-        setPaymentError(
-          result.errors?.[0]?.message ??
-            "Card error — please check your details.",
-        )
-        return
+      let sourceId = ""
+      if (useSavedCard && savedCardId) {
+        sourceId = savedCardId
+      } else {
+        const result = await cardRef.current.tokenize()
+        if (result.status !== "OK") {
+          setPaymentError(
+            result.errors?.[0]?.message ??
+              "Card error — please check your details.",
+          )
+          return
+        }
+        sourceId = result.token
       }
 
       const response = await onSubmit(
-        result.token,
+        sourceId,
         turnstileToken,
         surchargeAccepted,
+        useSavedCard ? false : saveCard,
       )
       if (!response.ok) {
         setPaymentError(response.error ?? "Payment failed. Please try again.")
@@ -175,21 +190,36 @@ export function StepPayment({
         </div>
       )}
 
-      {sdkError ? (
-        <p className="border-destructive/30 bg-destructive/5 text-destructive rounded-lg border px-4 py-3 text-sm">
-          {sdkError}
-        </p>
+      {useSavedCard ? (
+        <div className="space-y-4">
+          <p className="text-foreground text-sm font-medium">
+            Pay with saved card
+          </p>
+          <SavedCard
+            isValid
+            buttonLabel="Use a different card"
+            onUpdateCard={() => setUseSavedCard(false)}
+          />
+        </div>
       ) : (
-        <div
-          ref={cardContainerRef}
-          className={`border-border bg-muted/20 min-h-[100px] w-full overflow-hidden rounded-lg border p-4 transition-opacity ${sdkReady ? "opacity-100" : "opacity-50"}`}
-        />
-      )}
+        <>
+          {sdkError ? (
+            <p className="border-destructive/30 bg-destructive/5 text-destructive rounded-lg border px-4 py-3 text-sm">
+              {sdkError}
+            </p>
+          ) : (
+            <div
+              ref={cardContainerRef}
+              className={`border-border bg-muted/20 min-h-[100px] w-full overflow-hidden rounded-lg border p-4 transition-opacity ${sdkReady ? "opacity-100" : "opacity-50"}`}
+            />
+          )}
 
-      {!sdkReady && !sdkError && (
-        <p className="text-muted-foreground text-xs">
-          Loading secure payment form…
-        </p>
+          {!sdkReady && !sdkError && (
+            <p className="text-muted-foreground text-xs">
+              Loading secure payment form…
+            </p>
+          )}
+        </>
       )}
 
       <TurnstileWidget onVerify={setTurnstileToken} />
@@ -216,17 +246,19 @@ export function StepPayment({
         </span>
       </label>
 
-      <label className="flex cursor-pointer items-start gap-3">
-        <input
-          type="checkbox"
-          checked={saveCard}
-          onChange={(e) => setSaveCard(e.target.checked)}
-          className="border-border mt-0.5 h-4 w-4 shrink-0 rounded"
-        />
-        <span className="text-muted-foreground text-sm">
-          Save card for future purchases
-        </span>
-      </label>
+      {!useSavedCard && (
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            checked={saveCard}
+            onChange={(e) => setSaveCard(e.target.checked)}
+            className="border-border mt-0.5 h-4 w-4 shrink-0 rounded"
+          />
+          <span className="text-muted-foreground text-sm">
+            Save card for future purchases
+          </span>
+        </label>
+      )}
 
       <div className="flex gap-3 pt-2">
         <button
@@ -242,7 +274,10 @@ export function StepPayment({
           type="button"
           onClick={handlePlace}
           disabled={
-            !sdkReady || !turnstileToken || submitting || !surchargeAccepted
+            (!useSavedCard && !sdkReady) ||
+            !turnstileToken ||
+            submitting ||
+            !surchargeAccepted
           }
           className="bg-foreground text-background flex h-12 flex-1 items-center justify-center gap-2 rounded-md text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >

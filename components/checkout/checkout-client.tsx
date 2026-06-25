@@ -12,7 +12,8 @@ import type {
 } from "@/lib/checkout/types"
 import { useCart } from "@/hooks/use-cart"
 import { useUser } from "@/hooks/use-user"
-import { computeTotalsWithShipping, TAX_RATE } from "@/lib/utils/totals"
+import { TAX_RATE } from "@/lib/utils/totals"
+import { buildPriceSheet } from "@/lib/checkout/totals"
 import { CheckoutStepper } from "./checkout-stepper"
 import { CheckoutGate } from "./checkout-gate"
 import { OrderSummary } from "./order-summary"
@@ -22,7 +23,7 @@ import { StepPayment } from "./steps/step-payment"
 
 export function CheckoutClient() {
   const router = useRouter()
-  const { items, totals, clearCart, removeItem } = useCart()
+  const { items, clearCart, removeItem } = useCart()
   const { user, dbProfile, savedAddress, saveAddress } = useUser()
 
   const [wizardStep, setWizardStep] = useState<CheckoutStepId>("info")
@@ -30,13 +31,24 @@ export function CheckoutClient() {
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [shippingMethod, setShippingMethod] =
     useState<ShippingMethod>("standard")
-  const [shippingCents, setShippingCents] = useState(0)
   const [cachedShippingRates, setCachedShippingRates] = useState<
     ShippingRate[] | null
   >(null)
   const [taxRate, setTaxRate] = useState(TAX_RATE)
 
-  const liveTotals = computeTotalsWithShipping(items, shippingCents, taxRate)
+  // Compute exact price breakdown using shared totals logic in cents
+  const priceSheet = buildPriceSheet(
+    items.map((i) => ({
+      variationId: i.variationId ?? i.id,
+      name: i.name,
+      quantity: i.quantity,
+      unitPriceCents: i.unitPrice,
+      discountCents: i.discountPerItem ?? 0,
+    })),
+    shippingMethod,
+    false,
+    taxRate,
+  )
 
   // ── Checkout gate — professional-only items ────────────────────────────────
   // Only products explicitly flagged isProfessional require verification.
@@ -98,7 +110,6 @@ export function CheckoutClient() {
 
   function handleShippingContinue(method: ShippingMethod, cents: number) {
     setShippingMethod(method)
-    setShippingCents(cents)
     setWizardStep("payment")
   }
 
@@ -106,6 +117,7 @@ export function CheckoutClient() {
     sourceId: string,
     turnstileToken: string,
     surchargeConsented: boolean,
+    saveCardConsented: boolean,
   ): Promise<PlaceOrderResponse> {
     if (!address) {
       return { ok: false, error: "Address missing", code: "TAMPER" }
@@ -119,6 +131,7 @@ export function CheckoutClient() {
       address,
       termsAccepted,
       surchargeConsented,
+      saveCardConsented,
       turnstileToken,
       sourceId,
       ...(!user ? { guestEmail: address.email } : {}),
@@ -203,7 +216,7 @@ export function CheckoutClient() {
           )}
           {wizardStep === "shipping" && address && (
             <StepShipping
-              subtotalCents={Math.round(totals.subtotal * 100)}
+              subtotalCents={priceSheet.subtotalCents}
               address={address}
               cartItems={items
                 .filter((i) => !i.unavailable && i.variationId)
@@ -219,8 +232,9 @@ export function CheckoutClient() {
           )}
           {wizardStep === "payment" && (
             <StepPayment
-              totalCents={Math.round(liveTotals.total * 100)}
-              surchargeCents={Math.round(liveTotals.surcharge * 100)}
+              totalCents={priceSheet.totalCents}
+              surchargeCents={priceSheet.surchargeCents}
+              savedCardId={dbProfile?.square_card_id}
               onBack={() => setWizardStep("shipping")}
               onSubmit={handlePaymentSubmit}
             />
@@ -230,7 +244,7 @@ export function CheckoutClient() {
         <div className="order-2 min-w-0">
           <OrderSummary
             items={items}
-            totals={liveTotals}
+            priceSheet={priceSheet}
             wizardStep={wizardStep}
             onPlaceOrder={() => {}}
           />

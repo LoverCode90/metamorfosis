@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { chargeCard } from "@/lib/square/payments"
+import {
+  chargeCard,
+  getOrCreateCustomer,
+  createCardOnFile,
+} from "@/lib/square/payments"
 import { verifyTurnstileToken } from "@/lib/auth/turnstile"
 import {
   isDiscountEligible,
@@ -100,16 +104,20 @@ export async function POST(
 
   let role: UserRole = "standard_customer"
   let verificationStatus: DbVerificationStatus = "not_applicable"
+  let squareCustomerId: string | null = null
+  let squareCardId: string | null = null
 
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, verification_status")
+      .select("role, verification_status, square_customer_id, square_card_id")
       .eq("id", user.id)
       .single()
     if (profile) {
       role = profile.role as UserRole
       verificationStatus = profile.verification_status as DbVerificationStatus
+      squareCustomerId = profile.square_customer_id as string | null
+      squareCardId = profile.square_card_id as string | null
     }
   }
 
@@ -203,10 +211,40 @@ export async function POST(
     taxRate,
   )
 
+  // ── Card on File (COF) flow ───────────────────────────────────────────────
+  let paymentSourceId = sourceId
+
+  if (user) {
+    // If sourceId is already ccof:, use it directly
+    if (sourceId.startsWith("ccof:")) {
+      paymentSourceId = sourceId
+    } else if (payload.saveCardConsented) {
+      // Search or create Square Customer using Supabase user.id as referenceId
+      const customerId =
+        squareCustomerId ??
+        (await getOrCreateCustomer(user.id, address.email, address.fullName))
+      if (customerId) {
+        // Invoke client.cards.createCard using frontend card nonce and customerId
+        const cardId = await createCardOnFile(sourceId, customerId)
+        if (cardId) {
+          paymentSourceId = cardId
+          // Store permanent cardId safely inside Supabase database
+          await admin
+            .from("profiles")
+            .update({
+              square_customer_id: customerId,
+              square_card_id: cardId,
+            })
+            .eq("id", user.id)
+        }
+      }
+    }
+  }
+
   // ── Charge card ────────────────────────────────────────────────────────────
   const locationId = process.env.SQUARE_LOCATION_ID!
   const chargeResult = await chargeCard(
-    sourceId,
+    paymentSourceId,
     priceSheet.totalCents,
     locationId,
     `Metamorfosis order — ${items.length} item(s)`,

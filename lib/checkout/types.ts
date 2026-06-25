@@ -33,6 +33,8 @@ export interface CheckoutPayload {
   termsAccepted: boolean
   /** 2.6% card processing fee acknowledgment (step-payment checkbox). */
   surchargeConsented: boolean
+  /** Save card for future purchases checkbox. */
+  saveCardConsented?: boolean
   turnstileToken: string
   /** Square card nonce from Web Payments SDK */
   sourceId: string

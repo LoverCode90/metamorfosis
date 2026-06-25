@@ -1,30 +1,34 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link"
 import { Tag, Truck } from "lucide-react"
-import {
-  formatUSD,
-  type CartItem,
-  type CheckoutStepId,
-  type Totals,
-} from "@/lib/checkout"
+import { type CartItem, type CheckoutStepId } from "@/lib/checkout"
+import { formatUSD } from "@/lib/utils/format"
+import type { PriceSheet } from "@/lib/checkout/types"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
 
 interface OrderSummaryProps {
   items: CartItem[]
-  totals: Totals
+  priceSheet: PriceSheet
   wizardStep: CheckoutStepId
   onPlaceOrder: () => void
 }
 
 export function OrderSummary({
   items,
-  totals,
+  priceSheet,
   wizardStep,
   onPlaceOrder,
 }: OrderSummaryProps) {
-  const { subtotal, discount, shipping, tax, surcharge, total } = totals
+  const {
+    subtotalCents,
+    discountCents,
+    shippingCents,
+    taxCents,
+    surchargeCents,
+    totalCents,
+  } = priceSheet
   const isPaymentStep = wizardStep === "payment"
   const ctaLabel = isPaymentStep ? "Place Secure Order" : null
 
@@ -65,7 +69,7 @@ export function OrderSummary({
           ))}
         </ul>
 
-        {discount > 0 && (
+        {discountCents > 0 && (
           <div className="mt-5">
             <Badge className="gap-1.5 border-transparent bg-emerald-600 text-white hover:bg-emerald-600">
               <Tag className="h-3 w-3" />
@@ -81,14 +85,14 @@ export function OrderSummary({
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Subtotal</dt>
             <dd className="text-foreground font-medium tabular-nums">
-              {formatUSD(subtotal)}
+              {formatUSD(subtotalCents)}
             </dd>
           </div>
-          {discount > 0 && (
+          {discountCents > 0 && (
             <div className="flex items-center justify-between">
               <dt className="text-muted-foreground">Professional discount</dt>
               <dd className="font-medium text-emerald-600 tabular-nums">
-                -{formatUSD(discount)}
+                -{formatUSD(discountCents)}
               </dd>
             </div>
           )}
@@ -100,27 +104,27 @@ export function OrderSummary({
             <dd
               className={cn(
                 "font-medium tabular-nums",
-                shipping === 0
+                shippingCents === 0
                   ? "tracking-wide text-emerald-600 uppercase"
                   : "text-foreground",
               )}
             >
-              {shipping === 0 ? "Free" : formatUSD(shipping)}
+              {shippingCents === 0 ? "Free" : formatUSD(shippingCents)}
             </dd>
           </div>
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Estimated tax</dt>
             <dd className="text-foreground font-medium tabular-nums">
-              {formatUSD(tax)}
+              {formatUSD(taxCents)}
             </dd>
           </div>
-          {surcharge > 0 && (
+          {surchargeCents > 0 && (
             <div className="flex items-center justify-between">
               <dt className="text-muted-foreground">
                 Card processing fee (2.6%)
               </dt>
               <dd className="text-foreground font-medium tabular-nums">
-                {formatUSD(surcharge)}
+                {formatUSD(surchargeCents)}
               </dd>
             </div>
           )}
@@ -131,7 +135,7 @@ export function OrderSummary({
         <div className="flex items-end justify-between">
           <span className="text-foreground text-sm font-medium">Total</span>
           <span className="text-foreground text-2xl font-semibold tracking-tight tabular-nums">
-            {formatUSD(total)}
+            {formatUSD(totalCents)}
           </span>
         </div>
 
