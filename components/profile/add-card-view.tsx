@@ -5,8 +5,14 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Lock } from "lucide-react"
 
-export function AddCardView() {
+interface AddCardViewProps {
+  from: string | null
+}
+
+export function AddCardView({ from }: AddCardViewProps) {
   const router = useRouter()
+  const cardsHref =
+    from === "payment" ? "/profile/cards?from=payment" : "/profile/cards"
   const cardContainerRef = useRef<HTMLDivElement>(null)
   const cardRef = useRef<any>(null)
 
@@ -89,7 +95,7 @@ export function AddCardView() {
         throw new Error(body.error ?? "Failed to save card")
       }
 
-      router.push("/profile/cards")
+      router.push(cardsHref)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save card")
     } finally {
@@ -100,7 +106,7 @@ export function AddCardView() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:py-12">
       <Link
-        href="/profile/cards"
+        href={cardsHref}
         className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm font-medium transition-colors"
       >
         <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />

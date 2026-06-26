@@ -17,6 +17,7 @@ export async function DELETE(
   }
 
   const { id } = await params
+  console.log("[DELETE /api/profile/cards] hit", { id, userId: user.id })
 
   // Fetch the row first to verify ownership and get the Square card ID
   const { data: card } = await supabase
@@ -27,6 +28,9 @@ export async function DELETE(
     .single()
 
   if (!card) {
+    console.log("[DELETE /api/profile/cards] ownership check failed — 404", {
+      id,
+    })
     return NextResponse.json({ error: "Card not found" }, { status: 404 })
   }
 
@@ -40,15 +44,20 @@ export async function DELETE(
   }
 
   const admin = createAdminClient()
-  const { error } = await admin.from("saved_cards").delete().eq("id", id)
+  const { error, count } = await admin
+    .from("saved_cards")
+    .delete({ count: "exact" })
+    .eq("id", id)
 
   if (error) {
+    console.error("[DELETE /api/profile/cards] delete error", error)
     return NextResponse.json(
       { error: "Failed to delete card" },
       { status: 500 },
     )
   }
 
+  console.log("[DELETE /api/profile/cards] deleted rows:", count)
   return NextResponse.json({ ok: true })
 }
 

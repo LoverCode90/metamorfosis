@@ -256,6 +256,7 @@ export async function POST(
                 last_four: meta.last4,
                 exp_month: meta.expMonth,
                 exp_year: meta.expYear,
+                is_default: (count ?? 0) === 0,
               })
             }
           }

@@ -52,6 +52,8 @@ export async function GET() {
             last_four: meta.last4,
             exp_month: meta.expMonth,
             exp_year: meta.expYear,
+            // Backfill only runs when the user has no saved cards yet
+            is_default: true,
           })
           .select(CARD_SELECT)
           .single()

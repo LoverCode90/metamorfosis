@@ -189,7 +189,11 @@ export function CardsView({ cards: initialCards, from }: CardsViewProps) {
           </p>
         ) : (
           <Link
-            href="/profile/cards/add"
+            href={
+              from === "payment"
+                ? "/profile/cards/add?from=payment"
+                : "/profile/cards/add"
+            }
             className="text-muted-foreground hover:text-foreground text-sm font-medium underline underline-offset-4 transition-colors"
           >
             Add payment method
