@@ -3,133 +3,90 @@
 @import "shadcn/tailwind.css";
 
 /* ─────────────────────────────────────────────────────────────
-   Metamorfosis Design Tokens — Dark Premium Minimal
-   All colors use oklch() for perceptual uniformity.
-   App is dark-only for v1 — no .dark toggle needed.
+   Design Tokens — Preset Colors
 ───────────────────────────────────────────────────────────── */
 :root {
-  /* ── Backgrounds — layered depth ──────────────────────────── */
-  --bg-base: oklch(0.16 0.005 280); /* page bg — near-black, purple undertone */
-  --bg-surface: oklch(0.2 0.005 280); /* cards, elevated panels */
-  --bg-surface-2: oklch(0.24 0.005 280); /* hovered cards, popovers */
-  --bg-inset: oklch(0.13 0.005 280); /* inputs, deeper panels */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.141 0.005 285.823);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.141 0.005 285.823);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.141 0.005 285.823);
+  --primary: oklch(0.457 0.24 277.023);
+  --primary-foreground: oklch(0.962 0.018 272.314);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.967 0.001 286.375);
+  --muted-foreground: oklch(0.552 0.016 285.938);
+  --accent: oklch(0.967 0.001 286.375);
+  --accent-foreground: oklch(0.21 0.006 285.885);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.92 0.004 286.32);
+  --input: oklch(0.92 0.004 286.32);
+  --ring: oklch(0.705 0.015 286.067);
+  --chart-1: oklch(0.785 0.115 274.713);
+  --chart-2: oklch(0.585 0.233 277.117);
+  --chart-3: oklch(0.511 0.262 276.966);
+  --chart-4: oklch(0.457 0.24 277.023);
+  --chart-5: oklch(0.398 0.195 277.366);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.141 0.005 285.823);
+  --sidebar-primary: oklch(0.511 0.262 276.966);
+  --sidebar-primary-foreground: oklch(0.962 0.018 272.314);
+  --sidebar-accent: oklch(0.967 0.001 286.375);
+  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
+  --sidebar-border: oklch(0.92 0.004 286.32);
+  --sidebar-ring: oklch(0.705 0.015 286.067);
 
-  /* ── Foreground — refined whites ──────────────────────────── */
-  --fg-primary: oklch(0.97 0.005 280); /* primary text */
-  --fg-secondary: oklch(0.72 0.01 280); /* secondary / meta text */
-  --fg-tertiary: oklch(0.52 0.01 280); /* placeholders, disabled */
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 16px 40px -8px rgb(0 0 0 / 0.15);
+}
 
-  /* ── Borders ───────────────────────────────────────────────── */
-  --border-subtle: oklch(0.28 0.005 280);
-  --border-strong: oklch(0.36 0.005 280);
+.dark {
+  --background: oklch(0.141 0.005 285.823);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.21 0.006 285.885);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.21 0.006 285.885);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.398 0.195 277.366);
+  --primary-foreground: oklch(0.962 0.018 272.314);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.274 0.006 286.033);
+  --muted-foreground: oklch(0.705 0.015 286.067);
+  --accent: oklch(0.274 0.006 286.033);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.552 0.016 285.938);
+  --chart-1: oklch(0.785 0.115 274.713);
+  --chart-2: oklch(0.585 0.233 277.117);
+  --chart-3: oklch(0.511 0.262 276.966);
+  --chart-4: oklch(0.457 0.24 277.023);
+  --chart-5: oklch(0.398 0.195 277.366);
+  --sidebar: oklch(0.21 0.006 285.885);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.585 0.233 277.117);
+  --sidebar-primary-foreground: oklch(0.962 0.018 272.314);
+  --sidebar-accent: oklch(0.274 0.006 286.033);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.552 0.016 285.938);
 
-  /* ── Accent palette ────────────────────────────────────────── */
-  /* One dominant accent per page section. Never mix > 2 in one viewport. */
-  --accent-violet: #4361ee; /* primary brand accent — electric blue */
-  --accent-amber: oklch(0.78 0.15 75); /* warm highlights */
-  --accent-emerald: oklch(0.72 0.14 160); /* success, pro discount */
-  --accent-rose: oklch(0.7 0.18 15); /* destructive, alerts */
-  --accent-sand: oklch(0.82 0.06 80); /* warm neutrals, badges */
-
-  /* ── Semantic aliases ──────────────────────────────────────── */
-  --success: var(--accent-emerald);
-  --warning: var(--accent-amber);
-  --danger: var(--accent-rose);
-  --info: var(--accent-violet);
-
-  /* ── Radii ─────────────────────────────────────────────────── */
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 22px;
-
-  /* ── Shadows — soft, dark ──────────────────────────────────── */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.35);
   --shadow-lg: 0 16px 40px -8px rgb(0 0 0 / 0.45);
-  --shadow-glow:
-    0 0 0 1px oklch(0.68 0.18 290 / 0.2),
-    0 8px 30px -4px oklch(0.68 0.18 290 / 0.25);
-
-  /* ── Shadcn/Base-UI semantic bridge ────────────────────────── */
-  /* Maps the existing semantic var names to Metamorfosis tokens  */
-  /* so v0 pages inherit dark styling without per-file edits.     */
-  --background: var(--bg-base);
-  --foreground: var(--fg-primary);
-
-  --card: var(--bg-surface);
-  --card-foreground: var(--fg-primary);
-
-  --popover: var(--bg-surface-2);
-  --popover-foreground: var(--fg-primary);
-
-  --primary: var(--fg-primary); /* white CTA background (§4.2) */
-  --primary-foreground: var(--bg-base); /* dark text on white btn  */
-
-  --secondary: var(--bg-surface);
-  --secondary-foreground: var(--fg-primary);
-
-  --muted: var(--bg-surface-2);
-  --muted-foreground: var(--fg-secondary);
-
-  --accent: var(--bg-surface-2);
-  --accent-foreground: var(--fg-primary);
-
-  --destructive: var(--danger);
-  --destructive-foreground: var(--fg-primary);
-
-  --border: var(--border-subtle);
-  --input: var(--bg-inset);
-  --ring: var(--accent-violet);
-
-  /* Radius — use md (10px) as base to match §4.5 */
-  --radius: var(--radius-md);
-
-  /* Sidebar — unused in v1 but kept to avoid shadcn import errors */
-  --sidebar: var(--bg-surface);
-  --sidebar-foreground: var(--fg-primary);
-  --sidebar-primary: var(--fg-primary);
-  --sidebar-primary-foreground: var(--bg-base);
-  --sidebar-accent: var(--bg-surface-2);
-  --sidebar-accent-foreground: var(--fg-primary);
-  --sidebar-border: var(--border-subtle);
-  --sidebar-ring: var(--accent-violet);
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Tailwind @theme — exposes Metamorfosis utilities as classes
-   e.g. bg-bg-base, text-fg-secondary, border-border-subtle
+   Tailwind @theme — exposes vars as utility classes
 ───────────────────────────────────────────────────────────── */
 @theme inline {
-  /* Backgrounds */
-  --color-bg-base: var(--bg-base);
-  --color-bg-surface: var(--bg-surface);
-  --color-bg-surface-2: var(--bg-surface-2);
-  --color-bg-inset: var(--bg-inset);
-
-  /* Foregrounds */
-  --color-fg-primary: var(--fg-primary);
-  --color-fg-secondary: var(--fg-secondary);
-  --color-fg-tertiary: var(--fg-tertiary);
-
-  /* Borders */
-  --color-border-subtle: var(--border-subtle);
-  --color-border-strong: var(--border-strong);
-
-  /* Accents */
-  --color-accent-violet: var(--accent-violet);
-  --color-accent-amber: var(--accent-amber);
-  --color-accent-emerald: var(--accent-emerald);
-  --color-accent-rose: var(--accent-rose);
-  --color-accent-sand: var(--accent-sand);
-
-  /* Semantic */
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-danger: var(--danger);
-  --color-info: var(--info);
-
-  /* Shadcn bridge — keep existing utility names working */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -148,27 +105,11 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-
-  /* Fonts */
-  --font-sans: var(--font-geist-sans), "Geist Fallback";
-  --font-mono: var(--font-geist-mono), "Geist Mono Fallback";
-  --font-display: var(--font-outfit), sans-serif;
-  --font-heading: var(--font-display);
-
-  /* Radii */
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --radius-lg: var(--radius-lg);
-  --radius-xl: var(--radius-xl);
-  --radius-2xl: calc(var(--radius-xl) * 1.27);
-
-  /* Shadows */
-  --shadow-sm: var(--shadow-sm);
-  --shadow-md: var(--shadow-md);
-  --shadow-lg: var(--shadow-lg);
-  --shadow-glow: var(--shadow-glow);
-
-  /* Sidebar (shadcn compat) */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -177,6 +118,24 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Fonts */
+  --font-sans: var(--font-geist-sans), "Geist Fallback";
+  --font-mono: var(--font-geist-mono), "Geist Mono Fallback";
+  --font-display: var(--font-outfit), sans-serif;
+  --font-heading: var(--font-display);
+
+  /* Radii */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 6px);
+  --radius-xl: calc(var(--radius) + 12px);
+  --radius-2xl: calc(var(--radius) + 20px);
+
+  /* Shadows */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -184,14 +143,13 @@
 ───────────────────────────────────────────────────────────── */
 @layer base {
   * {
-    @apply border-border-subtle outline-ring/50;
+    @apply border-border outline-ring/50;
   }
 
   body {
-    @apply bg-bg-base text-fg-primary font-sans text-base antialiased;
+    @apply bg-background text-foreground font-sans text-base antialiased;
   }
 
-  /* Instrument Serif only for large display headings (§4.3) */
   h1,
   h2 {
     @apply font-display tracking-tight;
@@ -204,75 +162,17 @@
     @apply font-sans tracking-tight;
   }
 
-  /* Smooth scrolling and base font size bump */
   html {
     scroll-behavior: smooth;
-    font-size: 106.25%; /* Slightly scale up all rems (17px base) */
+    font-size: 106.25%;
   }
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Admin section — opt-in LIGHT theme, scoped to the admin shell.
-   The store is always dark; only [data-admin-theme="light"]
-   (set on the admin layout wrapper) flips the admin subtree.
-
-   IMPORTANT: @theme inline inlines `var(--background)` (etc.) directly
-   into the utilities, and those semantic vars were resolved to dark
-   values at :root. Overriding only the base tokens (--bg-base …) does
-   NOT cascade, because --background was already computed at :root. So
-   we must RE-DECLARE the semantic tokens here as well.
-───────────────────────────────────────────────────────────── */
-[data-admin-theme="light"] {
-  /* Foundational tokens */
-  --bg-base: oklch(0.99 0.002 280);
-  --bg-surface: oklch(0.975 0.003 280);
-  --bg-surface-2: oklch(0.94 0.004 280);
-  --bg-inset: oklch(0.96 0.003 280);
-
-  --fg-primary: oklch(0.23 0.01 280);
-  --fg-secondary: oklch(0.46 0.01 280);
-  --fg-tertiary: oklch(0.62 0.01 280);
-
-  --border-subtle: oklch(0.9 0.004 280);
-  --border-strong: oklch(0.82 0.006 280);
-
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.06);
-  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 16px 40px -8px rgb(0 0 0 / 0.14);
-
-  /* Semantic aliases — re-declared so the inlined utilities pick up light. */
-  --background: var(--bg-base);
-  --foreground: var(--fg-primary);
-  --card: var(--bg-surface);
-  --card-foreground: var(--fg-primary);
-  --popover: var(--bg-surface-2);
-  --popover-foreground: var(--fg-primary);
-  --primary: var(--fg-primary);
-  --primary-foreground: var(--bg-base);
-  --secondary: var(--bg-surface);
-  --secondary-foreground: var(--fg-primary);
-  --muted: var(--bg-surface-2);
-  --muted-foreground: var(--fg-secondary);
-  --accent: var(--bg-surface-2);
-  --accent-foreground: var(--fg-primary);
-  --border: var(--border-subtle);
-  --input: var(--bg-inset);
-
-  color-scheme: light;
-}
-
-/* ─────────────────────────────────────────────────────────────
-   Admin accessibility font scaling, scoped to the admin shell.
-   data-font-size on the admin wrapper sets the base font-size.
-   Desktop caps at 20px, mobile at 18px (smaller increments so
-   touch layouts don't break). Transitions stay smooth.
+   Admin accessibility font scaling
 ───────────────────────────────────────────────────────────── */
 [data-font-size] {
   transition: font-size 0.2s ease;
-
-  /* Re-point Tailwind's text scale to em (relative to this wrapper's base)
-     so utility text classes scale with the slider — scoped to admin only,
-     the store keeps the root rem-based scale. */
   --text-xs: 0.75em;
   --text-sm: 0.875em;
   --text-base: 1em;
@@ -290,6 +190,7 @@
 [data-font-size="larger"] {
   font-size: 20px;
 }
+
 @media (max-width: 640px) {
   [data-font-size="normal"] {
     font-size: 16px;
