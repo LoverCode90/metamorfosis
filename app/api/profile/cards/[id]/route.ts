@@ -17,20 +17,16 @@ export async function DELETE(
   }
 
   const { id } = await params
-  console.log("[DELETE /api/profile/cards] hit", { id, userId: user.id })
 
   // Fetch the row first to verify ownership and get the Square card ID
   const { data: card } = await supabase
     .from("saved_cards")
-    .select("id, square_card_id")
+    .select("id, square_card_id, is_default")
     .eq("id", id)
     .eq("user_id", user.id)
     .single()
 
   if (!card) {
-    console.log("[DELETE /api/profile/cards] ownership check failed — 404", {
-      id,
-    })
     return NextResponse.json({ error: "Card not found" }, { status: 404 })
   }
 
@@ -44,20 +40,36 @@ export async function DELETE(
   }
 
   const admin = createAdminClient()
-  const { error, count } = await admin
-    .from("saved_cards")
-    .delete({ count: "exact" })
-    .eq("id", id)
+  const { error } = await admin.from("saved_cards").delete().eq("id", id)
 
   if (error) {
-    console.error("[DELETE /api/profile/cards] delete error", error)
     return NextResponse.json(
       { error: "Failed to delete card" },
       { status: 500 },
     )
   }
 
-  console.log("[DELETE /api/profile/cards] deleted rows:", count)
+  // Fetch the user's remaining cards (oldest first) to reconcile state
+  const { data: remaining } = await admin
+    .from("saved_cards")
+    .select("id")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: true })
+
+  if (!remaining || remaining.length === 0) {
+    // No cards left — clear the backward-compat columns on the profile
+    await admin
+      .from("profiles")
+      .update({ square_card_id: null, square_customer_id: null })
+      .eq("id", user.id)
+  } else if (card.is_default) {
+    // Deleted card was the default — promote the oldest remaining card
+    await admin
+      .from("saved_cards")
+      .update({ is_default: true })
+      .eq("id", remaining[0].id)
+  }
+
   return NextResponse.json({ ok: true })
 }
 

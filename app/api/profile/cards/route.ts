@@ -20,6 +20,7 @@ export async function GET() {
     .from("saved_cards")
     .select(CARD_SELECT)
     .eq("user_id", user.id)
+    .order("is_default", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(3)
 
