@@ -12,12 +12,18 @@ export function ProductColorCharts({ pdfUrl }: { pdfUrl: string }) {
         <Button
           variant="outline"
           size="sm"
+          nativeButton={false}
           render={<a href={href} target="_blank" rel="noopener noreferrer" />}
         >
           <FileText className="h-3.5 w-3.5" strokeWidth={1.75} />
           View Chart
         </Button>
-        <Button variant="outline" size="sm" render={<a href={href} download />}>
+        <Button
+          variant="outline"
+          size="sm"
+          nativeButton={false}
+          render={<a href={href} download />}
+        >
           <Download className="h-3.5 w-3.5" strokeWidth={1.75} />
           Download Chart
         </Button>

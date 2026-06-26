@@ -138,7 +138,7 @@ export function StepInfo({
 
       <Button
         type="submit"
-        variant="accent"
+        variant="default"
         size="hero"
         className="w-full"
         disabled={hasNonReturnable && !termsAccepted}

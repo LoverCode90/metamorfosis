@@ -21,8 +21,8 @@ export function AboutFaqs() {
       />
 
       <Accordion className="mt-10">
-        {FAQS.map((faq, i) => (
-          <AccordionItem key={faq.q} value={`faq-${i}`}>
+        {FAQS.map((faq, faqIndex) => (
+          <AccordionItem key={faq.q} value={`faq-${faqIndex}`}>
             <AccordionTrigger className="text-foreground py-5 text-base">
               {faq.q}
             </AccordionTrigger>
@@ -40,7 +40,7 @@ export function AboutFaqs() {
         <p className="text-muted-foreground max-w-sm text-sm leading-relaxed">
           Get in touch with our team — we&apos;re friendly and happy to help.
         </p>
-        <Button size="cta" render={<Link href="/" />}>
+        <Button size="cta" nativeButton={false} render={<Link href="/" />}>
           Contact Us
           <ArrowRight className="h-4 w-4" strokeWidth={2} />
         </Button>

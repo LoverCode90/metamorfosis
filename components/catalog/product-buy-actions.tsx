@@ -42,7 +42,7 @@ export function ProductBuyActions({
       />
 
       <Button
-        variant="accent"
+        variant="default"
         onClick={onAdd}
         disabled={outOfStock}
         className="h-11 flex-1"

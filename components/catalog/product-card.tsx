@@ -100,6 +100,7 @@ export const ProductCard = memo(function ProductCard({
               <Button
                 variant="outline"
                 size="sm"
+                nativeButton={false}
                 aria-disabled={outOfStock}
                 className={cn(
                   "shrink-0",

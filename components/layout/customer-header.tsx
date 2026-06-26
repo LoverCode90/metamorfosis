@@ -102,6 +102,7 @@ export function CustomerHeader({
             <Button
               variant="outline"
               size="sm"
+              nativeButton={false}
               className="hidden sm:flex"
               render={<Link href="/login" />}
             >

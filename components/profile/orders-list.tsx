@@ -38,8 +38,9 @@ export function OrdersList({ orders }: OrdersListProps) {
           Once you place an order, it will appear here.
         </p>
         <Button
-          variant="accent"
+          variant="default"
           size="cta"
+          nativeButton={false}
           className="mt-6"
           render={<Link href="/products" />}
         >

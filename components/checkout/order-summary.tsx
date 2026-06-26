@@ -110,7 +110,7 @@ export function OrderSummary({
         {ctaLabel && (
           <Button
             type="button"
-            variant="accent"
+            variant="default"
             onClick={onPlaceOrder}
             className="mt-5 h-12 w-full"
           >

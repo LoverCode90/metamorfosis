@@ -43,6 +43,13 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 16px 40px -8px rgb(0 0 0 / 0.15);
+
+  /* Semantic accent palette — maps to preset primary for consistency */
+  --accent-violet: var(--primary);
+  --accent-emerald: oklch(0.72 0.14 160);
+  --accent-amber: oklch(0.78 0.15 75);
+  --accent-rose: oklch(0.7 0.18 15);
+  --accent-sand: oklch(0.82 0.06 80);
 }
 
 .dark {
@@ -81,6 +88,13 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
   --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.35);
   --shadow-lg: 0 16px 40px -8px rgb(0 0 0 / 0.45);
+
+  /* Semantic accent palette — same values, does not change between modes */
+  --accent-violet: var(--primary);
+  --accent-emerald: oklch(0.72 0.14 160);
+  --accent-amber: oklch(0.78 0.15 75);
+  --accent-rose: oklch(0.7 0.18 15);
+  --accent-sand: oklch(0.82 0.06 80);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -136,6 +150,13 @@
   --shadow-sm: var(--shadow-sm);
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
+
+  /* Accent palette — exposes as bg-accent-violet, text-accent-emerald, etc. */
+  --color-accent-violet: var(--accent-violet);
+  --color-accent-emerald: var(--accent-emerald);
+  --color-accent-amber: var(--accent-amber);
+  --color-accent-rose: var(--accent-rose);
+  --color-accent-sand: var(--accent-sand);
 }
 
 /* ─────────────────────────────────────────────────────────────

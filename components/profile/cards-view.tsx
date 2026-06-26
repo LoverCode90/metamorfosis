@@ -43,6 +43,7 @@ export function CardsView({ cards: initialCards, from }: CardsViewProps) {
         <Button
           variant="ghost"
           size="sm"
+          nativeButton={false}
           render={<Link href="/profile" />}
           className="text-muted-foreground"
         >
@@ -95,6 +96,7 @@ export function CardsView({ cards: initialCards, from }: CardsViewProps) {
           <Button
             variant="link"
             size="sm"
+            nativeButton={false}
             render={<Link href={addHref} />}
             className="text-muted-foreground h-auto p-0"
           >

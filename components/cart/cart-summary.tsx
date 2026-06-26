@@ -56,7 +56,7 @@ export function CartSummary({
         </div>
 
         <Button
-          variant="accent"
+          variant="default"
           onClick={onCheckout}
           disabled={disabled}
           className="mt-4 h-11 w-full sm:mt-5 sm:h-12"

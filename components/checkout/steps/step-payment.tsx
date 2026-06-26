@@ -110,7 +110,7 @@ export function StepPayment({
           Back
         </Button>
         <Button
-          variant="accent"
+          variant="default"
           onClick={() =>
             handlePlace(turnstileToken, surchargeAccepted, saveCard)
           }

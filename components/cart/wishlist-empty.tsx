@@ -20,8 +20,9 @@ export function WishlistEmpty() {
           Tap the heart on any product to save it here for later.
         </p>
         <Button
-          variant="accent"
+          variant="default"
           size="cta"
+          nativeButton={false}
           className="mt-6"
           render={<Link href="/products" />}
         >

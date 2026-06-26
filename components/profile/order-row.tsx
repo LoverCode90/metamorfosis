@@ -135,6 +135,7 @@ export const OrderRow = memo(function OrderRow({ order, now }: OrderRowProps) {
           <Button
             variant="outline"
             size="sm"
+            nativeButton={false}
             render={<Link href={`/tracking?orderId=${order.id}`} />}
           >
             Track order
