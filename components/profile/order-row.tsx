@@ -5,23 +5,33 @@ import { memo } from "react"
 import Link from "next/link"
 import { CheckCircle, Clock, Package, Truck, XCircle } from "lucide-react"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CancelOrderButton } from "@/components/profile/cancel-order-button"
 import { formatDate, formatUSD } from "@/lib/utils/format"
 import type { DbOrder } from "@/lib/orders/types"
-import { cn } from "@/lib/utils"
 
-const STATUS_CONFIG: Record<
-  string,
-  { label: string; color: string; icon: React.ElementType }
-> = {
-  pending: { label: "Pending", color: "text-amber-500", icon: Clock },
-  confirmed: { label: "Confirmed", color: "text-blue-500", icon: Package },
-  processing: { label: "Processing", color: "text-blue-500", icon: Package },
-  shipped: { label: "Shipped", color: "text-purple-500", icon: Truck },
-  delivered: { label: "Delivered", color: "text-green-500", icon: CheckCircle },
-  cancelled: { label: "Cancelled", color: "text-red-500", icon: XCircle },
-  refunded: { label: "Refunded", color: "text-red-400", icon: XCircle },
+type BadgeVariant =
+  | "warning"
+  | "violet"
+  | "secondary"
+  | "success"
+  | "destructive"
+
+type StatusEntry = {
+  label: string
+  badgeVariant: BadgeVariant
+  icon: React.ElementType
+}
+
+const STATUS_CONFIG: Record<string, StatusEntry> = {
+  pending: { label: "Pending", badgeVariant: "warning", icon: Clock },
+  confirmed: { label: "Confirmed", badgeVariant: "violet", icon: Package },
+  processing: { label: "Processing", badgeVariant: "violet", icon: Package },
+  shipped: { label: "Shipped", badgeVariant: "secondary", icon: Truck },
+  delivered: { label: "Delivered", badgeVariant: "success", icon: CheckCircle },
+  cancelled: { label: "Cancelled", badgeVariant: "destructive", icon: XCircle },
+  refunded: { label: "Refunded", badgeVariant: "destructive", icon: XCircle },
 }
 
 const CANCEL_WINDOW_MS = 2 * 60 * 60 * 1000
@@ -62,15 +72,10 @@ export const OrderRow = memo(function OrderRow({ order, now }: OrderRowProps) {
               : `#${order.id.slice(0, 8).toUpperCase()}`}
           </p>
         </div>
-        <span
-          className={cn(
-            "flex items-center gap-1.5 text-xs font-semibold",
-            statusConfig.color,
-          )}
-        >
-          <StatusIcon className="h-3.5 w-3.5" strokeWidth={2} />
+        <Badge variant={statusConfig.badgeVariant}>
+          <StatusIcon strokeWidth={2} />
           {statusConfig.label}
-        </span>
+        </Badge>
       </div>
 
       <div className="border-border mt-4 flex items-center gap-3 border-t pt-4">

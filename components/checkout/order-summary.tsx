@@ -1,12 +1,13 @@
-/* eslint-disable @next/next/no-img-element */
-import Link from "next/link"
 import { Tag, Truck } from "lucide-react"
-import { type CartItem, type CheckoutStepId } from "@/lib/checkout"
-import { formatUSD } from "@/lib/utils/format"
-import type { PriceSheet } from "@/lib/checkout/types"
+
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { OrderSummaryItems } from "@/components/checkout/order-summary-items"
+import { formatUSD } from "@/lib/utils/format"
 import { cn } from "@/lib/utils"
+import { type CartItem, type CheckoutStepId } from "@/lib/checkout"
+import type { PriceSheet } from "@/lib/checkout/types"
 
 interface OrderSummaryProps {
   items: CartItem[]
@@ -35,43 +36,11 @@ export function OrderSummary({
   return (
     <aside className="lg:sticky lg:top-24">
       <div className="border-border bg-card rounded-xl border p-5 sm:p-6">
-        {/* Product rows */}
-        <ul className="space-y-5">
-          {items.map((item) => (
-            <li key={item.id} className="flex gap-4">
-              <div className="border-border bg-muted relative h-16 w-16 shrink-0 overflow-hidden rounded-lg border">
-                <img
-                  src={item.image || "/placeholder.svg"}
-                  alt={item.name}
-                  className="h-full w-full object-cover"
-                />
-                <span className="bg-foreground text-background absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-semibold">
-                  {item.quantity}
-                </span>
-              </div>
-              <div className="flex min-w-0 flex-1 items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <Link
-                    href={`/products/${item.id}`}
-                    className="text-foreground block truncate text-sm font-medium hover:underline"
-                  >
-                    {item.name}
-                  </Link>
-                  <p className="text-muted-foreground mt-0.5 text-xs">
-                    {item.variant}
-                  </p>
-                </div>
-                <p className="text-foreground text-sm font-semibold tabular-nums">
-                  {formatUSD(item.unitPrice * item.quantity)}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <OrderSummaryItems items={items} />
 
         {discountCents > 0 && (
           <div className="mt-5">
-            <Badge className="gap-1.5 border-transparent bg-emerald-600 text-white hover:bg-emerald-600">
+            <Badge variant="success" className="gap-1.5">
               <Tag className="h-3 w-3" />
               Professional Discount Applied
             </Badge>
@@ -80,7 +49,6 @@ export function OrderSummary({
 
         <Separator className="my-5" />
 
-        {/* Financial breakdown */}
         <dl className="space-y-3 text-sm">
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Subtotal</dt>
@@ -140,13 +108,14 @@ export function OrderSummary({
         </div>
 
         {ctaLabel && (
-          <button
+          <Button
             type="button"
+            variant="accent"
             onClick={onPlaceOrder}
-            className="bg-foreground text-background focus-visible:ring-ring mt-5 h-12 w-full rounded-md text-sm font-semibold transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+            className="mt-5 h-12 w-full"
           >
             {ctaLabel}
-          </button>
+          </Button>
         )}
 
         <p className="text-muted-foreground mt-3 text-center text-xs">

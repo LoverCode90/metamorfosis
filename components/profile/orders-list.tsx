@@ -37,7 +37,12 @@ export function OrdersList({ orders }: OrdersListProps) {
         <p className="text-muted-foreground mt-1.5 max-w-sm text-sm">
           Once you place an order, it will appear here.
         </p>
-        <Button size="cta" className="mt-6" render={<Link href="/products" />}>
+        <Button
+          variant="accent"
+          size="cta"
+          className="mt-6"
+          render={<Link href="/products" />}
+        >
           Start shopping
         </Button>
       </div>

@@ -59,7 +59,10 @@ export function ProductCardMedia({
         </Badge>
       )}
       {lowStock && !outOfStock && (
-        <Badge className="pointer-events-none absolute bottom-2.5 left-2.5 z-10 border-transparent bg-amber-500/90 text-white">
+        <Badge
+          variant="warning"
+          className="pointer-events-none absolute bottom-2.5 left-2.5 z-10"
+        >
           Low stock
         </Badge>
       )}
@@ -93,12 +96,12 @@ export function ProductCardMedia({
             <ChevronRight className="h-3.5 w-3.5" strokeWidth={2} />
           </Button>
           <div className="absolute bottom-2 left-1/2 z-10 flex -translate-x-1/2 gap-1 opacity-0 transition-opacity group-hover/img:opacity-100">
-            {images.map((_, i) => (
+            {images.map((_, dotIndex) => (
               <span
-                key={i}
+                key={dotIndex}
                 className={cn(
                   "h-1 w-1 rounded-full transition-colors",
-                  i === imgIdx ? "bg-white" : "bg-white/50",
+                  dotIndex === imgIdx ? "bg-white" : "bg-white/50",
                 )}
               />
             ))}

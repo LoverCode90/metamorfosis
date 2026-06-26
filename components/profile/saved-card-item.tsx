@@ -49,16 +49,8 @@ export const SavedCardItem = memo(function SavedCardItem({
       <span className="min-w-0 flex-1">
         <span className="text-foreground flex items-center gap-2 text-sm font-semibold">
           {card.brand ?? "Card"} ending in {card.last_four}
-          {card.is_default && (
-            <Badge className="bg-accent-violet/15 text-accent-violet border-transparent">
-              Default
-            </Badge>
-          )}
-          {expired && (
-            <Badge className="border-transparent bg-orange-500/15 text-orange-500">
-              Expired
-            </Badge>
-          )}
+          {card.is_default && <Badge variant="violet">Default</Badge>}
+          {expired && <Badge variant="destructive">Expired</Badge>}
         </span>
         <span className="text-muted-foreground block text-xs">
           Expires {formatExpiry(card.exp_month, card.exp_year)}

@@ -56,9 +56,10 @@ export function CartSummary({
         </div>
 
         <Button
+          variant="accent"
           onClick={onCheckout}
           disabled={disabled}
-          className="bg-accent-violet hover:bg-accent-violet/90 mt-4 h-11 w-full text-white sm:mt-5 sm:h-12"
+          className="mt-4 h-11 w-full sm:mt-5 sm:h-12"
         >
           Continue to checkout
         </Button>

@@ -41,7 +41,12 @@ export function ProductBuyActions({
         onChange={onQtyChange}
       />
 
-      <Button onClick={onAdd} disabled={outOfStock} className="h-11 flex-1">
+      <Button
+        variant="accent"
+        onClick={onAdd}
+        disabled={outOfStock}
+        className="h-11 flex-1"
+      >
         <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />
         {outOfStock ? "Out of stock" : "Add to Bag"}
       </Button>

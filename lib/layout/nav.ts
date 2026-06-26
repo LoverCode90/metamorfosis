@@ -1,8 +1,12 @@
 import {
   ClipboardList,
   LayoutDashboard,
+  Lock,
+  MapPin,
+  Package,
   ShieldCheck,
   ShoppingBag,
+  User,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
@@ -33,10 +37,30 @@ export const ADMIN_NAV_LINKS: AdminNavLink[] = [
 /**
  * Whether a nav link is active for the current path. The root/dashboard links
  * match exactly; others match by prefix.
- * @param href - The link target.
- * @param pathname - The current pathname.
  */
 export function isNavLinkActive(href: string, pathname: string): boolean {
   if (href === "/" || href === "/admin") return pathname === href
   return pathname.startsWith(href)
+}
+
+export interface NavShortcut {
+  href: string
+  label: string
+  icon: LucideIcon
+}
+
+const ACCOUNT_SHORTCUTS: NavShortcut[] = [
+  { href: "/profile/addresses", label: "Update Address", icon: MapPin },
+  { href: "/orders", label: "My Orders", icon: Package },
+  { href: "/profile/security", label: "Update Password", icon: Lock },
+  { href: "/profile", label: "My Profile", icon: User },
+]
+
+/** Returns account shortcuts, omitting the password entry for Google OAuth users. */
+export function getAccountShortcuts(isGoogleUser: boolean): NavShortcut[] {
+  return isGoogleUser
+    ? ACCOUNT_SHORTCUTS.filter(
+        (shortcut) => shortcut.href !== "/profile/security",
+      )
+    : ACCOUNT_SHORTCUTS
 }

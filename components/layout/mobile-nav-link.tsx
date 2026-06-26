@@ -95,7 +95,9 @@ export const NavDrawerRow = memo(function NavDrawerRow({
       <Icon className="text-muted-foreground h-4 w-4" strokeWidth={1.75} />
       <span className="flex-1">{label}</span>
       {badge !== undefined && badge > 0 && (
-        <Badge className="min-w-5">{badge}</Badge>
+        <Badge variant="violet" className="min-w-5">
+          {badge}
+        </Badge>
       )}
     </Link>
   )

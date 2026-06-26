@@ -45,7 +45,9 @@ export function HeaderIconButton({
           className={cn(badgeClass, "border-border rounded-full border")}
         />
       ) : badge !== undefined && badge > 0 ? (
-        <Badge className={badgeClass}>{badge}</Badge>
+        <Badge variant="violet" className={badgeClass}>
+          {badge}
+        </Badge>
       ) : null}
     </Button>
   )

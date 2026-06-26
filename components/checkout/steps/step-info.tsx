@@ -77,14 +77,13 @@ export function StepInfo({
   const heading = (
     <h2 className="text-foreground text-lg font-semibold">Contact & Address</h2>
   )
-
   if (isLoading) {
     return (
       <div className="space-y-6">
         {heading}
         <div className="space-y-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-12 w-full" />
+          {Array.from({ length: 4 }).map((_, skeletonIndex) => (
+            <Skeleton key={skeletonIndex} className="h-12 w-full" />
           ))}
         </div>
       </div>
@@ -139,6 +138,7 @@ export function StepInfo({
 
       <Button
         type="submit"
+        variant="accent"
         size="hero"
         className="w-full"
         disabled={hasNonReturnable && !termsAccepted}

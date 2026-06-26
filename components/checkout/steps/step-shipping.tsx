@@ -83,6 +83,7 @@ export function StepShipping({
           Back
         </Button>
         <Button
+          variant="accent"
           disabled={!selectedRate || !!oversizedMsg}
           onClick={() =>
             selectedRate && onContinue(selected, selectedRate.amountCents)

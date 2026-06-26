@@ -23,8 +23,8 @@ export function ProfileNavRow({
       href={href}
       className="border-border bg-card hover:bg-muted/50 focus-visible:ring-ring group flex items-center gap-4 rounded-2xl border p-4 transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
     >
-      <span className="bg-muted flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
-        <Icon className="text-foreground h-5 w-5" strokeWidth={1.75} />
+      <span className="bg-accent-violet/10 text-accent-violet flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
+        <Icon className="h-5 w-5" strokeWidth={1.75} />
       </span>
       <span className="min-w-0 flex-1">
         <span className="text-foreground block text-sm font-semibold">

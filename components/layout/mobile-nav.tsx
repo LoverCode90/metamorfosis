@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { createPortal } from "react-dom"
-import { Heart, Lock, MapPin, Package, User, X } from "lucide-react"
+import { Heart, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -10,15 +10,12 @@ import {
   MobileNavProfileHeader,
   NavDrawerRow,
 } from "@/components/layout/mobile-nav-link"
-import { CUSTOMER_NAV_LINKS, isNavLinkActive } from "@/lib/layout/nav"
+import {
+  CUSTOMER_NAV_LINKS,
+  getAccountShortcuts,
+  isNavLinkActive,
+} from "@/lib/layout/nav"
 import { cn } from "@/lib/utils"
-
-const ACCOUNT_SHORTCUTS = [
-  { href: "/profile", label: "Update Address", icon: MapPin },
-  { href: "/tracking", label: "Track Order", icon: Package },
-  { href: "/profile", label: "Update Password", icon: Lock },
-  { href: "/profile", label: "My Profile", icon: User },
-]
 
 interface MobileNavProps {
   open: boolean
@@ -27,6 +24,8 @@ interface MobileNavProps {
   profileName: string
   profileEmail: string
   wishlistCount: number
+  /** Google OAuth users have no password; hides the Update Password shortcut. */
+  isGoogleUser: boolean
 }
 
 export function MobileNav({
@@ -36,6 +35,7 @@ export function MobileNav({
   profileName,
   profileEmail,
   wishlistCount,
+  isGoogleUser,
 }: MobileNavProps) {
   const [mounted, setMounted] = useState(false)
   useEffect(() => {
@@ -43,6 +43,8 @@ export function MobileNav({
     return () => cancelAnimationFrame(frame)
   }, [])
   if (!mounted) return null
+
+  const accountShortcuts = getAccountShortcuts(isGoogleUser)
 
   const backdropClass = cn(
     "bg-foreground/40 absolute inset-0 backdrop-blur-sm transition-opacity duration-300",
@@ -128,7 +130,7 @@ export function MobileNav({
                   onClick={onClose}
                 />
               </li>
-              {ACCOUNT_SHORTCUTS.map((shortcut) => (
+              {accountShortcuts.map((shortcut) => (
                 <li key={shortcut.label}>
                   <NavDrawerRow
                     href={shortcut.href}

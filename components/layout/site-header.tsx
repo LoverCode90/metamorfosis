@@ -29,6 +29,8 @@ export function SiteHeader() {
     return <AdminHeader pathname={pathname} onOpenMenu={openMobileNav} />
   }
 
+  const isGoogleUser = user?.app_metadata?.provider === "google"
+
   return (
     <CustomerHeader
       pathname={pathname}
@@ -41,6 +43,7 @@ export function SiteHeader() {
       onCloseMenu={closeMobileNav}
       profileName={profile.name}
       profileEmail={profile.email}
+      isGoogleUser={!!isGoogleUser}
     />
   )
 }

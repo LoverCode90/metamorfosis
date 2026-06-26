@@ -21,6 +21,7 @@ interface CustomerHeaderProps {
   onCloseMenu: () => void
   profileName: string
   profileEmail: string
+  isGoogleUser: boolean
 }
 
 /** Top navigation bar shown to customers and guests. */
@@ -35,6 +36,7 @@ export function CustomerHeader({
   onCloseMenu,
   profileName,
   profileEmail,
+  isGoogleUser,
 }: CustomerHeaderProps) {
   const router = useRouter()
 
@@ -127,6 +129,7 @@ export function CustomerHeader({
         profileName={profileName}
         profileEmail={profileEmail}
         wishlistCount={wishlistCount}
+        isGoogleUser={isGoogleUser}
       />
     </header>
   )

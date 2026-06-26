@@ -19,7 +19,12 @@ export function WishlistEmpty() {
         <p className="text-muted-foreground mt-1.5 max-w-sm text-sm">
           Tap the heart on any product to save it here for later.
         </p>
-        <Button size="cta" className="mt-6" render={<Link href="/products" />}>
+        <Button
+          variant="accent"
+          size="cta"
+          className="mt-6"
+          render={<Link href="/products" />}
+        >
           Browse products
         </Button>
       </div>
