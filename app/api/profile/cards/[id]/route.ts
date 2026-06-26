@@ -51,3 +51,60 @@ export async function DELETE(
 
   return NextResponse.json({ ok: true })
 }
+
+export async function PUT(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  const { id } = await params
+
+  // Verify the card belongs to the user before mutating defaults
+  const { data: card } = await supabase
+    .from("saved_cards")
+    .select("id")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single()
+
+  if (!card) {
+    return NextResponse.json({ error: "Card not found" }, { status: 404 })
+  }
+
+  const admin = createAdminClient()
+
+  // Clear default on all of the user's cards, then set it on this one
+  const { error: clearError } = await admin
+    .from("saved_cards")
+    .update({ is_default: false })
+    .eq("user_id", user.id)
+
+  if (clearError) {
+    return NextResponse.json(
+      { error: "Failed to update default card" },
+      { status: 500 },
+    )
+  }
+
+  const { error: setError } = await admin
+    .from("saved_cards")
+    .update({ is_default: true })
+    .eq("id", id)
+
+  if (setError) {
+    return NextResponse.json(
+      { error: "Failed to update default card" },
+      { status: 500 },
+    )
+  }
+
+  return NextResponse.json({ ok: true })
+}

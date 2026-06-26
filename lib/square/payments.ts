@@ -172,11 +172,12 @@ export async function retrieveCardMetadata(
   cardId: string,
 ): Promise<CardMetadata | null> {
   if (process.env.NEXT_PUBLIC_PAYMENT_MODE === "test") {
+    // Matches Square test card 4111 1111 1111 1111.
     return {
       brand: "VISA",
-      last4: cardId.slice(-4),
+      last4: "1111",
       expMonth: 12,
-      expYear: 2099,
+      expYear: 2030,
     }
   }
 

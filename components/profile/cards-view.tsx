@@ -36,6 +36,7 @@ export function CardsView({ cards: initialCards, from }: CardsViewProps) {
   const router = useRouter()
   const [cards, setCards] = useState<SavedCard[]>(initialCards)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [defaultingId, setDefaultingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   async function handleDelete(id: string) {
@@ -53,6 +54,28 @@ export function CardsView({ cards: initialCards, from }: CardsViewProps) {
       setError(err instanceof Error ? err.message : "Failed to delete card")
     } finally {
       setDeletingId(null)
+    }
+  }
+
+  async function handleSetDefault(id: string) {
+    setDefaultingId(id)
+    setError(null)
+
+    try {
+      const res = await fetch(`/api/profile/cards/${id}`, {
+        method: "PUT",
+      })
+      if (!res.ok) {
+        const body = (await res.json()) as { error?: string }
+        throw new Error(body.error ?? "Failed to set default card")
+      }
+      setCards((prev) => prev.map((c) => ({ ...c, is_default: c.id === id })))
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to set default card",
+      )
+    } finally {
+      setDefaultingId(null)
     }
   }
 
@@ -96,6 +119,7 @@ export function CardsView({ cards: initialCards, from }: CardsViewProps) {
         {cards.map((card) => {
           const expired = isExpired(card.exp_month, card.exp_year)
           const isDeleting = deletingId === card.id
+          const isDefaulting = defaultingId === card.id
 
           return (
             <div
@@ -112,6 +136,11 @@ export function CardsView({ cards: initialCards, from }: CardsViewProps) {
               <span className="min-w-0 flex-1">
                 <span className="text-foreground flex items-center gap-2 text-sm font-semibold">
                   {card.brand ?? "Card"} ending in {card.last_four}
+                  {card.is_default && (
+                    <span className="bg-accent-violet/15 text-accent-violet rounded-full px-2 py-0.5 text-xs font-medium">
+                      Default
+                    </span>
+                  )}
                   {expired && (
                     <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-xs font-medium text-orange-500">
                       Expired
@@ -121,6 +150,16 @@ export function CardsView({ cards: initialCards, from }: CardsViewProps) {
                 <span className="text-muted-foreground block text-xs">
                   Expires {formatExpiry(card.exp_month, card.exp_year)}
                 </span>
+                {!card.is_default && cards.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleSetDefault(card.id)}
+                    disabled={isDefaulting}
+                    className="text-muted-foreground hover:text-foreground mt-1 text-xs font-medium underline underline-offset-4 transition-colors disabled:opacity-50"
+                  >
+                    {isDefaulting ? "Setting…" : "Set as default"}
+                  </button>
+                )}
               </span>
 
               <button
@@ -150,7 +189,7 @@ export function CardsView({ cards: initialCards, from }: CardsViewProps) {
           </p>
         ) : (
           <Link
-            href="/checkout"
+            href="/profile/cards/add"
             className="text-muted-foreground hover:text-foreground text-sm font-medium underline underline-offset-4 transition-colors"
           >
             Add payment method

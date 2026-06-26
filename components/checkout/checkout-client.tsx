@@ -30,8 +30,9 @@ export function CheckoutClient() {
   const [wizardStep, setWizardStep] = useState<CheckoutStepId>("info")
   const [savedCard, setSavedCard] = useState<SavedCardMeta | null>(null)
 
+  const userId = user?.id
   useEffect(() => {
-    if (!user) return
+    if (!userId) return
     fetch("/api/profile/cards")
       .then((r) => r.json())
       .then((body: unknown) => {
@@ -39,7 +40,7 @@ export function CheckoutClient() {
         setSavedCard(cards[0] ?? null)
       })
       .catch(() => {})
-  }, [user?.id])
+  }, [userId])
   const [address, setAddress] = useState<CheckoutAddress | null>(null)
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [shippingMethod, setShippingMethod] =
