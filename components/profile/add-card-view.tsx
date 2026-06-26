@@ -5,16 +5,12 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ChevronLeft, Lock } from "lucide-react"
 
-interface AddCardViewProps {
-  from: string | null
-}
+import { Button } from "@/components/ui/button"
 
-export function AddCardView({ from }: AddCardViewProps) {
+export function AddCardView() {
   const router = useRouter()
-  const cardsHref =
-    from === "payment" ? "/profile/cards?from=payment" : "/profile/cards"
   const cardContainerRef = useRef<HTMLDivElement>(null)
-  const cardRef = useRef<any>(null)
+  const cardRef = useRef<unknown>(null)
 
   const [sdkReady, setSdkReady] = useState(false)
   const [sdkError, setSdkError] = useState<string | null>(null)
@@ -78,7 +74,14 @@ export function AddCardView({ from }: AddCardViewProps) {
     setError(null)
 
     try {
-      const result = await cardRef.current.tokenize()
+      const card = cardRef.current as {
+        tokenize: () => Promise<{
+          status: string
+          token?: string
+          errors?: { message: string }[]
+        }>
+      }
+      const result = await card.tokenize()
       if (result.status !== "OK") {
         setError(result.errors?.[0]?.message ?? "Card error.")
         return
@@ -95,7 +98,7 @@ export function AddCardView({ from }: AddCardViewProps) {
         throw new Error(body.error ?? "Failed to save card")
       }
 
-      router.push(cardsHref)
+      router.replace("/profile/cards")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save card")
     } finally {
@@ -106,7 +109,7 @@ export function AddCardView({ from }: AddCardViewProps) {
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:py-12">
       <Link
-        href={cardsHref}
+        href="/profile/cards"
         className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm font-medium transition-colors"
       >
         <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
@@ -146,15 +149,16 @@ export function AddCardView({ from }: AddCardViewProps) {
           </p>
         )}
 
-        <button
-          type="button"
+        <Button
+          variant="default"
+          size="hero"
+          className="w-full"
           onClick={handleSave}
           disabled={!sdkReady || saving}
-          className="bg-foreground text-background flex h-12 w-full items-center justify-center gap-2 rounded-md text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Lock className="h-4 w-4" strokeWidth={1.75} />
           {saving ? "Saving…" : "Save card"}
-        </button>
+        </Button>
       </div>
     </div>
   )

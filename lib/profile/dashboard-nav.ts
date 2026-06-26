@@ -31,8 +31,8 @@ export const PROFILE_NAV_ROWS: ProfileNavRowDef[] = [
   {
     href: "/profile/addresses",
     icon: MapPin,
-    title: "Addresses",
-    description: "Your shipping address",
+    title: "Shipping Info",
+    description: "Name, phone & shipping address",
   },
   {
     href: "/profile/cards",

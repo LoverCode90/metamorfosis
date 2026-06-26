@@ -4,11 +4,7 @@ import { AddCardView } from "@/components/profile/add-card-view"
 
 export const metadata = { title: "Add Card — Metamorfosis Beauty" }
 
-interface Props {
-  searchParams: Promise<{ from?: string }>
-}
-
-export default async function AddCardPage({ searchParams }: Props) {
+export default async function AddCardPage() {
   const supabase = await createClient()
   const {
     data: { user },
@@ -16,7 +12,5 @@ export default async function AddCardPage({ searchParams }: Props) {
 
   if (!user) redirect("/login")
 
-  const { from } = await searchParams
-
-  return <AddCardView from={from ?? null} />
+  return <AddCardView />
 }

@@ -5,11 +5,7 @@ import type { SavedCard } from "@/components/profile/cards-view"
 
 export const metadata = { title: "Payment Methods — Metamorfosis Beauty" }
 
-interface Props {
-  searchParams: Promise<{ from?: string }>
-}
-
-export default async function CardsPage({ searchParams }: Props) {
+export default async function CardsPage() {
   const supabase = await createClient()
   const {
     data: { user },
@@ -25,9 +21,7 @@ export default async function CardsPage({ searchParams }: Props) {
     .eq("user_id", user.id)
     .order("is_default", { ascending: false })
     .order("created_at", { ascending: false })
-    .limit(3)
+    .limit(1)
 
-  const { from } = await searchParams
-
-  return <CardsView cards={(data ?? []) as SavedCard[]} from={from ?? null} />
+  return <CardsView cards={(data ?? []) as SavedCard[]} />
 }

@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { ArrowLeft, Lock, ShieldCheck } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -31,7 +30,6 @@ interface StepPaymentProps {
   ) => Promise<PlaceOrderResponse>
 }
 
-/** Checkout step 3: card entry (or saved card), consents, and place order. */
 export function StepPayment({
   totalCents,
   surchargeCents,
@@ -39,7 +37,6 @@ export function StepPayment({
   onBack,
   onSubmit,
 }: StepPaymentProps) {
-  const router = useRouter()
   const [turnstileToken, setTurnstileToken] = useState("")
   const [surchargeAccepted, setSurchargeAccepted] = useState(false)
   const [saveCard, setSaveCard] = useState(true)
@@ -86,6 +83,7 @@ export function StepPayment({
       <PaymentFormFields
         useSavedCard={useSavedCard}
         savedCard={savedCard}
+        cardExpired={cardExpired}
         cardContainerRef={cardContainerRef}
         sdkReady={sdkReady}
         sdkError={sdkError}
@@ -96,7 +94,6 @@ export function StepPayment({
         saveCard={saveCard}
         onSaveCardChange={setSaveCard}
         onTurnstileVerify={setTurnstileToken}
-        onUpdateCard={() => router.push("/profile/cards?from=payment")}
       />
 
       <div className="flex gap-3 pt-2">
@@ -120,9 +117,7 @@ export function StepPayment({
           <Lock className="h-4 w-4" strokeWidth={1.75} />
           {submitting
             ? "Processing…"
-            : useSavedCard && cardExpired
-              ? "Update card to continue"
-              : `Place Order — ${formatUSD(totalCents)}`}
+            : `Place Order — ${formatUSD(totalCents)}`}
         </Button>
       </div>
 

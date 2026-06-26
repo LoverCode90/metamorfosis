@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 
 import { useCart } from "@/hooks/use-cart"
@@ -55,17 +55,28 @@ export interface UseCheckoutFlowResult {
   ) => Promise<PlaceOrderResponse>
 }
 
-/**
- * Owns the full checkout flow: wizard step state, the professional-items gate,
- * address/shipping/tax state, server-computed price sheet, and the place-order
- * submission. Leaves {@link CheckoutClient} purely presentational.
- */
+const CHECKOUT_STEP_KEY = "checkout_wizard_step"
+const VALID_STEPS = new Set<string>(["info", "shipping", "payment"])
+
 export function useCheckoutFlow(): UseCheckoutFlowResult {
   const router = useRouter()
   const { items, clearCart, removeItem } = useCart()
   const { user, dbProfile, savedAddress, saveAddress } = useUser()
 
-  const [wizardStep, setWizardStep] = useState<CheckoutStepId>("info")
+  const [wizardStep, setWizardStepRaw] = useState<CheckoutStepId>("info")
+
+  useEffect(() => {
+    const saved = sessionStorage.getItem(CHECKOUT_STEP_KEY)
+    if (saved && VALID_STEPS.has(saved)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setWizardStepRaw(saved as CheckoutStepId)
+    }
+  }, [])
+
+  const setWizardStep = useCallback((step: CheckoutStepId) => {
+    sessionStorage.setItem(CHECKOUT_STEP_KEY, step)
+    setWizardStepRaw(step)
+  }, [])
   const [savedCard, setSavedCard] = useState<SavedCardMeta | null>(null)
   const [address, setAddress] = useState<CheckoutAddress | null>(null)
   const [termsAccepted, setTermsAccepted] = useState(false)
@@ -154,6 +165,7 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
 
     if (data.ok) {
       clearCart()
+      sessionStorage.removeItem(CHECKOUT_STEP_KEY)
       router.push(
         `/confirmation?orderId=${data.orderId}&orderNumber=${data.orderNumber}`,
       )
@@ -165,7 +177,10 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
     items,
     wizardStep,
     setWizardStep,
-    goToCart: () => router.push("/cart"),
+    goToCart: () => {
+      sessionStorage.removeItem(CHECKOUT_STEP_KEY)
+      router.push("/cart")
+    },
     showGate,
     gatedItems,
     isAuthenticated: !!user,

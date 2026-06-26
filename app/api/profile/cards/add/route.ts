@@ -34,9 +34,12 @@ export async function POST(request: NextRequest) {
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id)
 
-  // Enforce the 3-card limit before creating anything in Square
-  if ((count ?? 0) >= 3) {
-    return NextResponse.json({ error: "Max 3 cards" }, { status: 400 })
+  // Enforce the 1-card limit before creating anything in Square
+  if ((count ?? 0) >= 1) {
+    return NextResponse.json(
+      { error: "Only one saved card allowed" },
+      { status: 400 },
+    )
   }
 
   const customerId =

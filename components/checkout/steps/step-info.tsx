@@ -1,7 +1,8 @@
 "use client"
 
 import { useCallback, useState } from "react"
-import { Controller, useForm, useWatch } from "react-hook-form"
+import { useRouter } from "next/navigation"
+import { Control, Controller, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
 import { AddressFormFields } from "@/components/checkout/steps/address-form-fields"
@@ -20,18 +21,37 @@ import { infoSchema, type InfoFormValues } from "@/lib/validation/checkout"
 
 interface StepInfoProps {
   hasNonReturnable: boolean
-  /** Initial values from the user's profile or a prior step-info submission. */
-  defaultValues?: Partial<InfoFormValues>
+  defaultValues?: Partial<InfoFormValues> | undefined
   isAuthenticated: boolean
-  /** Skip auto-fetch of saved address (e.g. returning from the shipping step). */
   skipAddressFetch?: boolean
   onContinue: (data: CheckoutAddress, termsAccepted: boolean) => void
 }
 
-/**
- * Checkout step 1: collects contact details + US shipping address, pre-filling
- * from the user's saved default address and gating on the non-returnable ack.
- */
+function TermsCheckbox({ control }: { control: Control<InfoFormValues> }) {
+  return (
+    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-4">
+      <Controller
+        control={control}
+        name="termsAccepted"
+        render={({ field }) => (
+          <Checkbox
+            checked={!!field.value}
+            onCheckedChange={field.onChange}
+            className="mt-0.5"
+          />
+        )}
+      />
+      <span className="text-foreground text-sm">
+        I understand that{" "}
+        <span className="font-medium">
+          chemical products (bleach, developer, permanent color)
+        </span>{" "}
+        cannot be returned once shipped.
+      </span>
+    </label>
+  )
+}
+
 export function StepInfo({
   hasNonReturnable,
   defaultValues,
@@ -40,6 +60,7 @@ export function StepInfo({
   onContinue,
 }: StepInfoProps) {
   const [usingSaved, setUsingSaved] = useState(false)
+  const router = useRouter()
 
   const {
     register,
@@ -54,9 +75,9 @@ export function StepInfo({
   })
 
   const handleSavedLoaded = useCallback(
-    (address: CheckoutAddress) => {
+    (addr: CheckoutAddress) => {
       setUsingSaved(true)
-      reset(addressToInfoValues(address))
+      reset(addressToInfoValues(addr))
     },
     [reset],
   )
@@ -77,6 +98,7 @@ export function StepInfo({
   const heading = (
     <h2 className="text-foreground text-lg font-semibold">Contact & Address</h2>
   )
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -89,53 +111,43 @@ export function StepInfo({
       </div>
     )
   }
+  if (usingSaved && savedAddress) {
+    return (
+      <div className="space-y-6">
+        {heading}
+        <SavedAddressBanner
+          address={savedAddress}
+          onEdit={() => router.push("/profile/addresses?from=checkout")}
+        />
+        {hasNonReturnable && <TermsCheckbox control={control} />}
+        <Button
+          type="button"
+          variant="default"
+          size="hero"
+          className="w-full"
+          disabled={hasNonReturnable && !termsAccepted}
+          onClick={handleSubmit(onSubmit)}
+        >
+          Continue to Shipping
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
       {heading}
-
-      {savedAddress && usingSaved && (
-        <SavedAddressBanner
-          address={savedAddress}
-          onEdit={() => setUsingSaved(false)}
-        />
-      )}
-
       <AddressFormFields
         register={register}
         control={control}
         errors={errors}
         setValue={setValue}
-        disabled={!!savedAddress && usingSaved}
+        disabled={false}
       />
-
       <p className="text-muted-foreground text-xs">
         We only ship within the United States.
       </p>
-
-      {hasNonReturnable && (
-        <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-4">
-          <Controller
-            control={control}
-            name="termsAccepted"
-            render={({ field }) => (
-              <Checkbox
-                checked={!!field.value}
-                onCheckedChange={field.onChange}
-                className="mt-0.5"
-              />
-            )}
-          />
-          <span className="text-foreground text-sm">
-            I understand that{" "}
-            <span className="font-medium">
-              chemical products (bleach, developer, permanent color)
-            </span>{" "}
-            cannot be returned once shipped.
-          </span>
-        </label>
-      )}
-
+      {hasNonReturnable && <TermsCheckbox control={control} />}
       <Button
         type="submit"
         variant="default"

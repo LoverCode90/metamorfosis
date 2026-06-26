@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { SavedCard } from "@/lib/profile/cards-api"
 
-/** Whether a card's expiry month/year is in the past. */
 function isExpired(expMonth: number, expYear: number): boolean {
   const now = new Date()
   const year = now.getFullYear()
@@ -15,7 +14,6 @@ function isExpired(expMonth: number, expYear: number): boolean {
   return expYear < year || (expYear === year && expMonth < month)
 }
 
-/** Formats a card expiry as MM/YYYY. */
 function formatExpiry(expMonth: number, expYear: number): string {
   return `${String(expMonth).padStart(2, "0")}/${expYear}`
 }
@@ -23,20 +21,13 @@ function formatExpiry(expMonth: number, expYear: number): string {
 interface SavedCardItemProps {
   card: SavedCard
   isDeleting: boolean
-  isDefaulting: boolean
-  canSetDefault: boolean
   onDelete: (id: string) => void
-  onSetDefault: (id: string) => void
 }
 
-/** A single saved payment card row (memoized — rendered in a list). */
 export const SavedCardItem = memo(function SavedCardItem({
   card,
   isDeleting,
-  isDefaulting,
-  canSetDefault,
   onDelete,
-  onSetDefault,
 }: SavedCardItemProps) {
   const expired = isExpired(card.exp_month, card.exp_year)
 
@@ -55,17 +46,6 @@ export const SavedCardItem = memo(function SavedCardItem({
         <span className="text-muted-foreground block text-xs">
           Expires {formatExpiry(card.exp_month, card.exp_year)}
         </span>
-        {!card.is_default && canSetDefault && (
-          <Button
-            variant="link"
-            size="sm"
-            onClick={() => onSetDefault(card.id)}
-            disabled={isDefaulting}
-            className="text-muted-foreground mt-1 h-auto p-0 text-xs"
-          >
-            {isDefaulting ? "Setting…" : "Set as default"}
-          </Button>
-        )}
       </span>
 
       <Button

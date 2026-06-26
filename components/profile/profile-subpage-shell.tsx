@@ -7,30 +7,28 @@ import { ChevronLeft, Loader2 } from "lucide-react"
 interface ProfileSubpageShellProps {
   title: string
   description?: string
-  /** When true, renders a centered spinner instead of children. */
   isLoading?: boolean
   children: ReactNode
+  backHref?: string
+  backLabel?: string
 }
 
-/**
- * Shared chrome for every /profile/* subpage: a "Back" link to the hub, a
- * heading, and a constrained content column. Shows a spinner while the
- * client-side profile data is still loading.
- */
 export function ProfileSubpageShell({
   title,
   description,
   isLoading = false,
   children,
+  backHref = "/profile",
+  backLabel = "Back",
 }: ProfileSubpageShellProps) {
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:py-12">
       <Link
-        href="/profile"
+        href={backHref}
         className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm font-medium transition-colors"
       >
         <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
-        Back
+        {backLabel}
       </Link>
 
       <div className="mt-4 flex flex-col gap-1">

@@ -22,7 +22,7 @@ export async function GET() {
     .eq("user_id", user.id)
     .order("is_default", { ascending: false })
     .order("created_at", { ascending: false })
-    .limit(3)
+    .limit(1)
 
   if (error) {
     return NextResponse.json(

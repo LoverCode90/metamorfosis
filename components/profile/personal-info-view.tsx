@@ -10,15 +10,11 @@ export function PersonalInfoView() {
   return (
     <ProfileSubpageShell
       title="Personal Info"
-      description="Your name, phone number, and email."
+      description="Your name and email."
       isLoading={isLoading}
     >
       <div className="flex flex-col gap-4">
-        <ProfileInfoSection
-          profile={profile}
-          phone={dbProfile?.phone_number ?? ""}
-          updateProfile={updateProfile}
-        />
+        <ProfileInfoSection profile={profile} updateProfile={updateProfile} />
       </div>
     </ProfileSubpageShell>
   )

@@ -13,44 +13,30 @@ export type { SavedCard }
 
 interface CardsViewProps {
   cards: SavedCard[]
-  from: string | null
 }
 
-/** Saved payment methods page: list, set-default, delete, and add. */
-export function CardsView({ cards: initialCards, from }: CardsViewProps) {
+export function CardsView({ cards: initialCards }: CardsViewProps) {
   const router = useRouter()
-  const { cards, error, deletingId, defaultingId, deleteCard, setDefaultCard } =
-    useSavedCards(initialCards)
+  const { cards, error, deletingId, deleteCard } = useSavedCards(initialCards)
 
-  const addHref =
-    from === "payment"
-      ? "/profile/cards/add?from=payment"
-      : "/profile/cards/add"
+  async function handleReplaceCard() {
+    if (cards.length === 0) return
+    await deleteCard(cards[0].id)
+    router.push("/profile/cards/add")
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:py-12">
-      {from === "payment" ? (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.back()}
-          className="text-muted-foreground"
-        >
-          <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
-          Return to payment
-        </Button>
-      ) : (
-        <Button
-          variant="ghost"
-          size="sm"
-          nativeButton={false}
-          render={<Link href="/profile" />}
-          className="text-muted-foreground"
-        >
-          <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
-          Back to profile
-        </Button>
-      )}
+      <Button
+        variant="ghost"
+        size="sm"
+        nativeButton={false}
+        render={<Link href="/profile" />}
+        className="text-muted-foreground"
+      >
+        <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
+        Back to profile
+      </Button>
 
       <div className="mt-4 flex flex-col gap-1">
         <h1 className="text-foreground text-2xl font-semibold tracking-tight">
@@ -73,10 +59,7 @@ export function CardsView({ cards: initialCards, from }: CardsViewProps) {
             key={card.id}
             card={card}
             isDeleting={deletingId === card.id}
-            isDefaulting={defaultingId === card.id}
-            canSetDefault={cards.length > 1}
             onDelete={deleteCard}
-            onSetDefault={setDefaultCard}
           />
         ))}
       </div>
@@ -88,16 +71,22 @@ export function CardsView({ cards: initialCards, from }: CardsViewProps) {
       )}
 
       <div className="mt-6">
-        {cards.length >= 3 ? (
-          <p className="text-muted-foreground text-sm">
-            Delete a card to add a new one.
-          </p>
+        {cards.length >= 1 ? (
+          <Button
+            variant="link"
+            size="sm"
+            onClick={handleReplaceCard}
+            disabled={!!deletingId}
+            className="text-muted-foreground h-auto p-0"
+          >
+            {deletingId ? "Removing…" : "Replace card"}
+          </Button>
         ) : (
           <Button
             variant="link"
             size="sm"
             nativeButton={false}
-            render={<Link href={addHref} />}
+            render={<Link href="/profile/cards/add" />}
             className="text-muted-foreground h-auto p-0"
           >
             Add payment method

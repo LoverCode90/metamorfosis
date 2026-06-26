@@ -1,7 +1,12 @@
 import { AddressesView } from "@/components/profile/addresses-view"
 
-export const metadata = { title: "Addresses — Metamorfosis Beauty" }
+export const metadata = { title: "Shipping Info — Metamorfosis Beauty" }
 
-export default function AddressesPage() {
-  return <AddressesView />
+interface Props {
+  searchParams: Promise<{ from?: string }>
+}
+
+export default async function AddressesPage({ searchParams }: Props) {
+  const { from } = await searchParams
+  return <AddressesView from={from ?? null} />
 }
