@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import type { CheckoutStepId } from "@/lib/types"
@@ -20,6 +20,7 @@ import { OrderSummary } from "./order-summary"
 import { StepInfo } from "./steps/step-info"
 import { StepShipping } from "./steps/step-shipping"
 import { StepPayment } from "./steps/step-payment"
+import type { SavedCardMeta } from "./steps/step-payment"
 
 export function CheckoutClient() {
   const router = useRouter()
@@ -27,6 +28,18 @@ export function CheckoutClient() {
   const { user, dbProfile, savedAddress, saveAddress } = useUser()
 
   const [wizardStep, setWizardStep] = useState<CheckoutStepId>("info")
+  const [savedCard, setSavedCard] = useState<SavedCardMeta | null>(null)
+
+  useEffect(() => {
+    if (!user) return
+    fetch("/api/profile/cards")
+      .then((r) => r.json())
+      .then((body: unknown) => {
+        const { cards } = body as { cards: SavedCardMeta[] }
+        setSavedCard(cards[0] ?? null)
+      })
+      .catch(() => {})
+  }, [user?.id])
   const [address, setAddress] = useState<CheckoutAddress | null>(null)
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [shippingMethod, setShippingMethod] =
@@ -234,7 +247,7 @@ export function CheckoutClient() {
             <StepPayment
               totalCents={priceSheet.totalCents}
               surchargeCents={priceSheet.surchargeCents}
-              savedCardId={dbProfile?.square_card_id}
+              savedCard={savedCard}
               onBack={() => setWizardStep("shipping")}
               onSubmit={handlePaymentSubmit}
             />

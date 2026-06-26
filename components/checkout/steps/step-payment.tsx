@@ -9,10 +9,18 @@ import { SavedCard } from "../saved-card"
 import { useSquarePayment } from "@/hooks/use-square-payment"
 import type { PlaceOrderResponse } from "@/lib/checkout/types"
 
+export interface SavedCardMeta {
+  square_card_id: string
+  last_four: string
+  brand: string | null
+  exp_month: number
+  exp_year: number
+}
+
 interface StepPaymentProps {
   totalCents: number
   surchargeCents: number
-  savedCardId?: string | null
+  savedCard?: SavedCardMeta | null
   onBack: () => void
   onSubmit: (
     sourceId: string,
@@ -25,7 +33,7 @@ interface StepPaymentProps {
 export function StepPayment({
   totalCents,
   surchargeCents,
-  savedCardId,
+  savedCard,
   onBack,
   onSubmit,
 }: StepPaymentProps) {
@@ -40,12 +48,21 @@ export function StepPayment({
     paymentError,
     submitting,
     useSavedCard,
-    setUseSavedCard,
     handlePlace,
-  } = useSquarePayment({ savedCardId, onSubmit })
+  } = useSquarePayment({
+    savedCardId: savedCard?.square_card_id ?? null,
+    onSubmit,
+  })
 
   const router = useRouter()
   const isTest = process.env.NEXT_PUBLIC_PAYMENT_MODE === "test"
+
+  const now = new Date()
+  const cardExpired = savedCard
+    ? savedCard.exp_year < now.getFullYear() ||
+      (savedCard.exp_year === now.getFullYear() &&
+        savedCard.exp_month < now.getMonth() + 1)
+    : false
 
   return (
     <div className="space-y-6">
@@ -58,13 +75,16 @@ export function StepPayment({
         </div>
       )}
 
-      {useSavedCard && savedCardId ? (
+      {useSavedCard && savedCard ? (
         <div className="space-y-4">
           <p className="text-foreground text-sm font-medium">
             Pay with saved card
           </p>
           <SavedCard
-            cardId={savedCardId}
+            last_four={savedCard.last_four}
+            brand={savedCard.brand}
+            exp_month={savedCard.exp_month}
+            exp_year={savedCard.exp_year}
             buttonLabel="Use a different card"
             onUpdateCard={() => router.push("/profile/cards?from=payment")}
           />
@@ -147,14 +167,17 @@ export function StepPayment({
             (!useSavedCard && !sdkReady) ||
             !turnstileToken ||
             submitting ||
-            !surchargeAccepted
+            !surchargeAccepted ||
+            (useSavedCard && cardExpired)
           }
           className="bg-foreground text-background flex h-12 flex-1 items-center justify-center gap-2 rounded-md text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Lock className="h-4 w-4" strokeWidth={1.75} />
           {submitting
             ? "Processing…"
-            : `Place Order — ${formatUSD(totalCents)}`}
+            : useSavedCard && cardExpired
+              ? "Update card to continue"
+              : `Place Order — ${formatUSD(totalCents)}`}
         </button>
       </div>
 
