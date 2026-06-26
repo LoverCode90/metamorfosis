@@ -34,6 +34,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable}`}
+      className="dark"
     >
       <body className="bg-bg-base text-fg-primary font-sans antialiased">
         {children}
