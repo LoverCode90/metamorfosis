@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { ArrowLeft, Lock, ShieldCheck } from "lucide-react"
 import { formatUSD } from "@/lib/utils/format"
 import { TurnstileWidget } from "@/components/auth/turnstile-widget"
@@ -17,7 +18,7 @@ interface StepPaymentProps {
     sourceId: string,
     turnstileToken: string,
     surchargeAccepted: boolean,
-    saveCardConsented: boolean
+    saveCardConsented: boolean,
   ) => Promise<PlaceOrderResponse>
 }
 
@@ -43,6 +44,7 @@ export function StepPayment({
     handlePlace,
   } = useSquarePayment({ savedCardId, onSubmit })
 
+  const router = useRouter()
   const isTest = process.env.NEXT_PUBLIC_PAYMENT_MODE === "test"
 
   return (
@@ -64,7 +66,7 @@ export function StepPayment({
           <SavedCard
             cardId={savedCardId}
             buttonLabel="Use a different card"
-            onUpdateCard={() => setUseSavedCard(false)}
+            onUpdateCard={() => router.push("/profile/cards?from=payment")}
           />
         </div>
       ) : (
@@ -138,7 +140,9 @@ export function StepPayment({
         </button>
         <button
           type="button"
-          onClick={() => handlePlace(turnstileToken, surchargeAccepted, saveCard)}
+          onClick={() =>
+            handlePlace(turnstileToken, surchargeAccepted, saveCard)
+          }
           disabled={
             (!useSavedCard && !sdkReady) ||
             !turnstileToken ||

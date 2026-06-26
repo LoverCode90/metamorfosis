@@ -1,6 +1,14 @@
 "use client"
 
-import { Loader2, Lock, MapPin, Package, ShieldCheck, User } from "lucide-react"
+import {
+  CreditCard,
+  Loader2,
+  Lock,
+  MapPin,
+  Package,
+  ShieldCheck,
+  User,
+} from "lucide-react"
 import { useUser } from "@/hooks/use-user"
 import { AvatarInitials } from "./avatar-initials"
 import { ProfileBadges } from "./profile-badges"
@@ -45,6 +53,13 @@ export function ProfileDashboard() {
       icon: MapPin,
       title: "Addresses",
       description: "Your shipping address",
+      show: true,
+    },
+    {
+      href: "/profile/cards",
+      icon: CreditCard,
+      title: "Payment Methods",
+      description: "Saved cards",
       show: true,
     },
     {

@@ -5,6 +5,7 @@ import {
   chargeCard,
   getOrCreateCustomer,
   createCardOnFile,
+  retrieveCardMetadata,
 } from "@/lib/square/payments"
 import { verifyTurnstileToken } from "@/lib/auth/turnstile"
 import {
@@ -228,7 +229,8 @@ export async function POST(
         const cardId = await createCardOnFile(sourceId, customerId)
         if (cardId) {
           paymentSourceId = cardId
-          // Store permanent cardId safely inside Supabase database
+
+          // Keep profiles.square_card_id updated to the most recently used card
           await admin
             .from("profiles")
             .update({
@@ -236,6 +238,27 @@ export async function POST(
               square_card_id: cardId,
             })
             .eq("id", user.id)
+
+          // Persist card metadata in saved_cards (max 3 per user — silently skip if at limit)
+          const { count } = await admin
+            .from("saved_cards")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id)
+
+          if ((count ?? 0) < 3) {
+            const meta = await retrieveCardMetadata(cardId)
+            if (meta) {
+              await admin.from("saved_cards").insert({
+                user_id: user.id,
+                square_card_id: cardId,
+                square_customer_id: customerId,
+                brand: meta.brand,
+                last_four: meta.last4,
+                exp_month: meta.expMonth,
+                exp_year: meta.expYear,
+              })
+            }
+          }
         }
       }
     }

@@ -156,3 +156,66 @@ export async function createCardOnFile(
     return null
   }
 }
+
+export interface CardMetadata {
+  brand: string
+  last4: string
+  expMonth: number
+  expYear: number
+}
+
+/**
+ * Retrieve card brand and expiry metadata after createCardOnFile.
+ * Returns null on error — callers should skip saving rather than failing.
+ */
+export async function retrieveCardMetadata(
+  cardId: string,
+): Promise<CardMetadata | null> {
+  if (process.env.NEXT_PUBLIC_PAYMENT_MODE === "test") {
+    return {
+      brand: "VISA",
+      last4: cardId.slice(-4),
+      expMonth: 12,
+      expYear: 2099,
+    }
+  }
+
+  const client = createPaymentsClient()
+
+  try {
+    const result = await client.cards.get({ cardId })
+    const card = result.card
+    if (!card) return null
+
+    return {
+      brand: card.cardBrand ?? "UNKNOWN",
+      last4: card.last4 ?? "0000",
+      expMonth: Number(card.expMonth ?? 1),
+      expYear: Number(card.expYear ?? 2000),
+    }
+  } catch (err) {
+    console.error("[square/payments] retrieveCardMetadata error:", err)
+    return null
+  }
+}
+
+/**
+ * Disable a card on file in Square (permanent — cannot be re-enabled).
+ * Returns true on success; false on error. Callers should proceed with
+ * the DB delete regardless, since the card is no longer trusted either way.
+ */
+export async function disableCard(cardId: string): Promise<boolean> {
+  if (process.env.NEXT_PUBLIC_PAYMENT_MODE === "test") {
+    return true
+  }
+
+  const client = createPaymentsClient()
+
+  try {
+    await client.cards.disable({ cardId })
+    return true
+  } catch (err) {
+    console.error("[square/payments] disableCard error:", err)
+    return false
+  }
+}
