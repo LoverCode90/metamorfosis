@@ -11,7 +11,7 @@ import {
   XCircle,
 } from "lucide-react"
 import { RejectDialog } from "./reject-dialog"
-import type { VerificationRow } from "./verifications-list"
+import type { VerificationRow } from "@/lib/admin/verifications"
 import { formatDate } from "@/lib/utils/format"
 
 interface VerificationDetailProps {

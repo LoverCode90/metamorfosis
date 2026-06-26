@@ -1,57 +1,37 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useState } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { CheckCircle, Pencil } from "lucide-react"
+
+import { AddressFormFields } from "@/components/checkout/steps/address-form-fields"
+import { SavedAddressBanner } from "@/components/checkout/steps/saved-address-banner"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useSavedAddress } from "@/hooks/use-saved-address"
 import {
-  usePlacesAutocomplete,
-  type PlaceSuggestion,
-} from "@/hooks/use-places-autocomplete"
-import { MapPin } from "lucide-react"
-import { FloatingField } from "@/components/checkout/floating-field"
-import { CONTINENTAL_STATES } from "@/lib/constants"
+  addressToInfoValues,
+  buildInfoDefaults,
+  infoValuesToAddress,
+} from "@/lib/checkout/info-form"
 import type { CheckoutAddress } from "@/lib/checkout/types"
-import { PhoneInput } from "@/components/ui/phone-input"
-import {
-  digits as phoneDigits,
-  formatPhone,
-  phoneErrorMessage,
-  validatePhone,
-} from "@/lib/utils/phone"
-
-const schema = z.object({
-  fullName: z.string().min(2, "Full name required"),
-  email: z.string().email("Enter a valid email"),
-  // PhoneInput stores raw 10-digit string; reject Hawaii/Alaska and partial input.
-  phone: z.string().superRefine((v, ctx) => {
-    const err = validatePhone(v)
-    if (err !== null) {
-      ctx.addIssue({ code: "custom", message: phoneErrorMessage(err) })
-    }
-  }),
-  streetLine1: z.string().min(3, "Street address required"),
-  streetLine2: z.string().optional(),
-  city: z.string().min(2, "City required"),
-  state: z.string().length(2, "Select a state"),
-  zip: z.string().regex(/^\d{5}(-\d{4})?$/, "Enter a valid US ZIP code"),
-  termsAccepted: z.boolean().optional(),
-})
-
-type InfoFormValues = z.infer<typeof schema>
+import { infoSchema, type InfoFormValues } from "@/lib/validation/checkout"
 
 interface StepInfoProps {
   hasNonReturnable: boolean
-  /** Initial values from the user's profile (name, email, phone) or a prior step-info submission */
+  /** Initial values from the user's profile or a prior step-info submission. */
   defaultValues?: Partial<InfoFormValues>
-  /** Whether the user is authenticated — determines if we fetch saved address */
   isAuthenticated: boolean
-  /** When true, skip the auto-fetch of saved address (used when returning from shipping step) */
+  /** Skip auto-fetch of saved address (e.g. returning from the shipping step). */
   skipAddressFetch?: boolean
   onContinue: (data: CheckoutAddress, termsAccepted: boolean) => void
 }
 
+/**
+ * Checkout step 1: collects contact details + US shipping address, pre-filling
+ * from the user's saved default address and gating on the non-returnable ack.
+ */
 export function StepInfo({
   hasNonReturnable,
   defaultValues,
@@ -59,128 +39,52 @@ export function StepInfo({
   skipAddressFetch = false,
   onContinue,
 }: StepInfoProps) {
-  const [savedAddress, setSavedAddress] = useState<CheckoutAddress | null>(null)
   const [usingSaved, setUsingSaved] = useState(false)
-  const [loadingAddress, setLoadingAddress] = useState(
-    isAuthenticated && !skipAddressFetch && !defaultValues?.streetLine1,
-  )
-  const [isStreetFocused, setIsStreetFocused] = useState(false)
-  const fetchedRef = useRef(false)
 
   const {
     register,
     handleSubmit,
     reset,
     control,
+    setValue,
     formState: { errors },
   } = useForm<InfoFormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      state: "",
-      ...defaultValues,
-      // Normalize any pre-filled phone (formatted from profile/saved address)
-      // to the raw 10-digit form the PhoneInput expects.
-      phone: defaultValues?.phone ? phoneDigits(defaultValues.phone) : "",
-    },
+    resolver: zodResolver(infoSchema),
+    defaultValues: buildInfoDefaults(defaultValues),
   })
 
-  // Fetch saved default address once for authenticated users (skipped when
-  // returning from a later step — defaultValues already carries the address).
-  useEffect(() => {
-    if (!isAuthenticated || fetchedRef.current || skipAddressFetch) return
-    fetchedRef.current = true
+  const handleSavedLoaded = useCallback(
+    (address: CheckoutAddress) => {
+      setUsingSaved(true)
+      reset(addressToInfoValues(address))
+    },
+    [reset],
+  )
 
-    fetch("/api/addresses/default")
-      .then((r) => r.json())
-      .then(({ address }: { address: CheckoutAddress | null }) => {
-        if (address) {
-          setSavedAddress(address)
-          setUsingSaved(true)
-          // Pre-fill the form with all saved fields
-          reset({
-            fullName: address.fullName,
-            email: address.email,
-            phone: phoneDigits(address.phone),
-            streetLine1: address.streetLine1,
-            streetLine2: address.streetLine2,
-            city: address.city,
-            state: address.state,
-            zip: address.zip,
-          })
-        }
-        setLoadingAddress(false)
-      })
-      .catch(() => setLoadingAddress(false))
-  }, [isAuthenticated, reset, skipAddressFetch])
+  const { savedAddress, isLoading } = useSavedAddress({
+    isAuthenticated,
+    enabled: !skipAddressFetch && !defaultValues?.streetLine1,
+    onLoaded: handleSavedLoaded,
+  })
 
   const termsAccepted = useWatch({ control, name: "termsAccepted" })
-  const streetLine1 = useWatch({ control, name: "streetLine1" }) || ""
-  const { suggestions, getPlaceDetails, setSuggestions } =
-    usePlacesAutocomplete(streetLine1, isStreetFocused)
-
-  async function handlePlaceSelect(placeId: string) {
-    try {
-      const details = await getPlaceDetails(placeId)
-      let street_number = ""
-      let route = ""
-      let city = ""
-      let state = ""
-      let zip = ""
-
-      for (const component of details.address_components || []) {
-        const types = component.types
-        if (types.includes("street_number")) street_number = component.long_name
-        if (types.includes("route")) route = component.short_name
-        if (types.includes("locality")) city = component.long_name
-        if (types.includes("administrative_area_level_1"))
-          state = component.short_name
-        if (types.includes("postal_code")) zip = component.long_name
-      }
-
-      reset(
-        {
-          ...control._formValues,
-          streetLine1: `${street_number} ${route}`.trim(),
-          city,
-          state,
-          zip,
-        },
-        { keepErrors: false },
-      )
-      setSuggestions([])
-    } catch (e) {
-      console.error(e)
-    }
-  }
 
   function onSubmit(values: InfoFormValues) {
     if (hasNonReturnable && !values.termsAccepted) return
-    onContinue(
-      {
-        fullName: values.fullName,
-        email: values.email,
-        // Send the human-formatted form downstream; Shippo accepts US national.
-        phone: formatPhone(values.phone),
-        streetLine1: values.streetLine1,
-        streetLine2: values.streetLine2 ?? "",
-        city: values.city,
-        state: values.state,
-        zip: values.zip,
-        country: "US",
-      },
-      !!values.termsAccepted,
-    )
+    onContinue(infoValuesToAddress(values), !!values.termsAccepted)
   }
 
-  if (loadingAddress) {
+  const heading = (
+    <h2 className="text-foreground text-lg font-semibold">Contact & Address</h2>
+  )
+
+  if (isLoading) {
     return (
       <div className="space-y-6">
-        <h2 className="text-foreground text-lg font-semibold">
-          Contact & Address
-        </h2>
+        {heading}
         <div className="space-y-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="bg-muted h-12 animate-pulse rounded-md" />
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-12 w-full" />
           ))}
         </div>
       </div>
@@ -189,207 +93,22 @@ export function StepInfo({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
-      <h2 className="text-foreground text-lg font-semibold">
-        Contact & Address
-      </h2>
+      {heading}
 
-      {/* Saved address banner */}
       {savedAddress && usingSaved && (
-        <div className="border-border bg-muted/40 flex items-start justify-between gap-3 rounded-lg border p-4">
-          <div className="flex items-start gap-3">
-            <CheckCircle
-              className="mt-0.5 h-4 w-4 shrink-0 text-green-500"
-              strokeWidth={1.75}
-            />
-            <div>
-              <p className="text-foreground text-sm font-medium">
-                Using saved address
-              </p>
-              <p className="text-muted-foreground text-xs">
-                {savedAddress.streetLine1}
-                {savedAddress.streetLine2
-                  ? `, ${savedAddress.streetLine2}`
-                  : ""}
-                {" — "}
-                {savedAddress.city}, {savedAddress.state} {savedAddress.zip}
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setUsingSaved(false)}
-            className="text-muted-foreground hover:text-foreground flex shrink-0 items-center gap-1.5 text-xs font-medium transition-colors"
-          >
-            <Pencil className="h-3 w-3" strokeWidth={2} />
-            Edit
-          </button>
-        </div>
+        <SavedAddressBanner
+          address={savedAddress}
+          onEdit={() => setUsingSaved(false)}
+        />
       )}
 
-      {/* Form fields — always rendered so react-hook-form state is maintained */}
-      <div
-        className={
-          savedAddress && usingSaved ? "pointer-events-none opacity-50" : ""
-        }
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="text-muted-foreground mb-1 block text-xs font-medium">
-              Full name <span className="text-destructive">*</span>
-            </label>
-            <input
-              {...register("fullName")}
-              autoComplete="name"
-              placeholder="Full name"
-              className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-foreground h-11 w-full rounded-md border px-3 text-sm transition-colors outline-none"
-            />
-            {errors.fullName && (
-              <p className="text-destructive mt-1 text-xs">
-                {errors.fullName.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <label className="text-muted-foreground mb-1 block text-xs font-medium">
-              Phone <span className="text-destructive">*</span>
-            </label>
-            <Controller
-              control={control}
-              name="phone"
-              render={({ field, fieldState }) => (
-                <PhoneInput
-                  value={field.value ?? ""}
-                  onChange={field.onChange}
-                  showError={fieldState.isTouched || Boolean(errors.phone)}
-                />
-              )}
-            />
-          </div>
-        </div>
-
-        <div className="mt-4">
-          <FloatingField label="Email" error={errors.email?.message} required>
-            <input
-              {...register("email")}
-              type="email"
-              className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
-              placeholder="Email"
-            />
-          </FloatingField>
-        </div>
-
-        <div className="relative mt-4">
-          <FloatingField
-            label="Street address"
-            error={errors.streetLine1?.message}
-            required
-          >
-            <input
-              {...register("streetLine1")}
-              autoComplete="off"
-              onFocus={() => setIsStreetFocused(true)}
-              onBlur={(e) => {
-                register("streetLine1").onBlur(e)
-                setTimeout(() => setIsStreetFocused(false), 200)
-              }}
-              className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
-              placeholder="Street address"
-            />
-          </FloatingField>
-          {suggestions.length > 0 && (
-            <ul className="border-border bg-background absolute z-50 mt-1 max-h-60 w-full overflow-hidden overflow-y-auto rounded-md border shadow-2xl">
-              {suggestions.map((s: PlaceSuggestion) => (
-                <li
-                  key={s.place_id}
-                  onClick={() => handlePlaceSelect(s.place_id)}
-                  className="hover:bg-muted/50 flex cursor-pointer items-start gap-3 px-3 py-2.5 transition-colors"
-                >
-                  <MapPin className="text-muted-foreground mt-0.5 h-4 w-4 shrink-0" />
-                  <div className="flex flex-col">
-                    <span className="text-foreground text-sm font-medium">
-                      {s.main_text}
-                    </span>
-                    <span className="text-muted-foreground text-xs">
-                      {s.secondary_text}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div className="mt-4">
-          <FloatingField
-            label="Apartment, suite, unit (optional)"
-            error={undefined}
-          >
-            <input
-              {...register("streetLine2")}
-              className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
-              placeholder="Apartment, suite, unit"
-            />
-          </FloatingField>
-        </div>
-
-        <div className="mt-4 grid gap-4 sm:grid-cols-3">
-          <div className="sm:col-span-1">
-            <FloatingField label="City" error={errors.city?.message} required>
-              <input
-                {...register("city")}
-                className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
-                placeholder="City"
-              />
-            </FloatingField>
-          </div>
-          <div>
-            <label className="text-muted-foreground mb-1 block text-xs font-medium">
-              State <span className="text-destructive">*</span>
-            </label>
-            <select
-              {...register("state")}
-              className="border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 py-2.5 text-sm outline-none"
-            >
-              <option value="">Select state</option>
-              {CONTINENTAL_STATES.map((s) => (
-                <option key={s.code} value={s.code}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-            {errors.state && (
-              <p className="text-destructive mt-1 text-xs">
-                {errors.state.message}
-              </p>
-            )}
-          </div>
-          <div>
-            <FloatingField
-              label="ZIP code"
-              error={errors.zip?.message}
-              required
-            >
-              <input
-                {...register("zip")}
-                className="peer border-border bg-background text-foreground focus:border-foreground w-full rounded-md border px-3 pt-5 pb-2 text-sm placeholder-transparent transition-colors outline-none"
-                placeholder="ZIP"
-              />
-            </FloatingField>
-          </div>
-        </div>
-
-        {/* Country — locked to the US (continental only). Read-only, clearly
-            shown as fixed rather than a broken/disabled control. */}
-        <div className="mt-4">
-          <label className="text-muted-foreground mb-1 block text-xs font-medium">
-            Country
-          </label>
-          <div className="border-border bg-muted/40 text-muted-foreground flex h-11 w-full items-center justify-between rounded-md border px-3 text-sm">
-            <span className="text-foreground">United States</span>
-            <span className="text-xs">Ships within continental US only</span>
-          </div>
-        </div>
-      </div>
+      <AddressFormFields
+        register={register}
+        control={control}
+        errors={errors}
+        setValue={setValue}
+        disabled={!!savedAddress && usingSaved}
+      />
 
       <p className="text-muted-foreground text-xs">
         We only ship within the United States.
@@ -397,10 +116,16 @@ export function StepInfo({
 
       {hasNonReturnable && (
         <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-4">
-          <input
-            {...register("termsAccepted")}
-            type="checkbox"
-            className="accent-foreground mt-0.5 h-4 w-4 shrink-0"
+          <Controller
+            control={control}
+            name="termsAccepted"
+            render={({ field }) => (
+              <Checkbox
+                checked={!!field.value}
+                onCheckedChange={field.onChange}
+                className="mt-0.5"
+              />
+            )}
           />
           <span className="text-foreground text-sm">
             I understand that{" "}
@@ -412,13 +137,14 @@ export function StepInfo({
         </label>
       )}
 
-      <button
+      <Button
         type="submit"
+        size="hero"
+        className="w-full"
         disabled={hasNonReturnable && !termsAccepted}
-        className="bg-foreground text-background flex h-12 w-full items-center justify-center rounded-md text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
       >
         Continue to Shipping
-      </button>
+      </Button>
     </form>
   )
 }

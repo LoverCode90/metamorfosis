@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { ChevronDown, PartyPopper, Tag, Truck } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
+import { FreeShippingBar } from "@/components/cart/free-shipping-bar"
+import { OrderTotals } from "@/components/cart/order-totals"
+import { PromoCode } from "@/components/cart/promo-code"
+import { FREE_SHIPPING_THRESHOLD_CENTS } from "@/lib/constants"
 import { formatUSD } from "@/lib/utils/format"
 import type { Totals } from "@/lib/types"
-import { FREE_SHIPPING_THRESHOLD_CENTS } from "@/lib/constants"
-import { Separator } from "@/components/ui/separator"
-import { cn } from "@/lib/utils"
 
 interface CartSummaryProps {
   totals: Totals
@@ -15,17 +16,18 @@ interface CartSummaryProps {
   disabled?: boolean
 }
 
+/**
+ * Cart order summary: free-shipping progress, promo entry, the cost breakdown,
+ * and the checkout / continue-shopping actions.
+ */
 export function CartSummary({
   totals,
   onCheckout,
   onContinueShopping,
   disabled,
 }: CartSummaryProps) {
-  const [promoOpen, setPromoOpen] = useState(false)
-  const [promo, setPromo] = useState("")
-
-  // Real shipping cost is computed by Shippo at checkout step 2; here we can
-  // only tell whether the order already qualifies for free standard shipping.
+  // Real shipping is computed by Shippo at checkout; here we only know whether
+  // the order already qualifies for free standard shipping.
   const qualifiesForFreeShipping =
     totals.subtotal - totals.discount >= FREE_SHIPPING_THRESHOLD_CENTS
 
@@ -37,100 +39,13 @@ export function CartSummary({
         </h2>
 
         <FreeShippingBar subtotalCents={totals.subtotal} />
-
-        <div className="border-border mt-4 rounded-lg border sm:mt-5">
-          <button
-            type="button"
-            onClick={() => setPromoOpen((o) => !o)}
-            aria-expanded={promoOpen}
-            className="text-foreground flex w-full items-center justify-between gap-2 px-3 py-2.5 text-sm sm:px-3.5 sm:py-3"
-          >
-            <span className="flex items-center gap-2">
-              <Tag
-                className="text-muted-foreground h-4 w-4"
-                strokeWidth={1.75}
-              />
-              Have a promo code?
-            </span>
-            <ChevronDown
-              className={cn(
-                "text-muted-foreground h-4 w-4 transition-transform",
-                promoOpen && "rotate-180",
-              )}
-            />
-          </button>
-          {promoOpen && (
-            <div className="border-border flex gap-2 border-t p-2.5 sm:p-3">
-              <input
-                value={promo}
-                onChange={(e) => setPromo(e.target.value)}
-                placeholder="Enter code"
-                className="border-border bg-background text-foreground focus:border-foreground placeholder:text-muted-foreground h-9 min-w-0 flex-1 rounded-md border px-3 text-sm transition-colors outline-none sm:h-10"
-              />
-              <button
-                type="button"
-                className="bg-foreground text-background h-9 shrink-0 rounded-md px-3 text-sm font-medium transition-opacity hover:opacity-90 sm:h-10 sm:px-4"
-              >
-                Apply
-              </button>
-            </div>
-          )}
-        </div>
+        <PromoCode />
 
         <Separator className="my-4 sm:my-5" />
-
-        <dl className="space-y-2.5 text-sm sm:space-y-3">
-          <div className="flex items-center justify-between">
-            <dt className="text-muted-foreground">
-              Subtotal ({totals.itemCount} item
-              {totals.itemCount === 1 ? "" : "s"})
-            </dt>
-            <dd className="text-foreground font-medium tabular-nums">
-              {formatUSD(totals.subtotal)}
-            </dd>
-          </div>
-          {totals.discount > 0 && (
-            <div className="flex items-center justify-between">
-              <dt className="text-muted-foreground">Professional discount</dt>
-              <dd className="font-medium text-emerald-600 tabular-nums">
-                -{formatUSD(totals.discount)}
-              </dd>
-            </div>
-          )}
-          <div className="flex items-center justify-between">
-            <dt className="text-muted-foreground flex items-center gap-1.5">
-              <Truck className="h-4 w-4" strokeWidth={1.75} />
-              Shipping
-            </dt>
-            <dd
-              className={cn(
-                "font-medium",
-                qualifiesForFreeShipping
-                  ? "tracking-wide text-emerald-600 uppercase"
-                  : "text-foreground tabular-nums",
-              )}
-            >
-              {qualifiesForFreeShipping ? "Free" : "Calculated at checkout"}
-            </dd>
-          </div>
-          <div className="flex items-center justify-between">
-            <dt className="text-muted-foreground">Estimated tax</dt>
-            <dd className="text-foreground font-medium tabular-nums">
-              {formatUSD(totals.tax)}
-            </dd>
-          </div>
-          {totals.surcharge > 0 && (
-            <div className="flex items-center justify-between">
-              <dt className="text-muted-foreground">
-                Card processing fee (2.6%)
-              </dt>
-              <dd className="text-foreground font-medium tabular-nums">
-                {formatUSD(totals.surcharge)}
-              </dd>
-            </div>
-          )}
-        </dl>
-
+        <OrderTotals
+          totals={totals}
+          qualifiesForFreeShipping={qualifiesForFreeShipping}
+        />
         <Separator className="my-4 sm:my-5" />
 
         <div className="flex items-end justify-between">
@@ -140,88 +55,21 @@ export function CartSummary({
           </span>
         </div>
 
-        <button
-          type="button"
+        <Button
           onClick={onCheckout}
           disabled={disabled}
-          className={cn(
-            "bg-accent-violet focus-visible:ring-ring mt-4 h-11 w-full rounded-md text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:mt-5 sm:h-12",
-            disabled && "cursor-not-allowed opacity-40 hover:opacity-40",
-          )}
+          className="bg-accent-violet hover:bg-accent-violet/90 mt-4 h-11 w-full text-white sm:mt-5 sm:h-12"
         >
           Continue to checkout
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="outline"
           onClick={onContinueShopping}
-          className="border-border text-foreground hover:bg-muted focus-visible:ring-ring mt-2.5 h-11 w-full rounded-md border text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none sm:mt-3 sm:h-12"
+          className="mt-2.5 h-11 w-full sm:mt-3 sm:h-12"
         >
           Continue Shopping
-        </button>
+        </Button>
       </div>
     </aside>
-  )
-}
-
-/**
- * Progress toward the $120 free-shipping threshold. A single track whose fill
- * width tracks the subtotal and whose color steps through red → orange → green
- * (smoothly) as progress crosses 40% and 80%.
- */
-function FreeShippingBar({ subtotalCents }: { subtotalCents: number }) {
-  const pct = Math.min(
-    100,
-    (subtotalCents / FREE_SHIPPING_THRESHOLD_CENTS) * 100,
-  )
-  const unlocked = subtotalCents >= FREE_SHIPPING_THRESHOLD_CENTS
-  const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD_CENTS - subtotalCents)
-
-  const fillColor =
-    pct >= 80 ? "bg-emerald-500" : pct >= 40 ? "bg-amber-500" : "bg-red-500"
-
-  return (
-    <div className="mt-4 sm:mt-5">
-      <p className="text-foreground flex items-center gap-1.5 text-sm font-medium">
-        {unlocked ? (
-          <>
-            <PartyPopper
-              className="h-4 w-4 text-emerald-500"
-              strokeWidth={1.75}
-            />
-            You&apos;ve unlocked free shipping!
-          </>
-        ) : (
-          <>
-            <Truck
-              className="text-muted-foreground h-4 w-4"
-              strokeWidth={1.75}
-            />
-            Free shipping on orders over{" "}
-            {formatUSD(FREE_SHIPPING_THRESHOLD_CENTS)}
-          </>
-        )}
-      </p>
-      {!unlocked && (
-        <p className="text-muted-foreground mt-0.5 text-xs">
-          Add {formatUSD(remaining)} more to qualify.
-        </p>
-      )}
-      <div
-        className="bg-muted mt-2 h-2 w-full overflow-hidden rounded-full"
-        role="progressbar"
-        aria-valuenow={Math.round(pct)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label="Progress toward free shipping"
-      >
-        <div
-          className={cn(
-            "h-full rounded-full transition-[width,background-color] duration-500 ease-out",
-            fillColor,
-          )}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
   )
 }
