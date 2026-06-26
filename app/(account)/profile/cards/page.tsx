@@ -23,6 +23,7 @@ export default async function CardsPage({ searchParams }: Props) {
       "id, brand, last_four, exp_month, exp_year, is_default, created_at, square_card_id",
     )
     .eq("user_id", user.id)
+    .order("is_default", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(3)
 
