@@ -9,7 +9,7 @@ export async function refundOrder(
   reason: string,
 ) {
   const squareClient = createSquareClient()
-  
+
   // Fetch order to get the payment ID
   const { order } = await squareClient.orders.get({ orderId: squareOrderId })
   if (!order) {
@@ -27,7 +27,7 @@ export async function refundOrder(
     idempotencyKey,
     amountMoney: {
       amount: BigInt(amountCents),
-      currency: "USD"
+      currency: "USD",
     },
     paymentId,
     reason,

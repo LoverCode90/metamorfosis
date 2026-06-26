@@ -11,29 +11,42 @@ import { useVerifications } from "@/hooks/use-verifications"
  * smaller screens. All data and mutations come from {@link useVerifications}.
  */
 export function VerificationsDashboard() {
-  const v = useVerifications()
+  const {
+    filter,
+    setFilter,
+    items,
+    selected: selectedVerification,
+    setSelected,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    refresh,
+    loadMore,
+    approve,
+    reject,
+  } = useVerifications()
 
   return (
     <div className="flex h-full min-h-0 gap-6">
       <VerificationListPanel
-        filter={v.filter}
-        onFilterChange={v.setFilter}
-        items={v.items}
-        selectedId={v.selected?.id ?? null}
-        onSelect={v.setSelected}
-        isLoading={v.isLoading}
-        isLoadingMore={v.isLoadingMore}
-        hasMore={v.hasMore}
-        onRefresh={v.refresh}
-        onLoadMore={v.loadMore}
+        filter={filter}
+        onFilterChange={setFilter}
+        items={items}
+        selectedId={selectedVerification?.id ?? null}
+        onSelect={setSelected}
+        isLoading={isLoading}
+        isLoadingMore={isLoadingMore}
+        hasMore={hasMore}
+        onRefresh={refresh}
+        onLoadMore={loadMore}
       />
 
       <div className="hidden flex-1 lg:block">
-        {v.selected ? (
+        {selectedVerification ? (
           <VerificationDetail
-            item={v.selected}
-            onApprove={v.approve}
-            onReject={v.reject}
+            item={selectedVerification}
+            onApprove={approve}
+            onReject={reject}
           />
         ) : (
           <div className="border-border text-muted-foreground flex h-64 items-center justify-center rounded-xl border border-dashed text-sm">
@@ -43,10 +56,10 @@ export function VerificationsDashboard() {
       </div>
 
       <VerificationDetailSheet
-        item={v.selected}
-        onClose={() => v.setSelected(null)}
-        onApprove={v.approve}
-        onReject={v.reject}
+        item={selectedVerification}
+        onClose={() => setSelected(null)}
+        onApprove={approve}
+        onReject={reject}
       />
     </div>
   )

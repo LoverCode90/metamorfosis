@@ -54,3 +54,14 @@ export async function rejectVerification(
     throw new Error(err.error ?? "Rejection failed")
   }
 }
+
+/**
+ * Fetches a short-lived signed URL for a verification's license document.
+ * @param id - Verification id.
+ * @returns The URL, or null when unavailable.
+ */
+export async function fetchDocumentUrl(id: string): Promise<string | null> {
+  const res = await fetch(`/api/admin/verifications/${id}/document-url`)
+  const data = (await res.json()) as { url?: string; error?: string }
+  return data.url ?? null
+}

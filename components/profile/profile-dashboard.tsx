@@ -1,19 +1,16 @@
 "use client"
 
-import {
-  CreditCard,
-  Loader2,
-  Lock,
-  MapPin,
-  Package,
-  ShieldCheck,
-  User,
-} from "lucide-react"
+import { Loader2 } from "lucide-react"
+
 import { useUser } from "@/hooks/use-user"
 import { AvatarInitials } from "./avatar-initials"
 import { ProfileBadges } from "./profile-badges"
 import { ProfileNavRow } from "./profile-nav-row"
 import { SignOutButton } from "@/components/auth/sign-out-button"
+import {
+  PROFILE_NAV_ROWS,
+  computeCompletionPercent,
+} from "@/lib/profile/dashboard-nav"
 
 export function ProfileDashboard() {
   const {
@@ -30,60 +27,15 @@ export function ProfileDashboard() {
   const hasName =
     profile.firstName.trim().length > 0 && profile.lastName.trim().length > 0
 
-  // Profile-completion checklist drives the thin progress bar.
-  const checklist = [
+  const completion = computeCompletionPercent({
     hasName,
-    Boolean(savedAddress),
-    ...(!isAdmin ? [verificationStatus === "verified"] : []),
-  ]
-  const completion = Math.round(
-    (checklist.filter(Boolean).length / checklist.length) * 100,
+    hasAddress: Boolean(savedAddress),
+    isAdmin,
+    isVerified: verificationStatus === "verified",
+  })
+  const visibleRows = PROFILE_NAV_ROWS.filter(
+    (row) => row.isVisible?.({ isAdmin, isGoogleUser }) ?? true,
   )
-
-  const rows = [
-    {
-      href: "/profile/personal",
-      icon: User,
-      title: "Personal Info",
-      description: "Name, phone, email",
-      show: true,
-    },
-    {
-      href: "/profile/addresses",
-      icon: MapPin,
-      title: "Addresses",
-      description: "Your shipping address",
-      show: true,
-    },
-    {
-      href: "/profile/cards",
-      icon: CreditCard,
-      title: "Payment Methods",
-      description: "Saved cards",
-      show: true,
-    },
-    {
-      href: "/profile/security",
-      icon: Lock,
-      title: "Security",
-      description: "Change your password",
-      show: !isGoogleUser,
-    },
-    {
-      href: "/orders",
-      icon: Package,
-      title: "Orders",
-      description: "Your order history",
-      show: true,
-    },
-    {
-      href: "/profile/verification",
-      icon: ShieldCheck,
-      title: "Professional Verification",
-      description: "License status",
-      show: !isAdmin,
-    },
-  ].filter((row) => row.show)
 
   if (isLoading) {
     return (
@@ -95,7 +47,6 @@ export function ProfileDashboard() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:py-12">
-      {/* Header — centered avatar + name + email */}
       <div className="flex flex-col items-center text-center">
         <AvatarInitials
           firstName={profile.firstName}
@@ -114,7 +65,6 @@ export function ProfileDashboard() {
         <p className="text-muted-foreground mt-1 text-sm">{profile.email}</p>
       </div>
 
-      {/* Thin profile-completion bar */}
       {completion < 100 && (
         <div className="mt-8">
           <div className="text-muted-foreground mb-2 flex items-center justify-between text-xs font-medium">
@@ -130,9 +80,8 @@ export function ProfileDashboard() {
         </div>
       )}
 
-      {/* Navigable rows */}
       <div className="mt-8 flex flex-col gap-3">
-        {rows.map((row) => (
+        {visibleRows.map((row) => (
           <ProfileNavRow
             key={row.href}
             href={row.href}

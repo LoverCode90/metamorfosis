@@ -1,103 +1,54 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ChevronLeft, CreditCard, Trash2 } from "lucide-react"
+import { ChevronLeft } from "lucide-react"
 
-export interface SavedCard {
-  id: string
-  brand: string | null
-  last_four: string
-  exp_month: number
-  exp_year: number
-  is_default: boolean
-  created_at: string
-  square_card_id: string
-}
+import { Button } from "@/components/ui/button"
+import { SavedCardItem } from "@/components/profile/saved-card-item"
+import { useSavedCards } from "@/hooks/use-saved-cards"
+import type { SavedCard } from "@/lib/profile/cards-api"
+
+export type { SavedCard }
 
 interface CardsViewProps {
   cards: SavedCard[]
   from: string | null
 }
 
-function isExpired(expMonth: number, expYear: number): boolean {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth() + 1
-  return expYear < year || (expYear === year && expMonth < month)
-}
-
-function formatExpiry(expMonth: number, expYear: number): string {
-  return `${String(expMonth).padStart(2, "0")}/${expYear}`
-}
-
+/** Saved payment methods page: list, set-default, delete, and add. */
 export function CardsView({ cards: initialCards, from }: CardsViewProps) {
   const router = useRouter()
-  const [cards, setCards] = useState<SavedCard[]>(initialCards)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
-  const [defaultingId, setDefaultingId] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const { cards, error, deletingId, defaultingId, deleteCard, setDefaultCard } =
+    useSavedCards(initialCards)
 
-  async function handleDelete(id: string) {
-    setDeletingId(id)
-    setError(null)
-
-    try {
-      const res = await fetch(`/api/profile/cards/${id}`, { method: "DELETE" })
-      if (!res.ok) {
-        const body = (await res.json()) as { error?: string }
-        throw new Error(body.error ?? "Failed to delete card")
-      }
-      setCards((prev) => prev.filter((c) => c.id !== id))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete card")
-    } finally {
-      setDeletingId(null)
-    }
-  }
-
-  async function handleSetDefault(id: string) {
-    setDefaultingId(id)
-    setError(null)
-
-    try {
-      const res = await fetch(`/api/profile/cards/${id}`, {
-        method: "PUT",
-      })
-      if (!res.ok) {
-        const body = (await res.json()) as { error?: string }
-        throw new Error(body.error ?? "Failed to set default card")
-      }
-      setCards((prev) => prev.map((c) => ({ ...c, is_default: c.id === id })))
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to set default card",
-      )
-    } finally {
-      setDefaultingId(null)
-    }
-  }
+  const addHref =
+    from === "payment"
+      ? "/profile/cards/add?from=payment"
+      : "/profile/cards/add"
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 lg:py-12">
       {from === "payment" ? (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={() => router.back()}
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm font-medium transition-colors"
+          className="text-muted-foreground"
         >
           <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
           Return to payment
-        </button>
+        </Button>
       ) : (
-        <Link
-          href="/profile"
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-sm font-medium transition-colors"
+        <Button
+          variant="ghost"
+          size="sm"
+          render={<Link href="/profile" />}
+          className="text-muted-foreground"
         >
           <ChevronLeft className="h-4 w-4" strokeWidth={1.75} />
           Back to profile
-        </Link>
+        </Button>
       )}
 
       <div className="mt-4 flex flex-col gap-1">
@@ -116,64 +67,17 @@ export function CardsView({ cards: initialCards, from }: CardsViewProps) {
           </p>
         )}
 
-        {cards.map((card) => {
-          const expired = isExpired(card.exp_month, card.exp_year)
-          const isDeleting = deletingId === card.id
-          const isDefaulting = defaultingId === card.id
-
-          return (
-            <div
-              key={card.id}
-              className="border-border bg-card flex items-center gap-4 rounded-2xl border p-4"
-            >
-              <span className="bg-muted flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
-                <CreditCard
-                  className="text-foreground h-5 w-5"
-                  strokeWidth={1.75}
-                />
-              </span>
-
-              <span className="min-w-0 flex-1">
-                <span className="text-foreground flex items-center gap-2 text-sm font-semibold">
-                  {card.brand ?? "Card"} ending in {card.last_four}
-                  {card.is_default && (
-                    <span className="bg-accent-violet/15 text-accent-violet rounded-full px-2 py-0.5 text-xs font-medium">
-                      Default
-                    </span>
-                  )}
-                  {expired && (
-                    <span className="rounded-full bg-orange-500/15 px-2 py-0.5 text-xs font-medium text-orange-500">
-                      Expired
-                    </span>
-                  )}
-                </span>
-                <span className="text-muted-foreground block text-xs">
-                  Expires {formatExpiry(card.exp_month, card.exp_year)}
-                </span>
-                {!card.is_default && cards.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => handleSetDefault(card.id)}
-                    disabled={isDefaulting}
-                    className="text-muted-foreground hover:text-foreground mt-1 text-xs font-medium underline underline-offset-4 transition-colors disabled:opacity-50"
-                  >
-                    {isDefaulting ? "Setting…" : "Set as default"}
-                  </button>
-                )}
-              </span>
-
-              <button
-                type="button"
-                onClick={() => handleDelete(card.id)}
-                disabled={isDeleting}
-                aria-label={`Delete ${card.brand ?? "card"} ending in ${card.last_four}`}
-                className="text-muted-foreground hover:text-destructive shrink-0 transition-colors disabled:opacity-50"
-              >
-                <Trash2 className="h-4 w-4" strokeWidth={1.75} />
-              </button>
-            </div>
-          )
-        })}
+        {cards.map((card) => (
+          <SavedCardItem
+            key={card.id}
+            card={card}
+            isDeleting={deletingId === card.id}
+            isDefaulting={defaultingId === card.id}
+            canSetDefault={cards.length > 1}
+            onDelete={deleteCard}
+            onSetDefault={setDefaultCard}
+          />
+        ))}
       </div>
 
       {error && (
@@ -188,16 +92,14 @@ export function CardsView({ cards: initialCards, from }: CardsViewProps) {
             Delete a card to add a new one.
           </p>
         ) : (
-          <Link
-            href={
-              from === "payment"
-                ? "/profile/cards/add?from=payment"
-                : "/profile/cards/add"
-            }
-            className="text-muted-foreground hover:text-foreground text-sm font-medium underline underline-offset-4 transition-colors"
+          <Button
+            variant="link"
+            size="sm"
+            render={<Link href={addHref} />}
+            className="text-muted-foreground h-auto p-0"
           >
             Add payment method
-          </Link>
+          </Button>
         )}
       </div>
     </div>

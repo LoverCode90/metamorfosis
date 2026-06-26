@@ -42,7 +42,7 @@ export function CardForm() {
         <Checkbox id="save-card" defaultChecked />
         <Label
           htmlFor="save-card"
-          className="text-sm font-normal text-muted-foreground"
+          className="text-muted-foreground text-sm font-normal"
         >
           Save this card for seamless future purchases
         </Label>

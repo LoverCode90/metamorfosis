@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useCallback, useState } from "react"
 
 import { useCart } from "@/hooks/use-cart"
 import { useWishlistFilters } from "@/hooks/use-wishlist-filters"
@@ -24,6 +24,17 @@ export function WishlistView() {
   const [grid, setGrid] = useState(true)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const filters = useWishlistFilters(items)
+
+  // Stable references so the memoized WishlistCard / WishlistRow can skip
+  // re-rendering when unrelated state (search, layout) changes.
+  const handleRemove = useCallback(
+    (item: WishItem) => removeFromWishlist(item.variationId ?? item.id),
+    [removeFromWishlist],
+  )
+  const handleAdd = useCallback(
+    (item: WishItem) => addToCart(item),
+    [addToCart],
+  )
 
   if (items.length === 0) {
     return <WishlistEmpty />
@@ -68,8 +79,8 @@ export function WishlistView() {
           <WishlistResults
             items={filters.visible}
             grid={grid}
-            onRemove={(item) => removeFromWishlist(item.variationId ?? item.id)}
-            onAdd={(item) => addToCart(item)}
+            onRemove={handleRemove}
+            onAdd={handleAdd}
             onClearFilters={filters.clearFilters}
           />
         </div>

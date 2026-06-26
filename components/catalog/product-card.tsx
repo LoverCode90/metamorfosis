@@ -1,5 +1,6 @@
 "use client"
 
+import { memo } from "react"
 import Link from "next/link"
 import { Heart, Plus } from "lucide-react"
 
@@ -14,8 +15,13 @@ import { cn } from "@/lib/utils"
 /**
  * Catalog product card: image carousel, wishlist toggle, price, and an
  * add-to-bag / view-options action. State lives in {@link useProductCard}.
+ * Memoized — rendered in catalog grids.
  */
-export function ProductCard({ product: card }: { product: CatalogCard }) {
+export const ProductCard = memo(function ProductCard({
+  product: card,
+}: {
+  product: CatalogCard
+}) {
   const {
     wishlisted,
     lowStock,
@@ -124,4 +130,4 @@ export function ProductCard({ product: card }: { product: CatalogCard }) {
       />
     </>
   )
-}
+})

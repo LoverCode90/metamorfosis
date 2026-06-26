@@ -13,11 +13,14 @@ interface UseSquarePaymentOptions {
     sourceId: string,
     turnstileToken: string,
     surchargeAccepted: boolean,
-    saveCardConsented: boolean
+    saveCardConsented: boolean,
   ) => Promise<PlaceOrderResponse>
 }
 
-export function useSquarePayment({ savedCardId, onSubmit }: UseSquarePaymentOptions) {
+export function useSquarePayment({
+  savedCardId,
+  onSubmit,
+}: UseSquarePaymentOptions) {
   const cardContainerRef = useRef<HTMLDivElement>(null)
   const cardRef = useRef<any>(null)
 
@@ -27,7 +30,9 @@ export function useSquarePayment({ savedCardId, onSubmit }: UseSquarePaymentOpti
   const [submitting, setSubmitting] = useState(false)
 
   // Sync state during render phase to fix the cascading rendering warning
-  const [useSavedCard, setUseSavedCard] = useState(!!savedCardId?.startsWith("ccof:"))
+  const [useSavedCard, setUseSavedCard] = useState(
+    !!savedCardId?.startsWith("ccof:"),
+  )
   const [prevSavedCardId, setPrevSavedCardId] = useState(savedCardId)
 
   if (savedCardId !== prevSavedCardId) {
@@ -37,7 +42,10 @@ export function useSquarePayment({ savedCardId, onSubmit }: UseSquarePaymentOpti
     }
   }
 
-  const appId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID ?? process.env.NEXT_PUBLIC_SQUARE_APP_ID ?? ""
+  const appId =
+    process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID ??
+    process.env.NEXT_PUBLIC_SQUARE_APP_ID ??
+    ""
   const locationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID ?? ""
 
   useEffect(() => {
@@ -53,12 +61,16 @@ export function useSquarePayment({ savedCardId, onSubmit }: UseSquarePaymentOpti
         const payments = window.Square.payments(appId, locationId)
         const card = await payments.card({
           style: {
-            input: { color: "#f4f5f8", backgroundColor: "#070709", fontSize: "16px" },
+            input: {
+              color: "#f4f5f8",
+              backgroundColor: "#070709",
+              fontSize: "16px",
+            },
             "input::placeholder": { color: "#68686f" },
             ".input-container": { borderColor: "#28292b", borderRadius: "8px" },
             ".input-container.is-focus": { borderColor: "#4361ee" },
             ".input-container.is-error": { borderColor: "#f9667a" },
-          }
+          },
         })
         await card.attach(cardContainerRef.current)
         cardRef.current = card
@@ -83,7 +95,7 @@ export function useSquarePayment({ savedCardId, onSubmit }: UseSquarePaymentOpti
   async function handlePlace(
     turnstileToken: string,
     surchargeAccepted: boolean,
-    saveCard: boolean
+    saveCard: boolean,
   ) {
     if (!turnstileToken || (!useSavedCard && !cardRef.current)) return
     setSubmitting(true)
@@ -104,7 +116,7 @@ export function useSquarePayment({ savedCardId, onSubmit }: UseSquarePaymentOpti
         sourceId,
         turnstileToken,
         surchargeAccepted,
-        useSavedCard ? false : saveCard
+        useSavedCard ? false : saveCard,
       )
       if (!res.ok) setPaymentError(res.error ?? "Payment failed.")
     } catch (err) {

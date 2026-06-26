@@ -30,7 +30,7 @@ const NAV_COLUMNS = [
   { title: "Menu", links: ["Home", "Products", "About", "Contact"] },
   {
     title: "Services",
-    links: ["Colorimetría", "Nanoplastia", "Corte", "Bond Care", "Kits"],
+    links: ["Colorimetry", "Nanoplasty", "Haircut", "Bond Care", "Kits"],
   },
   {
     title: "References",

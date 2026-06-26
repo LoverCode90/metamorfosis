@@ -24,16 +24,16 @@ export function ProductVariantSelector({
         {isColorProduct ? "Shade" : "Size"}
       </p>
       <div className="flex flex-wrap gap-2">
-        {variations.map((v) => (
+        {variations.map((variation) => (
           <Button
-            key={v.id}
+            key={variation.id}
             type="button"
-            variant={selectedId === v.id ? "default" : "outline"}
-            onClick={() => onSelect(v.id)}
+            variant={selectedId === variation.id ? "default" : "outline"}
+            onClick={() => onSelect(variation.id)}
           >
             {isColorProduct
-              ? v.shadeNumber || v.nameEn
-              : (v.sizeLabel ?? v.nameEn)}
+              ? variation.shadeNumber || variation.nameEn
+              : (variation.sizeLabel ?? variation.nameEn)}
           </Button>
         ))}
       </div>

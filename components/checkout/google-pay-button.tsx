@@ -2,7 +2,12 @@ import { cn } from "@/lib/utils"
 
 function GoogleGlyph({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      aria-hidden
+      focusable="false"
+    >
       <path
         fill="#4285F4"
         d="M23.52 12.27c0-.79-.07-1.54-.2-2.27H12v4.51h6.47a5.53 5.53 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.87Z"
@@ -36,9 +41,9 @@ export function GooglePayButton({ onClick, disabled }: GooglePayButtonProps) {
       disabled={disabled}
       aria-label="Pay with Google Pay"
       className={cn(
-        "flex h-12 w-full items-center justify-center gap-2 rounded-md bg-foreground text-background",
+        "bg-foreground text-background flex h-12 w-full items-center justify-center gap-2 rounded-md",
         "text-sm font-medium tracking-tight transition-opacity",
-        "hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+        "focus-visible:ring-ring hover:opacity-90 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
         disabled && "pointer-events-none opacity-40",
       )}
     >

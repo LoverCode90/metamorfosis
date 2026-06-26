@@ -76,9 +76,13 @@ export function AdminAppearance() {
             max={2}
             step={1}
             value={[fontIndex]}
-            onValueChange={(v) => {
-              const idx = Array.isArray(v) ? (v[0] ?? 0) : v
-              setFontSize((FONT_SIZE_ORDER[idx] ?? "normal") as AdminFontSize)
+            onValueChange={(sliderValue) => {
+              const fontSizeIndex = Array.isArray(sliderValue)
+                ? (sliderValue[0] ?? 0)
+                : sliderValue
+              setFontSize(
+                (FONT_SIZE_ORDER[fontSizeIndex] ?? "normal") as AdminFontSize,
+              )
             }}
           />
           <div className="text-muted-foreground mt-2 flex justify-between text-xs">

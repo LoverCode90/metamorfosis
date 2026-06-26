@@ -1,6 +1,8 @@
 "use client"
 
+import { memo } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+
 import { cn } from "@/lib/utils"
 
 interface PaginationProps {
@@ -10,19 +12,23 @@ interface PaginationProps {
 }
 
 /**
- * Returns at most 5 numbered page buttons. Always anchors to first and last
+ * Returns at most 5 numbered page tokens. Always anchors to first and last
  * page; shows a 3-page window centred on the current page in between.
  */
 function buildPages(page: number, pageCount: number): (number | "...")[] {
-  if (pageCount <= 5) return Array.from({ length: pageCount }, (_, i) => i + 1)
+  if (pageCount <= 5) {
+    return Array.from({ length: pageCount }, (_, index) => index + 1)
+  }
 
-  const lo = Math.max(2, Math.min(page - 1, pageCount - 3))
-  const hi = Math.min(pageCount - 1, lo + 2)
+  const windowStart = Math.max(2, Math.min(page - 1, pageCount - 3))
+  const windowEnd = Math.min(pageCount - 1, windowStart + 2)
 
   const pages: (number | "...")[] = [1]
-  if (lo > 2) pages.push("...")
-  for (let i = lo; i <= hi; i++) pages.push(i)
-  if (hi < pageCount - 1) pages.push("...")
+  if (windowStart > 2) pages.push("...")
+  for (let pageNumber = windowStart; pageNumber <= windowEnd; pageNumber++) {
+    pages.push(pageNumber)
+  }
+  if (windowEnd < pageCount - 1) pages.push("...")
   pages.push(pageCount)
 
   return pages
@@ -45,23 +51,21 @@ export function Pagination({ page, pageCount, onChange }: PaginationProps) {
         <ChevronLeft className="h-4 w-4" strokeWidth={2} />
       </NavArrow>
 
-      {pages.map((p, i) =>
-        p === "..." ? (
+      {pages.map((pageItem, gapIndex) =>
+        pageItem === "..." ? (
           <span
-            key={`gap-${i}`}
+            key={`gap-${gapIndex}`}
             className="text-muted-foreground flex h-9 w-7 items-center justify-center text-sm select-none"
           >
             ··
           </span>
         ) : (
-          <PageBtn
-            key={p}
-            onClick={() => onChange(p)}
-            active={p === page}
-            ariaLabel={`Page ${p}`}
-          >
-            {p}
-          </PageBtn>
+          <PageButton
+            key={pageItem}
+            pageNumber={pageItem}
+            active={pageItem === page}
+            onSelect={onChange}
+          />
         ),
       )}
 
@@ -76,22 +80,23 @@ export function Pagination({ page, pageCount, onChange }: PaginationProps) {
   )
 }
 
-function PageBtn({
-  children,
-  onClick,
+interface PageButtonProps {
+  pageNumber: number
+  active: boolean
+  onSelect: (page: number) => void
+}
+
+/** A single numbered page button (memoized — rendered in a list). */
+const PageButton = memo(function PageButton({
+  pageNumber,
   active,
-  ariaLabel,
-}: {
-  children: React.ReactNode
-  onClick: () => void
-  active?: boolean
-  ariaLabel: string
-}) {
+  onSelect,
+}: PageButtonProps) {
   return (
     <button
       type="button"
-      onClick={onClick}
-      aria-label={ariaLabel}
+      onClick={() => onSelect(pageNumber)}
+      aria-label={`Page ${pageNumber}`}
       aria-current={active ? "page" : undefined}
       className={cn(
         "flex h-9 min-w-[36px] items-center justify-center rounded-lg px-2.5 text-sm font-medium transition-all duration-150",
@@ -100,10 +105,10 @@ function PageBtn({
           : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
     >
-      {children}
+      {pageNumber}
     </button>
   )
-}
+})
 
 function NavArrow({
   children,

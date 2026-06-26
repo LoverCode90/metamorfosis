@@ -3,10 +3,11 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Lock, ShieldCheck } from "lucide-react"
-import { formatUSD } from "@/lib/utils/format"
-import { TurnstileWidget } from "@/components/auth/turnstile-widget"
-import { SavedCard } from "../saved-card"
+
+import { Button } from "@/components/ui/button"
+import { PaymentFormFields } from "@/components/checkout/steps/payment-form-fields"
 import { useSquarePayment } from "@/hooks/use-square-payment"
+import { formatUSD } from "@/lib/utils/format"
 import type { PlaceOrderResponse } from "@/lib/checkout/types"
 
 export interface SavedCardMeta {
@@ -30,6 +31,7 @@ interface StepPaymentProps {
   ) => Promise<PlaceOrderResponse>
 }
 
+/** Checkout step 3: card entry (or saved card), consents, and place order. */
 export function StepPayment({
   totalCents,
   surchargeCents,
@@ -37,6 +39,7 @@ export function StepPayment({
   onBack,
   onSubmit,
 }: StepPaymentProps) {
+  const router = useRouter()
   const [turnstileToken, setTurnstileToken] = useState("")
   const [surchargeAccepted, setSurchargeAccepted] = useState(false)
   const [saveCard, setSaveCard] = useState(true)
@@ -54,15 +57,20 @@ export function StepPayment({
     onSubmit,
   })
 
-  const router = useRouter()
   const isTest = process.env.NEXT_PUBLIC_PAYMENT_MODE === "test"
-
   const now = new Date()
   const cardExpired = savedCard
     ? savedCard.exp_year < now.getFullYear() ||
       (savedCard.exp_year === now.getFullYear() &&
         savedCard.exp_month < now.getMonth() + 1)
     : false
+
+  const placeDisabled =
+    (!useSavedCard && !sdkReady) ||
+    !turnstileToken ||
+    submitting ||
+    !surchargeAccepted ||
+    (useSavedCard && cardExpired)
 
   return (
     <div className="space-y-6">
@@ -75,102 +83,38 @@ export function StepPayment({
         </div>
       )}
 
-      {useSavedCard && savedCard ? (
-        <div className="space-y-4">
-          <p className="text-foreground text-sm font-medium">
-            Pay with saved card
-          </p>
-          <SavedCard
-            last_four={savedCard.last_four}
-            brand={savedCard.brand}
-            exp_month={savedCard.exp_month}
-            exp_year={savedCard.exp_year}
-            buttonLabel="Use a different card"
-            onUpdateCard={() => router.push("/profile/cards?from=payment")}
-          />
-        </div>
-      ) : (
-        <>
-          {sdkError ? (
-            <p className="border-destructive/30 bg-destructive/5 text-destructive rounded-lg border px-4 py-3 text-sm">
-              {sdkError}
-            </p>
-          ) : (
-            <div
-              ref={cardContainerRef}
-              className={`border-border bg-muted/20 min-h-25 w-full overflow-hidden rounded-lg border p-4 transition-opacity ${sdkReady ? "opacity-100" : "opacity-50"}`}
-            />
-          )}
-
-          {!sdkReady && !sdkError && (
-            <p className="text-muted-foreground text-xs">
-              Loading secure payment form…
-            </p>
-          )}
-        </>
-      )}
-
-      <TurnstileWidget onVerify={setTurnstileToken} />
-
-      {paymentError && (
-        <p className="border-destructive/30 bg-destructive/5 text-destructive rounded-lg border px-4 py-3 text-sm">
-          {paymentError}
-        </p>
-      )}
-
-      <label className="flex cursor-pointer items-start gap-3">
-        <input
-          type="checkbox"
-          checked={surchargeAccepted}
-          onChange={(e) => setSurchargeAccepted(e.target.checked)}
-          className="border-border mt-0.5 h-4 w-4 shrink-0 rounded"
-        />
-        <span className="text-muted-foreground text-sm">
-          I understand a{" "}
-          <span className="text-foreground font-medium">
-            2.6% fee ({formatUSD(surchargeCents)})
-          </span>{" "}
-          will apply to this order.
-        </span>
-      </label>
-
-      {!useSavedCard && (
-        <label className="flex cursor-pointer items-start gap-3">
-          <input
-            type="checkbox"
-            checked={saveCard}
-            onChange={(e) => setSaveCard(e.target.checked)}
-            className="border-border mt-0.5 h-4 w-4 shrink-0 rounded"
-          />
-          <span className="text-muted-foreground text-sm">
-            Save card for future purchases
-          </span>
-        </label>
-      )}
+      <PaymentFormFields
+        useSavedCard={useSavedCard}
+        savedCard={savedCard}
+        cardContainerRef={cardContainerRef}
+        sdkReady={sdkReady}
+        sdkError={sdkError}
+        paymentError={paymentError}
+        surchargeCents={surchargeCents}
+        surchargeAccepted={surchargeAccepted}
+        onSurchargeAcceptedChange={setSurchargeAccepted}
+        saveCard={saveCard}
+        onSaveCardChange={setSaveCard}
+        onTurnstileVerify={setTurnstileToken}
+        onUpdateCard={() => router.push("/profile/cards?from=payment")}
+      />
 
       <div className="flex gap-3 pt-2">
-        <button
-          type="button"
+        <Button
+          variant="outline"
           onClick={onBack}
           disabled={submitting}
-          className="border-border text-foreground hover:bg-muted flex h-12 items-center gap-2 rounded-md border px-5 text-sm font-medium transition-colors disabled:opacity-50"
+          className="h-12"
         >
           <ArrowLeft className="h-4 w-4" strokeWidth={1.75} />
           Back
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
           onClick={() =>
             handlePlace(turnstileToken, surchargeAccepted, saveCard)
           }
-          disabled={
-            (!useSavedCard && !sdkReady) ||
-            !turnstileToken ||
-            submitting ||
-            !surchargeAccepted ||
-            (useSavedCard && cardExpired)
-          }
-          className="bg-foreground text-background flex h-12 flex-1 items-center justify-center gap-2 rounded-md text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={placeDisabled}
+          className="h-12 flex-1"
         >
           <Lock className="h-4 w-4" strokeWidth={1.75} />
           {submitting
@@ -178,7 +122,7 @@ export function StepPayment({
             : useSavedCard && cardExpired
               ? "Update card to continue"
               : `Place Order — ${formatUSD(totalCents)}`}
-        </button>
+        </Button>
       </div>
 
       <div className="text-muted-foreground flex items-center gap-2 text-xs">

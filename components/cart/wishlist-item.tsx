@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
+import { memo } from "react"
 import Link from "next/link"
 import { LayoutGrid, List, ShoppingBag, Trash2 } from "lucide-react"
 import { formatUSD } from "@/lib/utils/format"
@@ -13,7 +14,8 @@ export type WishItem = Product & {
   isProfessional?: boolean
 }
 
-export function WishlistCard({
+/** Wishlist grid card (memoized — rendered in a grid). */
+export const WishlistCard = memo(function WishlistCard({
   item,
   onRemove,
   onAdd,
@@ -97,9 +99,10 @@ export function WishlistCard({
       </div>
     </article>
   )
-}
+})
 
-export function WishlistRow({
+/** Wishlist list row (memoized — rendered in a list). */
+export const WishlistRow = memo(function WishlistRow({
   item,
   onRemove,
   onAdd,
@@ -184,7 +187,7 @@ export function WishlistRow({
       </button>
     </li>
   )
-}
+})
 
 export function WishlistViewToggle({
   active,

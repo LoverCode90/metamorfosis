@@ -1,5 +1,7 @@
 "use client"
 
+import { useMemo } from "react"
+
 import type { CatalogVariation } from "@/lib/catalog"
 import { cn } from "@/lib/utils"
 
@@ -14,14 +16,19 @@ export function ColorSwatches({
   selectedId,
   onSelect,
 }: ColorSwatchesProps) {
-  const selected = variations.find((v) => v.id === selectedId) ?? variations[0]
+  // Build a lookup map once so selecting a swatch is an O(1) read.
+  const variationMap = useMemo(
+    () => new Map(variations.map((variation) => [variation.id, variation])),
+    [variations],
+  )
+  const selectedVariation = variationMap.get(selectedId) ?? variations[0]
 
   return (
     <div>
       <div className="flex items-center justify-between">
         <span className="text-foreground text-sm font-medium">Tonality</span>
         <span className="text-muted-foreground text-sm">
-          {selected?.shadeNumber ?? selected?.nameEn}
+          {selectedVariation?.shadeNumber ?? selectedVariation?.nameEn}
         </span>
       </div>
 

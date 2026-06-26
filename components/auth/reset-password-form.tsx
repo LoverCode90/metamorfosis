@@ -1,130 +1,36 @@
 "use client"
 
-import { useState } from "react"
-import { useForm, useWatch } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useSearchParams } from "next/navigation"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
-import {
-  ResetPasswordSchema,
-  type ResetPasswordInput,
-} from "@/lib/validation/schemas"
+import { Loader2 } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import { PasswordField } from "@/components/auth/password-field"
 import { PasswordStrength } from "@/components/ui/password-strength"
+import { useResetPassword } from "@/hooks/use-reset-password"
 
+/** Recovery-link password reset: new password + confirmation. */
 export function ResetPasswordForm() {
-  const searchParams = useSearchParams()
-  const tokenHash = searchParams.get("token_hash")
-
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [serverError, setServerError] = useState<string | null>(null)
-
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors, isSubmitting },
-  } = useForm<ResetPasswordInput>({
-    resolver: zodResolver(ResetPasswordSchema),
-  })
-  const passwordValue = useWatch({ control, name: "password" }) ?? ""
-
-  async function onSubmit(data: ResetPasswordInput) {
-    if (!tokenHash) {
-      setServerError(
-        "Invalid or missing recovery token. Please request a new link.",
-      )
-      return
-    }
-
-    setServerError(null)
-    const supabase = createClient()
-
-    // 1. Verify the recovery OTP to establish the temporary session
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      token_hash: tokenHash,
-      type: "recovery",
-    })
-
-    if (verifyError) {
-      setServerError(
-        "Your reset link is invalid or has expired. Please request a new one.",
-      )
-      return
-    }
-
-    // 2. Update the user's password using the temporary session
-    const { error: updateError } = await supabase.auth.updateUser({
-      password: data.password,
-    })
-
-    if (updateError) {
-      setServerError("Could not update your password. Please try again.")
-      return
-    }
-
-    // 3. Password updated — session is already active, go straight home
-    window.location.assign("/")
-  }
+  const { register, errors, isSubmitting, serverError, passwordValue, submit } =
+    useResetPassword()
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      noValidate
-      className="flex flex-col gap-4"
-    >
-      <Field label="New password" error={errors.password?.message}>
-        <div className="relative">
-          <input
-            type={showPassword ? "text" : "password"}
-            autoComplete="new-password"
-            placeholder="Minimum 8 characters"
-            {...register("password")}
-            className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-foreground h-11 w-full rounded-md border px-3 pr-10 text-sm transition-colors outline-none"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword((v) => !v)}
-            aria-label={showPassword ? "Hide password" : "Show password"}
-            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
-          >
-            {showPassword ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
-          </button>
-        </div>
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+      <PasswordField
+        label="New password"
+        error={errors.password?.message}
+        autoComplete="new-password"
+        placeholder="Minimum 8 characters"
+        {...register("password")}
+      >
         <PasswordStrength password={passwordValue} />
-      </Field>
+      </PasswordField>
 
-      <Field
+      <PasswordField
         label="Confirm new password"
         error={errors.confirmPassword?.message}
-      >
-        <div className="relative">
-          <input
-            type={showConfirm ? "text" : "password"}
-            autoComplete="new-password"
-            placeholder="Repeat your new password"
-            {...register("confirmPassword")}
-            className="border-border bg-background text-foreground placeholder:text-muted-foreground focus:border-foreground h-11 w-full rounded-md border px-3 pr-10 text-sm transition-colors outline-none"
-          />
-          <button
-            type="button"
-            onClick={() => setShowConfirm((v) => !v)}
-            aria-label={showConfirm ? "Hide password" : "Show password"}
-            className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
-          >
-            {showConfirm ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
-          </button>
-        </div>
-      </Field>
+        autoComplete="new-password"
+        placeholder="Repeat your new password"
+        {...register("confirmPassword")}
+      />
 
       {serverError && (
         <p
@@ -135,32 +41,14 @@ export function ResetPasswordForm() {
         </p>
       )}
 
-      <button
+      <Button
         type="submit"
         disabled={isSubmitting}
-        className="bg-foreground text-background mt-1 flex h-11 w-full items-center justify-center gap-2 rounded-md text-sm font-semibold transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        className="mt-1 h-11 w-full"
       >
-        {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+        {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
         Update password
-      </button>
+      </Button>
     </form>
-  )
-}
-
-function Field({
-  label,
-  error,
-  children,
-}: {
-  label: string
-  error?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-foreground text-sm font-medium">{label}</label>
-      {children}
-      {error && <p className="text-destructive text-xs">{error}</p>}
-    </div>
   )
 }
