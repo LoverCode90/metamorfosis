@@ -80,6 +80,15 @@ export function CustomerHeader({
           </HeaderIconButton>
 
           <HeaderIconButton
+            label="Search"
+            onClick={() => router.push("/products")}
+            active={pathname.startsWith("/products")}
+            className="sm:hidden"
+          >
+            <Search className="h-5 w-5" strokeWidth={1.75} />
+          </HeaderIconButton>
+
+          <HeaderIconButton
             label="Shopping bag"
             badge={cartCount}
             loading={badgesLoading}

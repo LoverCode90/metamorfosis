@@ -138,19 +138,7 @@ export const WishlistRow = memo(function WishlistRow({
           {item.name}
         </Link>
         {item.variant && (
-          <p className="text-muted-foreground flex gap-1 truncate text-xs">
-            {item.variant.split(" > ").map((cat, idx, arr) => (
-              <span key={idx} className="inline-flex items-center gap-1">
-                <Link
-                  href={`/products?category=${encodeURIComponent(cat.trim())}`}
-                  className="hover:text-foreground hover:underline"
-                >
-                  {cat.trim()}
-                </Link>
-                {idx < arr.length - 1 && <span>&gt;</span>}
-              </span>
-            ))}
-          </p>
+          <span className="text-muted-foreground text-sm">{item.variant}</span>
         )}
       </div>
       <div className="flex items-baseline gap-1.5">

@@ -44,6 +44,7 @@ export interface UseCheckoutFlowResult {
   priceSheet: PriceSheet
   cachedShippingRates: ShippingRate[] | null
   setCachedShippingRates: (rates: ShippingRate[]) => void
+  isUserLoading: boolean
   savedCard: SavedCardMeta | null
   continueFromInfo: (address: CheckoutAddress, terms: boolean) => void
   continueFromShipping: (method: ShippingMethod) => void
@@ -78,7 +79,13 @@ function readSessionAddress(): CheckoutAddress | null {
 export function useCheckoutFlow(): UseCheckoutFlowResult {
   const router = useRouter()
   const { items, clearCart, removeItem } = useCart()
-  const { user, dbProfile, savedAddress, saveAddress } = useUser()
+  const {
+    user,
+    dbProfile,
+    savedAddress,
+    saveAddress,
+    isLoading: isUserLoading,
+  } = useUser()
 
   const [wizardStep, setWizardStepRaw] =
     useState<CheckoutStepId>(readSessionStep)
@@ -270,6 +277,7 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
     priceSheet,
     cachedShippingRates,
     setCachedShippingRates,
+    isUserLoading,
     savedCard,
     continueFromInfo,
     continueFromShipping,

@@ -67,7 +67,7 @@ export function ProductBuyPanel({ product, purchase }: Props) {
           {formatUSD(priceCents)}
         </span>
         {!product.isReturnable && (
-          <span className="text-muted-foreground text-xs lg:text-sm">
+          <span className="text-muted-foreground text-sm lg:text-sm">
             Final sale
           </span>
         )}
@@ -98,12 +98,10 @@ export function ProductBuyPanel({ product, purchase }: Props) {
 
       {pdfUrl && <ProductColorCharts pdfUrl={pdfUrl} />}
 
-      {product.isColorProduct && (
-        <p className="text-muted-foreground bg-muted/50 rounded-lg px-4 py-3 text-xs leading-relaxed lg:text-sm">
-          Shades shown are a digital approximation. For accurate formulation,
-          consult the printed chart or a licensed professional.
-        </p>
-      )}
+      <p className="text-muted-foreground bg-muted/50 rounded-lg px-4 py-3 text-xs leading-relaxed lg:text-sm">
+        Chemical products (bleach, developer, permanent color) cannot be
+        returned once shipped.
+      </p>
 
       {outOfStock ? (
         <div className="text-destructive flex items-center gap-2 text-sm">
@@ -126,13 +124,6 @@ export function ProductBuyPanel({ product, purchase }: Props) {
         onAdd={handleAdd}
         onWishlist={handleWishlist}
       />
-
-      {!product.isReturnable && (
-        <p className="text-muted-foreground text-xs lg:text-sm">
-          Chemical products (bleach, developer, permanent color) cannot be
-          returned once shipped.
-        </p>
-      )}
 
       {product.descriptionEn && (
         <p className="text-muted-foreground text-sm leading-relaxed lg:hidden">

@@ -54,6 +54,7 @@ export function CheckoutClient() {
               hasNonReturnable={flow.hasNonReturnable}
               defaultValues={flow.infoDefaults}
               preloadedAddress={flow.address ?? flow.preloadedCheckoutAddress}
+              isUserLoading={flow.isUserLoading}
               onContinue={flow.continueFromInfo}
             />
           )}

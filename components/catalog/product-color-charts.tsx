@@ -1,4 +1,5 @@
 import { Download, FileText } from "lucide-react"
+import { Badge } from "../ui/badge"
 
 import { Button } from "@/components/ui/button"
 
@@ -28,9 +29,12 @@ export function ProductColorCharts({ pdfUrl }: { pdfUrl: string }) {
           Download Chart
         </Button>
       </div>
-      <p className="border-accent-violet/30 bg-accent-violet/10 text-accent-violet rounded-lg border px-4 py-2.5 text-xs font-medium lg:text-sm">
+      <Badge
+        variant={"warning"}
+        className="p-3.5 text-xs font-medium lg:text-sm"
+      >
         We recommend viewing the color chart to see accurate shades.
-      </p>
+      </Badge>
     </div>
   )
 }

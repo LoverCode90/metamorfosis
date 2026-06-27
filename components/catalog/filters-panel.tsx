@@ -5,8 +5,6 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { FilterCategoryTree } from "@/components/catalog/filter-category-tree"
 import { FilterPrice } from "@/components/catalog/filter-price"
-import { FilterSearch } from "@/components/catalog/filter-search"
-import { useDebouncedSearch } from "@/hooks/use-debounced-search"
 import type { ActiveFilters } from "@/lib/catalog"
 import { MAX_PRICE_CENTS } from "@/lib/catalog/filter-constants"
 
@@ -16,20 +14,13 @@ interface FiltersPanelProps {
   onClear: () => void
 }
 
-/**
- * Catalog filter sidebar: debounced search, a max-price slider, and a
- * collapsible category checklist. Presentational — all derived state lives in
- * the child components and {@link useDebouncedSearch}.
- */
+/** Catalog filter sidebar: a max-price slider and a collapsible category checklist. */
 export function FiltersPanel({
   filters,
   onChange,
   onClear,
 }: FiltersPanelProps) {
   const [openParents, setOpenParents] = useState<Set<string>>(new Set())
-  const [search, setSearch] = useDebouncedSearch(filters.search, (value) =>
-    onChange({ ...filters, search: value }),
-  )
 
   function toggleParentOpen(parent: string) {
     setOpenParents((prev) => {
@@ -49,13 +40,10 @@ export function FiltersPanel({
 
   const priceIsActive =
     Number.isFinite(filters.maxPrice) && filters.maxPrice < MAX_PRICE_CENTS
-  const activeCount =
-    filters.categories.length +
-    (filters.search ? 1 : 0) +
-    (priceIsActive ? 1 : 0)
+  const activeCount = filters.categories.length + (priceIsActive ? 1 : 0)
 
   return (
-    <div className="flex max-h-[calc(100vh-120px)] flex-col gap-7 overflow-y-auto pr-1">
+    <div className="flex max-h-[calc(100vh-120px)] flex-col gap-7 overflow-x-hidden overflow-y-auto pr-1">
       <div className="flex items-center justify-between">
         <h2 className="text-foreground text-sm font-semibold tracking-wide uppercase">
           Filters
@@ -71,8 +59,6 @@ export function FiltersPanel({
           </Button>
         )}
       </div>
-
-      <FilterSearch value={search} onChange={setSearch} />
 
       <FilterPrice
         maxPrice={filters.maxPrice}

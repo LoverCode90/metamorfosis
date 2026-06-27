@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -9,6 +8,7 @@ import { AddressFormFields } from "@/components/checkout/steps/address-form-fiel
 import { SavedAddressBanner } from "@/components/checkout/steps/saved-address-banner"
 import { TermsCheckbox } from "@/components/checkout/steps/terms-checkbox"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   buildInfoDefaults,
   infoValuesToAddress,
@@ -20,6 +20,7 @@ interface StepInfoProps {
   hasNonReturnable: boolean
   defaultValues?: Partial<InfoFormValues> | undefined
   preloadedAddress?: CheckoutAddress | null
+  isUserLoading?: boolean
   onContinue: (data: CheckoutAddress, termsAccepted: boolean) => void
 }
 
@@ -27,10 +28,9 @@ export function StepInfo({
   hasNonReturnable,
   defaultValues,
   preloadedAddress,
+  isUserLoading,
   onContinue,
 }: StepInfoProps) {
-  const [usingSaved, setUsingSaved] = useState(() => !!preloadedAddress)
-  const savedAddress = preloadedAddress ?? null
   const router = useRouter()
 
   const {
@@ -55,16 +55,28 @@ export function StepInfo({
     <h2 className="text-foreground text-lg font-semibold">Contact & Address</h2>
   )
 
-  if (usingSaved && savedAddress) {
+  if (isUserLoading) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-6 w-40" />
+        <div className="border-border bg-muted/40 space-y-3 rounded-lg border p-4">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-4 w-36" />
+        </div>
+        <Skeleton className="h-12 w-full rounded-md" />
+      </div>
+    )
+  }
+
+  if (preloadedAddress) {
     return (
       <div className="space-y-6">
         {heading}
         <SavedAddressBanner
-          address={savedAddress}
-          onEdit={() => {
-            setUsingSaved(false)
-            router.push("/profile/addresses?from=checkout")
-          }}
+          address={preloadedAddress}
+          onEdit={() => router.push("/profile/addresses?from=checkout")}
         />
         {hasNonReturnable && <TermsCheckbox control={control} />}
         <Button
@@ -73,7 +85,13 @@ export function StepInfo({
           size="hero"
           className="w-full"
           disabled={hasNonReturnable && !termsAccepted}
-          onClick={handleSubmit(onSubmit)}
+          onClick={() => {
+            if (hasNonReturnable && !termsAccepted) return
+            onContinue(
+              preloadedAddress,
+              hasNonReturnable ? !!termsAccepted : true,
+            )
+          }}
         >
           Continue to Shipping
         </Button>

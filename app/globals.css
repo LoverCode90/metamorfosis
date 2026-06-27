@@ -12,7 +12,7 @@
   --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.457 0.24 277.023);
+  --primary: oklch(48.783% 0.22688 279.896);
   --primary-foreground: oklch(0.962 0.018 272.314);
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
@@ -59,7 +59,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.21 0.006 285.885);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.398 0.195 277.366);
+  --primary: oklch(46.604% 0.21518 278.268);
   --primary-foreground: oklch(0.962 0.018 272.314);
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
@@ -183,9 +183,38 @@
     @apply font-sans tracking-tight;
   }
 
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
   html {
     scroll-behavior: smooth;
     font-size: 106.25%;
+  }
+
+  /* Custom scrollbar — vertical only, thin and rounded */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 0px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: oklch(0.52 0.01 280);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: oklch(0.72 0.01 280);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(0.52 0.01 280) transparent;
   }
 
   /* Prevent iOS/Android zoom on input focus — applies to all interactive fields. */
@@ -199,6 +228,47 @@
   .overflow-safe {
     max-width: 100%;
     overflow-x: hidden;
+  }
+
+  /* Price range slider — white thumb, visible on dark background */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    background: oklch(0.97 0.005 280);
+    border: 2px solid oklch(0.36 0.005 280);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+    margin-top: -7px;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 9999px;
+    background: oklch(0.97 0.005 280);
+    border: 2px solid oklch(0.36 0.005 280);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.4);
+  }
+
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 4px;
+    background: oklch(0.28 0.005 280);
+    border-radius: 9999px;
+  }
+
+  input[type="range"]::-moz-range-track {
+    height: 4px;
+    background: oklch(0.28 0.005 280);
+    border-radius: 9999px;
   }
 }
 

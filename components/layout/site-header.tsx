@@ -5,18 +5,16 @@ import { usePathname } from "next/navigation"
 import { AdminHeader } from "@/components/layout/admin-header"
 import { CustomerHeader } from "@/components/layout/customer-header"
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock"
+import { useCart } from "@/hooks/use-cart"
 import { useMounted } from "@/hooks/use-mounted"
 import { useUser } from "@/hooks/use-user"
 import { useCartStore } from "@/stores/cart"
 import { useUiStore } from "@/stores/ui"
 import { useWishlistStore } from "@/stores/wishlist"
 
-/**
- * Sticky top navigation. Reads auth/cart/wishlist/UI state and renders the
- * admin or customer header; manages mobile-nav body scroll lock.
- */
 export function SiteHeader() {
   const pathname = usePathname()
+  useCart() // triggers cart + wishlist Supabase sync on every page
   const { user, profile, dbProfile, isLoading } = useUser()
   const { mobileNavOpen, openMobileNav, closeMobileNav } = useUiStore()
   const cartCount = useCartStore((s) => s.totals.itemCount)
