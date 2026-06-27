@@ -28,7 +28,7 @@ export function OrderSummaryItems({ items }: OrderSummaryItemsProps) {
             <div className="min-w-0">
               <Link
                 href={`/products/${item.id}`}
-                className="text-foreground block truncate text-sm font-medium hover:underline"
+                className="text-foreground decoration-muted-foreground hover:decoration-foreground block truncate text-sm font-medium underline underline-offset-2"
               >
                 {item.name}
               </Link>

@@ -38,8 +38,8 @@ export interface UseCheckoutFlowResult {
   // Steps
   hasNonReturnable: boolean
   infoDefaults: Partial<InfoFormValues> | undefined
-  skipAddressFetch: boolean
   address: CheckoutAddress | null
+  preloadedCheckoutAddress: CheckoutAddress | null
   lineItems: { variationId: string; quantity: number }[]
   priceSheet: PriceSheet
   cachedShippingRates: ShippingRate[] | null
@@ -82,10 +82,41 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
 
   const [wizardStep, setWizardStepRaw] =
     useState<CheckoutStepId>(readSessionStep)
+
   const setWizardStep = useCallback((step: CheckoutStepId) => {
     sessionStorage.setItem(CHECKOUT_STEP_KEY, step)
     setWizardStepRaw(step)
+    window.history.pushState({ checkoutStep: step }, "", "/checkout")
   }, [])
+
+  // Replace the initial history entry so the popstate handler can identify
+  // the active step when the user presses the browser back button.
+  useEffect(() => {
+    window.history.replaceState(
+      { checkoutStep: readSessionStep() },
+      "",
+      "/checkout",
+    )
+  }, [])
+
+  // Intercept the browser back gesture: navigate within the wizard or go to cart.
+  useEffect(() => {
+    function handlePopState(event: PopStateEvent) {
+      const previousStep = event.state?.checkoutStep as
+        | CheckoutStepId
+        | undefined
+      if (previousStep && VALID_STEPS.has(previousStep)) {
+        setWizardStepRaw(previousStep)
+        sessionStorage.setItem(CHECKOUT_STEP_KEY, previousStep)
+      } else {
+        sessionStorage.removeItem(CHECKOUT_STEP_KEY)
+        sessionStorage.removeItem(ADDRESS_KEY)
+        router.push("/cart")
+      }
+    }
+    window.addEventListener("popstate", handlePopState)
+    return () => window.removeEventListener("popstate", handlePopState)
+  }, [router])
 
   const [savedCard, setSavedCard] = useState<SavedCardMeta | null>(null)
   const [address, setAddress] = useState<CheckoutAddress | null>(
@@ -99,6 +130,7 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
       sessionStorage.removeItem(ADDRESS_KEY)
     }
   }, [address])
+
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [shippingMethod, setShippingMethod] =
     useState<ShippingMethod>("standard")
@@ -130,6 +162,22 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
   const hasNonReturnable = items.some(
     (i) => !i.unavailable && i.isReturnable === false,
   )
+
+  // Synchronously derived from the Zustand address store (localStorage persist).
+  // Used to show the SavedAddressBanner without an async fetch.
+  const preloadedCheckoutAddress: CheckoutAddress | null = savedAddress
+    ? {
+        fullName: savedAddress.fullName ?? "",
+        email: dbProfile?.email ?? "",
+        phone: savedAddress.phone ?? "",
+        streetLine1: savedAddress.line1 ?? "",
+        streetLine2: "",
+        city: savedAddress.city ?? "",
+        state: savedAddress.region ?? "",
+        zip: savedAddress.postalCode ?? "",
+        country: "US",
+      }
+    : null
 
   function continueFromInfo(addr: CheckoutAddress, terms: boolean) {
     setAddress(addr)
@@ -216,8 +264,8 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
       savedAddress,
       dbProfile,
     }),
-    skipAddressFetch: address !== null,
     address,
+    preloadedCheckoutAddress,
     lineItems: toLineItems(items),
     priceSheet,
     cachedShippingRates,
@@ -237,11 +285,6 @@ type InfoDefaultsArgs = {
   dbProfile: ReturnType<typeof useUser>["dbProfile"]
 }
 
-/**
- * Resolves the initial step-info values: the in-progress address (preserving
- * edits when returning from a later step), else a saved default address, else
- * profile name/email/phone, else undefined for a fresh form.
- */
 function resolveInfoDefaults({
   address,
   termsAccepted,

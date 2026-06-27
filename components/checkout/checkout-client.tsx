@@ -53,8 +53,7 @@ export function CheckoutClient() {
             <StepInfo
               hasNonReturnable={flow.hasNonReturnable}
               defaultValues={flow.infoDefaults}
-              isAuthenticated={flow.isAuthenticated}
-              skipAddressFetch={flow.skipAddressFetch}
+              preloadedAddress={flow.address ?? flow.preloadedCheckoutAddress}
               onContinue={flow.continueFromInfo}
             />
           )}

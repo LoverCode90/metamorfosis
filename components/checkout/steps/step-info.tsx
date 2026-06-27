@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -9,10 +9,7 @@ import { AddressFormFields } from "@/components/checkout/steps/address-form-fiel
 import { SavedAddressBanner } from "@/components/checkout/steps/saved-address-banner"
 import { TermsCheckbox } from "@/components/checkout/steps/terms-checkbox"
 import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
-import { useSavedAddress } from "@/hooks/use-saved-address"
 import {
-  addressToInfoValues,
   buildInfoDefaults,
   infoValuesToAddress,
 } from "@/lib/checkout/info-form"
@@ -22,45 +19,29 @@ import { infoSchema, type InfoFormValues } from "@/lib/validation/checkout"
 interface StepInfoProps {
   hasNonReturnable: boolean
   defaultValues?: Partial<InfoFormValues> | undefined
-  isAuthenticated: boolean
-  skipAddressFetch?: boolean
+  preloadedAddress?: CheckoutAddress | null
   onContinue: (data: CheckoutAddress, termsAccepted: boolean) => void
 }
 
 export function StepInfo({
   hasNonReturnable,
   defaultValues,
-  isAuthenticated,
-  skipAddressFetch = false,
+  preloadedAddress,
   onContinue,
 }: StepInfoProps) {
-  const [usingSaved, setUsingSaved] = useState(false)
+  const [usingSaved, setUsingSaved] = useState(() => !!preloadedAddress)
+  const savedAddress = preloadedAddress ?? null
   const router = useRouter()
 
   const {
     register,
     handleSubmit,
-    reset,
     control,
     setValue,
     formState: { errors },
   } = useForm<InfoFormValues>({
     resolver: zodResolver(infoSchema),
     defaultValues: buildInfoDefaults(defaultValues),
-  })
-
-  const handleSavedLoaded = useCallback(
-    (addr: CheckoutAddress) => {
-      setUsingSaved(true)
-      reset(addressToInfoValues(addr))
-    },
-    [reset],
-  )
-
-  const { savedAddress, isLoading } = useSavedAddress({
-    isAuthenticated,
-    enabled: !skipAddressFetch,
-    onLoaded: handleSavedLoaded,
   })
 
   const termsAccepted = useWatch({ control, name: "termsAccepted" })
@@ -74,27 +55,16 @@ export function StepInfo({
     <h2 className="text-foreground text-lg font-semibold">Contact & Address</h2>
   )
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        {heading}
-        <div className="border-border bg-muted/40 space-y-3 rounded-lg border p-4">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-4 w-48" />
-          <Skeleton className="h-4 w-40" />
-          <Skeleton className="h-4 w-36" />
-        </div>
-        <Skeleton className="h-12 w-full rounded-md" />
-      </div>
-    )
-  }
   if (usingSaved && savedAddress) {
     return (
       <div className="space-y-6">
         {heading}
         <SavedAddressBanner
           address={savedAddress}
-          onEdit={() => router.push("/profile/addresses?from=checkout")}
+          onEdit={() => {
+            setUsingSaved(false)
+            router.push("/profile/addresses?from=checkout")
+          }}
         />
         {hasNonReturnable && <TermsCheckbox control={control} />}
         <Button

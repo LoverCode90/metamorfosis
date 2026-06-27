@@ -11,16 +11,9 @@ import { CancelOrderButton } from "@/components/profile/cancel-order-button"
 import { formatDate, formatUSD } from "@/lib/utils/format"
 import type { DbOrder } from "@/lib/orders/types"
 
-type BadgeVariant =
-  | "warning"
-  | "violet"
-  | "secondary"
-  | "success"
-  | "destructive"
-
 type StatusEntry = {
   label: string
-  badgeVariant: BadgeVariant
+  badgeVariant: "warning" | "violet" | "secondary" | "success" | "destructive"
   icon: React.ElementType
 }
 
@@ -35,22 +28,19 @@ const STATUS_CONFIG: Record<string, StatusEntry> = {
 }
 
 const CANCEL_WINDOW_MS = 2 * 60 * 60 * 1000
+const RETURN_WINDOW_MS = 14 * 24 * 60 * 60 * 1000
 
 interface OrderRowProps {
   order: DbOrder
-  /** Client clock (null until mounted) for the cancellation-window check. */
+  /** Client clock (null until mounted) for window checks. */
   now: number | null
 }
 
-/** A single order summary card (memoized — rendered in the orders list). */
 export const OrderRow = memo(function OrderRow({ order, now }: OrderRowProps) {
   const statusConfig = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.confirmed
   const StatusIcon = statusConfig.icon
   const shippingAddress = order.shipping_address
-  const itemCount = order.order_items.reduce(
-    (sum, item) => sum + item.quantity,
-    0,
-  )
+  const itemCount = order.order_items.reduce((sum, i) => sum + i.quantity, 0)
   const firstItem = order.order_items[0]
 
   const isCancellable =
@@ -58,6 +48,11 @@ export const OrderRow = memo(function OrderRow({ order, now }: OrderRowProps) {
     (!order.cases || order.cases.length === 0) &&
     now !== null &&
     now - new Date(order.created_at).getTime() <= CANCEL_WINDOW_MS
+
+  const isWithinReturnWindow =
+    order.status === "delivered" &&
+    now !== null &&
+    now - new Date(order.created_at).getTime() <= RETURN_WINDOW_MS
 
   return (
     <div className="border-border bg-card rounded-2xl border p-5">
@@ -132,6 +127,16 @@ export const OrderRow = memo(function OrderRow({ order, now }: OrderRowProps) {
         )}
         <div className="flex items-center gap-2">
           {isCancellable && <CancelOrderButton orderId={order.id} />}
+          {isWithinReturnWindow && (
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              render={<Link href={`/orders/${order.id}/case`} />}
+            >
+              Report a problem
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"

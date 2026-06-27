@@ -44,9 +44,6 @@ export function WishlistView() {
     brands: filters.brands,
     selectedBrands: filters.selectedBrands,
     onBrandToggle: filters.toggleBrand,
-    priceRange: filters.priceRange,
-    priceValue: filters.priceValue,
-    onPriceChange: filters.setPriceValue,
     onClear: filters.clearFilters,
     activeCount: filters.activeFilterCount,
   }

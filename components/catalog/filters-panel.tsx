@@ -55,7 +55,7 @@ export function FiltersPanel({
     (priceIsActive ? 1 : 0)
 
   return (
-    <div className="flex flex-col gap-7">
+    <div className="flex max-h-[calc(100vh-120px)] flex-col gap-7 overflow-y-auto pr-1">
       <div className="flex items-center justify-between">
         <h2 className="text-foreground text-sm font-semibold tracking-wide uppercase">
           Filters

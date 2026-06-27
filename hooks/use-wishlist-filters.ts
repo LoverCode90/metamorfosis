@@ -29,23 +29,13 @@ export interface UseWishlistFiltersResult {
   selectedBrands: Set<string>
   toggleBrand: (brand: string) => void
   clearFilters: () => void
-  /** Min/max net price across all items. */
-  priceRange: [number, number]
-  /** Currently applied price window (defaults to the full range). */
-  priceValue: [number, number]
-  setPriceValue: (v: [number, number]) => void
   activeFilterCount: number
-  /** Whether any sidebar filter (brand or price) is meaningful. */
+  /** Whether any sidebar filter (brand) is meaningful. */
   hasSidebarFilters: boolean
-  /** Items after search, brand, price filtering and sorting. */
+  /** Items after search, brand filtering and sorting. */
   visible: WishItem[]
 }
 
-/**
- * Encapsulates all wishlist search/sort/filter state and derivations so the
- * view stays presentational.
- * @param items - The raw wishlist items.
- */
 export function useWishlistFilters(
   items: WishItem[],
 ): UseWishlistFiltersResult {
@@ -53,17 +43,6 @@ export function useWishlistFilters(
   const debouncedSearch = useDebounce(search, 300)
   const [sort, setSort] = useState<WishlistSortKey>("added")
   const [selectedBrands, setSelectedBrands] = useState<Set<string>>(new Set())
-  const [activePriceValue, setActivePriceValue] = useState<
-    [number, number] | null
-  >(null)
-
-  const priceRange = useMemo<[number, number]>(() => {
-    if (items.length === 0) return [0, 0]
-    const prices = items.map(netPrice)
-    return [Math.floor(Math.min(...prices)), Math.ceil(Math.max(...prices))]
-  }, [items])
-
-  const priceValue: [number, number] = activePriceValue ?? priceRange
 
   const brands = useMemo(() => {
     const map = new Map<string, number>()
@@ -86,24 +65,18 @@ export function useWishlistFilters(
 
   function clearFilters() {
     setSelectedBrands(new Set())
-    setActivePriceValue(null)
     setSearch("")
   }
 
-  const priceIsNarrowed =
-    activePriceValue !== null &&
-    (activePriceValue[0] > priceRange[0] || activePriceValue[1] < priceRange[1])
-  const activeFilterCount = selectedBrands.size + (priceIsNarrowed ? 1 : 0)
+  const activeFilterCount = selectedBrands.size
 
   const visible = useMemo(() => {
     const q = debouncedSearch.trim().toLowerCase()
-    const [lo, hi] = priceValue
     const list = items.filter((i) => {
       if (q && !i.name.toLowerCase().includes(q)) return false
       if (selectedBrands.size > 0 && i.brand && !selectedBrands.has(i.brand))
         return false
-      const fp = netPrice(i)
-      return fp >= lo && fp <= hi
+      return true
     })
     return [...list].sort((a, b) => {
       if (sort === "price-asc") return netPrice(a) - netPrice(b)
@@ -111,9 +84,9 @@ export function useWishlistFilters(
       if (sort === "name") return a.name.localeCompare(b.name)
       return 0
     })
-  }, [items, debouncedSearch, selectedBrands, priceValue, sort])
+  }, [items, debouncedSearch, selectedBrands, sort])
 
-  const hasSidebarFilters = brands.length > 0 || priceRange[0] < priceRange[1]
+  const hasSidebarFilters = brands.length > 0
 
   return {
     search,
@@ -124,9 +97,6 @@ export function useWishlistFilters(
     selectedBrands,
     toggleBrand,
     clearFilters,
-    priceRange,
-    priceValue,
-    setPriceValue: setActivePriceValue,
     activeFilterCount,
     hasSidebarFilters,
     visible,
