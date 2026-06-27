@@ -7,7 +7,7 @@ import { STORE_FAULT_REASONS } from "@/lib/constants"
 export const MINIMUM_RETURN_CENTS = 1500
 
 /** Order statuses for which a customer may open a return case. */
-const VALID_ORDER_STATUSES = ["delivered", "shipped", "confirmed"]
+const VALID_ORDER_STATUSES = ["delivered"]
 
 export interface EligibilityParams {
   orderId: string
@@ -45,7 +45,7 @@ export async function checkCaseEligibility(
     return {
       ok: false,
       status: 400,
-      error: "Cases can only be opened for confirmed or delivered orders.",
+      error: "Cases can only be opened for delivered orders.",
     }
   }
 
