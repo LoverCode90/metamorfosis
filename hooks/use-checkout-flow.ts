@@ -56,29 +56,49 @@ export interface UseCheckoutFlowResult {
 }
 
 const CHECKOUT_STEP_KEY = "checkout_wizard_step"
+const ADDRESS_KEY = "checkout_address"
 const VALID_STEPS = new Set<string>(["info", "shipping", "payment"])
+
+function readSessionStep(): CheckoutStepId {
+  if (typeof window === "undefined") return "info"
+  const saved = sessionStorage.getItem(CHECKOUT_STEP_KEY)
+  return saved && VALID_STEPS.has(saved) ? (saved as CheckoutStepId) : "info"
+}
+
+function readSessionAddress(): CheckoutAddress | null {
+  if (typeof window === "undefined") return null
+  try {
+    const raw = sessionStorage.getItem(ADDRESS_KEY)
+    return raw ? (JSON.parse(raw) as CheckoutAddress) : null
+  } catch {
+    return null
+  }
+}
 
 export function useCheckoutFlow(): UseCheckoutFlowResult {
   const router = useRouter()
   const { items, clearCart, removeItem } = useCart()
   const { user, dbProfile, savedAddress, saveAddress } = useUser()
 
-  const [wizardStep, setWizardStepRaw] = useState<CheckoutStepId>("info")
-
-  useEffect(() => {
-    const saved = sessionStorage.getItem(CHECKOUT_STEP_KEY)
-    if (saved && VALID_STEPS.has(saved)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setWizardStepRaw(saved as CheckoutStepId)
-    }
-  }, [])
-
+  const [wizardStep, setWizardStepRaw] =
+    useState<CheckoutStepId>(readSessionStep)
   const setWizardStep = useCallback((step: CheckoutStepId) => {
     sessionStorage.setItem(CHECKOUT_STEP_KEY, step)
     setWizardStepRaw(step)
   }, [])
+
   const [savedCard, setSavedCard] = useState<SavedCardMeta | null>(null)
-  const [address, setAddress] = useState<CheckoutAddress | null>(null)
+  const [address, setAddress] = useState<CheckoutAddress | null>(
+    readSessionAddress,
+  )
+
+  useEffect(() => {
+    if (address) {
+      sessionStorage.setItem(ADDRESS_KEY, JSON.stringify(address))
+    } else {
+      sessionStorage.removeItem(ADDRESS_KEY)
+    }
+  }, [address])
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [shippingMethod, setShippingMethod] =
     useState<ShippingMethod>("standard")
@@ -166,6 +186,7 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
     if (data.ok) {
       clearCart()
       sessionStorage.removeItem(CHECKOUT_STEP_KEY)
+      sessionStorage.removeItem(ADDRESS_KEY)
       router.push(
         `/confirmation?orderId=${data.orderId}&orderNumber=${data.orderNumber}`,
       )
@@ -179,6 +200,7 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
     setWizardStep,
     goToCart: () => {
       sessionStorage.removeItem(CHECKOUT_STEP_KEY)
+      sessionStorage.removeItem(ADDRESS_KEY)
       router.push("/cart")
     },
     showGate,

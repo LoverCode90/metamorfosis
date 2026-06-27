@@ -2,13 +2,13 @@
 
 import { useCallback, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Control, Controller, useForm, useWatch } from "react-hook-form"
+import { useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
 import { AddressFormFields } from "@/components/checkout/steps/address-form-fields"
 import { SavedAddressBanner } from "@/components/checkout/steps/saved-address-banner"
+import { TermsCheckbox } from "@/components/checkout/steps/terms-checkbox"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useSavedAddress } from "@/hooks/use-saved-address"
 import {
@@ -25,31 +25,6 @@ interface StepInfoProps {
   isAuthenticated: boolean
   skipAddressFetch?: boolean
   onContinue: (data: CheckoutAddress, termsAccepted: boolean) => void
-}
-
-function TermsCheckbox({ control }: { control: Control<InfoFormValues> }) {
-  return (
-    <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-4">
-      <Controller
-        control={control}
-        name="termsAccepted"
-        render={({ field }) => (
-          <Checkbox
-            checked={!!field.value}
-            onCheckedChange={field.onChange}
-            className="mt-0.5"
-          />
-        )}
-      />
-      <span className="text-foreground text-sm">
-        I understand that{" "}
-        <span className="font-medium">
-          chemical products (bleach, developer, permanent color)
-        </span>{" "}
-        cannot be returned once shipped.
-      </span>
-    </label>
-  )
 }
 
 export function StepInfo({
@@ -103,11 +78,13 @@ export function StepInfo({
     return (
       <div className="space-y-6">
         {heading}
-        <div className="space-y-4">
-          {Array.from({ length: 4 }).map((_, skeletonIndex) => (
-            <Skeleton key={skeletonIndex} className="h-12 w-full" />
-          ))}
+        <div className="border-border bg-muted/40 space-y-3 rounded-lg border p-4">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-4 w-48" />
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-4 w-36" />
         </div>
+        <Skeleton className="h-12 w-full rounded-md" />
       </div>
     )
   }
