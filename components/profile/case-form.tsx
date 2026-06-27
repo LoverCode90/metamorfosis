@@ -8,6 +8,7 @@ import { NativeSelect } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 import { CasePhotoUpload } from "@/components/profile/case-photo-upload"
 import { useCaseForm } from "@/hooks/use-case-form"
+import { CONDITION_OPTIONS } from "@/lib/profile/case-reasons"
 import type { DbOrder } from "@/lib/orders/types"
 
 /**
@@ -19,7 +20,10 @@ export function CaseForm({ order }: { order: DbOrder }) {
   const f = useCaseForm(order)
 
   return (
-    <form onSubmit={f.submit} className="mx-auto max-w-2xl space-y-6 py-8">
+    <form
+      onSubmit={f.submit}
+      className="mx-auto max-w-2xl space-y-6 overflow-hidden py-8"
+    >
       <div>
         <h2 className="text-foreground text-2xl font-semibold tracking-tight">
           Report a Problem
@@ -86,16 +90,44 @@ export function CaseForm({ order }: { order: DbOrder }) {
           </p>
         </div>
 
+        {f.requireCondition && (
+          <div className="space-y-2">
+            <Label htmlFor="condition">Item condition</Label>
+            <NativeSelect
+              id="condition"
+              value={f.condition}
+              onChange={(e) => f.setCondition(e.target.value)}
+              required
+            >
+              <option value="">Select condition</option>
+              {CONDITION_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </NativeSelect>
+          </div>
+        )}
+
         <div className="space-y-2">
-          <Label>Photos (Optional, max 3)</Label>
+          <Label>Photos (required)</Label>
           <CasePhotoUpload
             files={f.files}
             max={f.maxPhotos}
             onSelect={f.addFiles}
             onRemove={f.removeFile}
           />
+          <p className="text-muted-foreground text-xs">
+            Clear photos of the item are required to process your return. The
+            owner may reject cases without adequate photos.
+          </p>
         </div>
       </div>
+
+      <p className="text-muted-foreground text-xs">
+        Items under $15.00 cannot be returned due to shipping logistics, as
+        stated in our Terms &amp; Conditions.
+      </p>
 
       <Button type="submit" className="w-full" disabled={!f.canSubmit}>
         {f.isSubmitting ? (

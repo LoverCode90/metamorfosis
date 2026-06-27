@@ -69,7 +69,7 @@
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+  --input: oklch(0.22 0.006 285.885);
   --ring: oklch(0.552 0.016 285.938);
   --chart-1: oklch(0.785 0.115 274.713);
   --chart-2: oklch(0.585 0.233 277.117);
@@ -186,6 +186,19 @@
   html {
     scroll-behavior: smooth;
     font-size: 106.25%;
+  }
+
+  /* Prevent iOS/Android zoom on input focus — applies to all interactive fields. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  /* Utility: stop an element from causing horizontal scroll on mobile. */
+  .overflow-safe {
+    max-width: 100%;
+    overflow-x: hidden;
   }
 }
 

@@ -3,11 +3,16 @@ import "server-only"
 interface ShippoRate {
   object_id: string
   amount: string
+  provider?: string
+  estimated_days?: number | null
 }
 
 interface ShippoLabel {
   label_url?: string
   object_id?: string
+  /** Carrier name from the chosen Shippo rate (e.g. "USPS", "UPS"). */
+  carrier?: string
+  estimatedDays?: number | null
 }
 
 export async function createReturnLabel(
@@ -99,5 +104,9 @@ export async function createReturnLabel(
   }
 
   const purchaseData = await purchaseRes.json()
-  return purchaseData
+  return {
+    ...purchaseData,
+    carrier: cheapestRate.provider,
+    estimatedDays: cheapestRate.estimated_days ?? null,
+  }
 }

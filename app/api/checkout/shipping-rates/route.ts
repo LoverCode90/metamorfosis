@@ -43,17 +43,20 @@ export async function POST(request: NextRequest) {
   const isFreeStandard =
     subtotalCents >= FREE_THRESHOLD_CENTS && subtotalCents > 0
 
+  if (process.env.NODE_ENV === "development") {
+    console.log(
+      "[shipping-rates] Calling Shippo with address:",
+      address?.city,
+      address?.state,
+    )
+  }
+
   // ── Attempt live Shippo rates ─────────────────────────────────────────────
-  if (
-    address &&
-    items &&
-    items.length > 0 &&
-    process.env.SHIPPO_API_KEY
-  ) {
+  if (address && items && items.length > 0 && process.env.SHIPPO_API_KEY) {
     try {
       // Resolve packageClass + weightLb from the DB so client doesn't need them
       const admin = createAdminClient()
-      const variationIds = items.map(i => i.variationId)
+      const variationIds = items.map((i) => i.variationId)
       const { data: varRows } = await admin
         .from("product_variations")
         .select(
@@ -69,7 +72,7 @@ export async function POST(request: NextRequest) {
           product_translations: { package_class: PackageClass } | null
         }[]
       ).map((row) => {
-        const cartItem = items.find(i => i.variationId === row.id)
+        const cartItem = items.find((i) => i.variationId === row.id)
         return {
           packageClass: row.product_translations?.package_class ?? "small",
           weightLb: row.weight_lb,

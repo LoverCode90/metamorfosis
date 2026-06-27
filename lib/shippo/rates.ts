@@ -11,7 +11,7 @@ export interface ShippoRates {
   overnightCents: number | null
 }
 
-const FROM_ADDRESS = {
+export const FROM_ADDRESS = {
   name: "Metamorfosis Beauty Supply",
   street1: process.env.SHIPPO_FROM_STREET1 ?? "",
   city: "Ontario",
@@ -22,16 +22,29 @@ const FROM_ADDRESS = {
 }
 
 /**
- * Service level token → our shipping method key.
- * Shippo returns many carriers; we surface only USPS priority/express/overnight.
+ * Service level token → our shipping tier key. Shippo returns many carriers;
+ * we map USPS, UPS, and FedEx service levels into standard/express/overnight.
  */
 const TOKEN_MAP: Record<string, keyof ShippoRates> = {
-  usps_priority: "standardCents",
+  // USPS
   usps_first: "standardCents",
-  usps_express: "expressCents",
+  usps_priority: "standardCents",
   usps_priority_express: "expressCents",
+  usps_express: "expressCents",
+  usps_express_mail: "expressCents",
   usps_overnight: "overnightCents",
-  usps_express_mail: "overnightCents",
+  // UPS
+  ups_ground: "standardCents",
+  ups_3_day_select: "expressCents",
+  ups_second_day_air: "expressCents",
+  ups_next_day_air_saver: "overnightCents",
+  ups_next_day_air: "overnightCents",
+  // FedEx
+  fedex_ground: "standardCents",
+  fedex_express_saver: "expressCents",
+  fedex_2_day: "expressCents",
+  fedex_standard_overnight: "overnightCents",
+  fedex_priority_overnight: "overnightCents",
 }
 
 /**

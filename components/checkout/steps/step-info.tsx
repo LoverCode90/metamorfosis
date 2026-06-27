@@ -84,7 +84,7 @@ export function StepInfo({
 
   const { savedAddress, isLoading } = useSavedAddress({
     isAuthenticated,
-    enabled: !skipAddressFetch && !defaultValues?.streetLine1,
+    enabled: !skipAddressFetch,
     onLoaded: handleSavedLoaded,
   })
 

@@ -88,6 +88,18 @@ export function CaseActions({
           )}
           Reject Case
         </Button>
+
+        <Button
+          onClick={() => handleAction("fraud")}
+          disabled={!!isProcessing}
+          variant="outline"
+          className="border-destructive/40 text-destructive hover:bg-destructive/10"
+        >
+          {isProcessing === "fraud" && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          Mark as Fraud
+        </Button>
       </div>
     </div>
   )

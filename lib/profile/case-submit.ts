@@ -6,6 +6,7 @@ interface SubmitCaseArgs {
   variationId: string
   reason: string
   explanation: string
+  condition?: string
   files: File[]
 }
 
@@ -19,6 +20,7 @@ export async function submitCase({
   variationId,
   reason,
   explanation,
+  condition,
   files,
 }: SubmitCaseArgs): Promise<void> {
   const supabase = createClient()
@@ -54,6 +56,7 @@ export async function submitCase({
       variationId,
       reason,
       explanation,
+      condition,
       evidenceUrls,
     }),
   })

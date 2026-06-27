@@ -32,6 +32,9 @@ export function useShippingRates({
 
   useEffect(() => {
     if (initialRates) return
+    // Don't call Shippo until the address is fully populated, otherwise the API
+    // gets no address and silently falls back to fixed rates.
+    if (!address?.streetLine1 || !address?.city || !address?.state) return
 
     let cancelled = false
     fetchShippingRates({ subtotalCents, address, items })

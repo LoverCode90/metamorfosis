@@ -8,7 +8,8 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
     <textarea
       data-slot="textarea"
       className={cn(
-        "border-border bg-input text-foreground min-h-[120px] w-full rounded-md border px-3 py-2 text-sm transition-colors outline-none",
+        // text-base (16px) prevents iOS/Android zoom on focus.
+        "border-border bg-input text-foreground min-h-[120px] w-full max-w-full rounded-md border px-3 py-2 text-base transition-colors outline-none",
         "placeholder:text-muted-foreground",
         "hover:border-border-strong",
         "focus-visible:border-ring focus-visible:ring-ring/25 focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-1",

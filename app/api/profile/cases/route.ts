@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { z } from "zod"
+import { checkCaseEligibility } from "@/lib/profile/case-eligibility"
+import { sendCaseSubmitted } from "@/lib/email/case-notifications"
 
 const caseSchema = z.object({
+  // Use the client-generated ID so it matches the evidence upload paths.
+  id: z.string().uuid(),
   orderId: z.string().uuid(),
   variationId: z.string().uuid(),
   reason: z.enum([
@@ -15,8 +19,10 @@ const caseSchema = z.object({
     "other",
   ]),
   explanation: z.string().min(40, "Explanation must be at least 40 characters"),
-  // Stored as Supabase Storage paths (e.g. "userId/caseId/1.jpg"), not full
-  // URLs, so validate as non-empty strings rather than z.string().url().
+  condition: z
+    .enum(["unopened", "opened_unused", "used_good", "used_worn"])
+    .optional(),
+  // Stored as Supabase Storage paths (e.g. "userId/caseId/1.jpg"), not full URLs.
   evidenceUrls: z.array(z.string().min(1)).max(3).optional().default([]),
 })
 
@@ -32,9 +38,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const json = await req.json()
-    const parsed = caseSchema.safeParse(json)
-
+    const parsed = caseSchema.safeParse(await req.json())
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid data", details: parsed.error.issues },
@@ -42,40 +46,31 @@ export async function POST(req: Request) {
       )
     }
 
-    const { orderId, variationId, reason, explanation, evidenceUrls } =
-      parsed.data
+    const {
+      id,
+      orderId,
+      variationId,
+      reason,
+      explanation,
+      condition,
+      evidenceUrls,
+    } = parsed.data
 
-    // 1. Verify order belongs to user and is delivered within 14 days
-    const { data: order, error: orderError } = await supabase
-      .from("orders")
-      .select("id, delivered_at")
-      .eq("id", orderId)
-      .eq("user_id", user.id)
-      .single()
-
-    if (orderError || !order) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 })
-    }
-
-    if (!order.delivered_at) {
+    const eligibility = await checkCaseEligibility(supabase, {
+      orderId,
+      variationId,
+      userId: user.id,
+      reason,
+      evidenceCount: evidenceUrls.length,
+    })
+    if (!eligibility.ok) {
       return NextResponse.json(
-        { error: "Order is not yet delivered" },
-        { status: 400 },
+        { error: eligibility.error },
+        { status: eligibility.status },
       )
     }
 
-    const deliveredDate = new Date(order.delivered_at)
-    const fourteenDaysAgo = new Date()
-    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14)
-
-    if (deliveredDate < fourteenDaysAgo) {
-      return NextResponse.json(
-        { error: "Order was delivered more than 14 days ago" },
-        { status: 400 },
-      )
-    }
-
-    // 2. Max 1 open case per order
+    // Max 1 open case per order
     const { data: existingCase, error: existingCaseError } = await supabase
       .from("cases")
       .select("id")
@@ -86,7 +81,6 @@ export async function POST(req: Request) {
     if (existingCaseError) {
       return NextResponse.json({ error: "Database error" }, { status: 500 })
     }
-
     if (existingCase) {
       return NextResponse.json(
         { error: "An open case already exists for this order" },
@@ -94,15 +88,16 @@ export async function POST(req: Request) {
       )
     }
 
-    // 3. Create case
     const { data: newCase, error: createError } = await supabase
       .from("cases")
       .insert({
+        id,
         customer_id: user.id,
         order_id: orderId,
         variation_id: variationId,
         reason,
         explanation,
+        condition: condition ?? null,
         evidence_images_urls: evidenceUrls,
         status: "open",
       })
@@ -115,6 +110,21 @@ export async function POST(req: Request) {
         { status: 500 },
       )
     }
+
+    // Confirmation email (fire-and-forget — never block the response)
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .single()
+
+    sendCaseSubmitted({
+      to: user.email ?? "",
+      customerName: profile?.full_name ?? "there",
+      caseId: newCase.id,
+      orderId,
+      reason,
+    }).catch((err) => console.error("[cases] submit email failed:", err))
 
     return NextResponse.json({ success: true, caseId: newCase.id })
   } catch (error) {

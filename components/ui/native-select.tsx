@@ -12,7 +12,9 @@ function NativeSelect({ className, ...props }: React.ComponentProps<"select">) {
     <select
       data-slot="native-select"
       className={cn(
-        "border-border bg-input text-foreground h-10 w-full min-w-0 rounded-md border px-3 text-sm transition-colors outline-none",
+        // text-base (16px) prevents iOS/Android zoom on focus;
+        // [color-scheme:dark] tells the OS to render dark option dropdowns.
+        "border-border bg-input text-foreground h-11 w-full max-w-full min-w-0 appearance-none rounded-md border px-3 text-base [color-scheme:dark] transition-colors outline-none",
         "hover:border-border-strong",
         "focus-visible:border-ring focus-visible:ring-ring/25 focus-visible:ring-offset-background focus-visible:ring-2 focus-visible:ring-offset-1",
         "disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",

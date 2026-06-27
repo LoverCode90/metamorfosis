@@ -311,6 +311,20 @@ export async function POST(
     )
   }
 
+  // ── Log terms acceptance for legal record (fire-and-forget) ────────────────
+  admin
+    .from("terms_acceptance_log")
+    .insert({
+      user_id: user?.id ?? null,
+      order_id: orderId,
+      ip_address: ip,
+      user_agent: request.headers.get("user-agent") ?? null,
+      terms_version: "v1.0",
+    })
+    .then(({ error }) => {
+      if (error) console.error("[validate-payment] Terms log failed:", error)
+    })
+
   // ── Clear cart ─────────────────────────────────────────────────────────────
   if (user) {
     await clearDbCart(user.id)

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { sendCaseRejected } from "@/lib/email/case-notifications"
+import { requireAdmin } from "@/lib/admin/require-admin"
+import { getCaseCustomer } from "@/lib/profile/case-customer"
 import { z } from "zod"
 
 const rejectSchema = z.object({
@@ -14,23 +17,9 @@ export async function POST(
   try {
     const { id: caseId } = await params
     const supabase = await createClient()
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single()
-
-    if (profile?.role !== "admin") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    const gate = await requireAdmin(supabase)
+    if (!gate.ok) {
+      return NextResponse.json({ error: gate.error }, { status: gate.status })
     }
 
     // The admin UI posts with no body, so tolerate an empty request.
@@ -83,7 +72,7 @@ export async function POST(
 
     // 3. Write audit log
     await supabaseAdmin.from("audit_logs").insert({
-      admin_id: user.id,
+      admin_id: gate.userId,
       action: "case_status_changed",
       target_table: "cases",
       target_id: caseId,
@@ -91,6 +80,16 @@ export async function POST(
       new_value: { status: "rejected", resolved_at: resolvedAt },
       notes: `Rejected. Reason: ${reason}`,
     })
+
+    // Notify the customer of the decision (fire-and-forget).
+    const customer = await getCaseCustomer(supabaseAdmin, caseData.customer_id)
+    if (customer.email) {
+      await sendCaseRejected({
+        to: customer.email,
+        customerName: customer.name,
+        adminNotes: reason,
+      }).catch((err) => console.error("[reject] email failed:", err))
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {

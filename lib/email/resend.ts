@@ -39,7 +39,7 @@ import {
 
 let _resend: Resend | null = null
 
-function getResend(): Resend {
+export function getResend(): Resend {
   if (_resend) return _resend
   const key = process.env.RESEND_API_KEY
   if (!key) throw new Error("RESEND_API_KEY is not set")
@@ -47,8 +47,8 @@ function getResend(): Resend {
   return _resend
 }
 
-const FROM = "Metamorfosis <no-reply@metamorfosisllc.com>"
-const REPLY_TO = "hello@metamorfosisllc.com"
+export const FROM = "Metamorfosis <no-reply@metamorfosisllc.com>"
+export const REPLY_TO = "hello@metamorfosisllc.com"
 
 export async function sendVerificationCode(
   data: VerifyCodeData,
