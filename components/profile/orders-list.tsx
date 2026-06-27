@@ -2,11 +2,27 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Package } from "lucide-react"
+import { ChevronLeft, Package } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { OrderRow } from "@/components/profile/order-row"
 import type { DbOrder } from "@/lib/orders/types"
+
+export function OrdersBackButton() {
+  const router = useRouter()
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => router.back()}
+      className="text-muted-foreground hover:text-foreground -ml-2 gap-1"
+    >
+      <ChevronLeft className="h-4 w-4" />
+      Back
+    </Button>
+  )
+}
 
 interface OrdersListProps {
   orders: DbOrder[]

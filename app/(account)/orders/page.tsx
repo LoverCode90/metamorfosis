@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { getUserOrders } from "@/lib/orders/queries"
-import { OrdersList } from "@/components/profile/orders-list"
+import { OrdersList, OrdersBackButton } from "@/components/profile/orders-list"
 
 export const metadata = { title: "My Orders — Metamorfosis Beauty" }
 
@@ -19,7 +19,8 @@ export default async function OrdersPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-12">
-      <div className="flex flex-col gap-1">
+      <OrdersBackButton />
+      <div className="mt-4 flex flex-col gap-1">
         <p className="text-muted-foreground text-xs font-medium tracking-[0.3em] uppercase">
           My Account
         </p>

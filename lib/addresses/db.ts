@@ -86,6 +86,18 @@ export async function saveCheckoutAddress(
 }
 
 /**
+ * Deletes the user's default address row.
+ */
+export async function deleteDefaultAddress(userId: string): Promise<void> {
+  const admin = createAdminClient()
+  await admin
+    .from("addresses")
+    .delete()
+    .eq("user_id", userId)
+    .eq("is_default", true)
+}
+
+/**
  * Maps a DB address row to a CheckoutAddress for pre-filling forms.
  * The email field is not stored on the address — callers should supply it
  * from the user's profile.

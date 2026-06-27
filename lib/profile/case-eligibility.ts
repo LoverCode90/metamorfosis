@@ -1,6 +1,7 @@
 import "server-only"
 
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { STORE_FAULT_REASONS } from "@/lib/constants"
 
 /** Items below this value cannot be returned (return shipping logistics). */
@@ -62,7 +63,8 @@ export async function checkCaseEligibility(
     }
   }
 
-  const { data: orderItem } = await supabase
+  const adminClient = createAdminClient()
+  const { data: orderItem } = await adminClient
     .from("order_items")
     .select("unit_price_cents, quantity")
     .eq("order_id", orderId)

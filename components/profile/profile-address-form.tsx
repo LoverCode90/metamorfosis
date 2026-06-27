@@ -21,6 +21,7 @@ interface ProfileAddressFormProps {
   onPlaceSelect: (placeId: string) => void
   onSave: () => void
   onCancel: () => void
+  fieldErrors?: Record<string, string | undefined>
 }
 
 export function ProfileAddressForm({
@@ -30,13 +31,14 @@ export function ProfileAddressForm({
   onPlaceSelect,
   onSave,
   onCancel,
+  fieldErrors = {},
 }: ProfileAddressFormProps) {
   const setField = (key: keyof AddressDraft, value: string) =>
     setAddrDraft((draft) => ({ ...draft, [key]: value }))
 
   return (
     <div className="mt-4 flex flex-col gap-3">
-      <AddressFieldGroup label="Full name">
+      <AddressFieldGroup label="Full name" error={fieldErrors.fullName}>
         <Input
           autoComplete="name"
           value={addrDraft.fullName}
@@ -45,7 +47,7 @@ export function ProfileAddressForm({
         />
       </AddressFieldGroup>
 
-      <AddressFieldGroup label="Phone">
+      <AddressFieldGroup label="Phone" error={fieldErrors.phone}>
         <PhoneInput
           value={addrDraft.phone}
           onChange={(value) => setField("phone", value)}
@@ -53,7 +55,11 @@ export function ProfileAddressForm({
         />
       </AddressFieldGroup>
 
-      <AddressFieldGroup label="Address line 1" className="relative">
+      <AddressFieldGroup
+        label="Address line 1"
+        className="relative"
+        error={fieldErrors.line1}
+      >
         <Input
           autoComplete="off"
           value={addrDraft.line1}
@@ -83,7 +89,7 @@ export function ProfileAddressForm({
         )}
       </AddressFieldGroup>
 
-      <AddressFieldGroup label="City">
+      <AddressFieldGroup label="City" error={fieldErrors.city}>
         <Input
           autoComplete="address-level2"
           value={addrDraft.city}
@@ -92,7 +98,7 @@ export function ProfileAddressForm({
         />
       </AddressFieldGroup>
 
-      <AddressFieldGroup label="State">
+      <AddressFieldGroup label="State" error={fieldErrors.region}>
         <NativeSelect
           value={addrDraft.region}
           onChange={(e) => setField("region", e.target.value)}
@@ -107,7 +113,7 @@ export function ProfileAddressForm({
         </NativeSelect>
       </AddressFieldGroup>
 
-      <AddressFieldGroup label="Postal code">
+      <AddressFieldGroup label="Postal code" error={fieldErrors.postalCode}>
         <Input
           inputMode="numeric"
           autoComplete="postal-code"

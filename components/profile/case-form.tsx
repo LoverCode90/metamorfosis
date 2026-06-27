@@ -22,7 +22,7 @@ export function CaseForm({ order }: { order: DbOrder }) {
   return (
     <form
       onSubmit={f.submit}
-      className="mx-auto max-w-2xl space-y-6 overflow-hidden py-8"
+      className="mx-auto max-w-2xl space-y-6 overflow-hidden px-4 pt-8 pb-24 md:px-0 md:pb-8"
     >
       <div>
         <h2 className="text-foreground text-2xl font-semibold tracking-tight">

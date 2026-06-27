@@ -14,24 +14,6 @@ import type { DbOrder } from "@/lib/orders/types"
 const MAX_PHOTOS = 3
 const MIN_EXPLANATION = 40
 
-// Maps substrings of known API errors to friendly, user-facing messages.
-const CASE_ERROR_MESSAGES: Record<string, string> = {
-  "Order not found": "We couldn't find this order on your account.",
-  "confirmed or delivered": "This order isn't eligible for a return yet.",
-  "within 14 days": "The 14-day window for reporting issues has passed.",
-  "already exists": "You already have an open case for this order.",
-  "cannot be returned due to shipping":
-    "This item's value is below our $15 return minimum.",
-  "At least one photo": "Please add at least one photo for this return.",
-}
-
-function friendlyError(message: string): string {
-  const key = Object.keys(CASE_ERROR_MESSAGES).find((k) => message.includes(k))
-  return key
-    ? CASE_ERROR_MESSAGES[key]
-    : "Something went wrong. Please try again."
-}
-
 export interface UseCaseFormResult {
   variationId: string
   selectVariation: (variationId: string) => void
@@ -124,7 +106,11 @@ export function useCaseForm(order: DbOrder): UseCaseFormResult {
       })
       router.refresh()
     } catch (err: unknown) {
-      setError(friendlyError(err instanceof Error ? err.message : ""))
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.",
+      )
     } finally {
       setIsSubmitting(false)
     }

@@ -4,6 +4,7 @@ import {
   getDefaultAddress,
   dbAddressToCheckout,
   saveCheckoutAddress,
+  deleteDefaultAddress,
 } from "@/lib/addresses/db"
 import type { CheckoutAddress } from "@/lib/checkout/types"
 
@@ -83,5 +84,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     country: "US",
   })
 
+  return NextResponse.json({ ok: true })
+}
+
+/**
+ * DELETE /api/addresses/default
+ * Removes the authenticated user's default shipping address.
+ */
+export async function DELETE(): Promise<NextResponse> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  await deleteDefaultAddress(user.id)
   return NextResponse.json({ ok: true })
 }
