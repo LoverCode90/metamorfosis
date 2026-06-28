@@ -4,6 +4,7 @@
 import Link from "next/link"
 
 import { Badge } from "@/components/ui/badge"
+import { PRO_RESTRICTIONS_ENABLED } from "@/lib/constants"
 import { squareImageUrl } from "@/lib/utils/square-image"
 
 interface ProductCardMediaProps {
@@ -41,7 +42,7 @@ export function ProductCardMedia({
         />
       </Link>
 
-      {isPro && (
+      {PRO_RESTRICTIONS_ENABLED && isPro && (
         <Badge className="bg-accent-violet pointer-events-none absolute top-2.5 left-2.5 z-10 text-white">
           Pro
         </Badge>

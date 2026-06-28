@@ -7,6 +7,7 @@ import {
   User,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import { PRO_RESTRICTIONS_ENABLED } from "@/lib/constants"
 
 interface NavVisibilityContext {
   isAdmin: boolean
@@ -58,7 +59,7 @@ export const PROFILE_NAV_ROWS: ProfileNavRowDef[] = [
     icon: ShieldCheck,
     title: "Professional Verification",
     description: "License status",
-    isVisible: ({ isAdmin }) => !isAdmin,
+    isVisible: ({ isAdmin }) => !isAdmin && PRO_RESTRICTIONS_ENABLED,
   },
 ]
 
@@ -72,7 +73,7 @@ export function computeCompletionPercent(args: {
   const checklist = [
     args.hasName,
     args.hasAddress,
-    ...(!args.isAdmin ? [args.isVerified] : []),
+    ...(!args.isAdmin && PRO_RESTRICTIONS_ENABLED ? [args.isVerified] : []),
   ]
   return Math.round((checklist.filter(Boolean).length / checklist.length) * 100)
 }

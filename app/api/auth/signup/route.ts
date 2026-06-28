@@ -117,10 +117,11 @@ export async function POST(request: NextRequest) {
   }
 
   // ── Check if a confirmed profile already exists for this email ───────────
+  // ilike for case-insensitive match (Google OAuth may store mixed-case emails)
   const { data: existingProfile } = await admin
     .from("profiles")
     .select("id")
-    .eq("email", email)
+    .ilike("email", email)
     .maybeSingle()
 
   if (existingProfile) {

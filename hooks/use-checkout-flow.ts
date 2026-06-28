@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
 import { useUser } from "@/hooks/use-user"
 import { createClient } from "@/lib/supabase/client"
+import { PRO_RESTRICTIONS_ENABLED } from "@/lib/constants"
 import {
   fetchSavedCard,
   fetchTaxRate,
@@ -201,7 +202,10 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
   // Gate: only items explicitly flagged isProfessional require verification.
   const gatedItems = items.filter((i) => i.isProfessional && !i.unavailable)
   const showGate =
-    isVerifiedPro !== null && gatedItems.length > 0 && !isVerifiedPro
+    PRO_RESTRICTIONS_ENABLED &&
+    isVerifiedPro !== null &&
+    gatedItems.length > 0 &&
+    !isVerifiedPro
 
   const hasNonReturnable = items.some(
     (i) => !i.unavailable && i.isReturnable === false,

@@ -7,6 +7,7 @@ import { ColorSwatches } from "@/components/catalog/color-swatches"
 import { ProductBuyActions } from "@/components/catalog/product-buy-actions"
 import { ProductColorCharts } from "@/components/catalog/product-color-charts"
 import { ProductVariantSelector } from "@/components/catalog/product-variant-selector"
+import { PRO_RESTRICTIONS_ENABLED } from "@/lib/constants"
 import { formatUSD } from "@/lib/utils/format"
 import type { CatalogProduct } from "@/lib/catalog"
 import type { ProductPurchase } from "@/hooks/use-product-purchase"
@@ -54,7 +55,7 @@ export function ProductBuyPanel({ product, purchase }: Props) {
         <h1 className="text-foreground mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
           {product.nameEn}
         </h1>
-        {product.isProfessional && (
+        {PRO_RESTRICTIONS_ENABLED && product.isProfessional && (
           <Badge variant="warning" className="mt-3">
             <ShieldCheck className="h-3.5 w-3.5" />
             Professional Only

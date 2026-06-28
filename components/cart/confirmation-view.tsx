@@ -12,8 +12,18 @@ export function ConfirmationView() {
   const params = useSearchParams()
 
   useEffect(() => {
-    window.history.replaceState(null, "", window.location.href)
-  }, [])
+    // Push a dummy entry so the back button has somewhere to "go"
+    window.history.pushState(null, "", window.location.href)
+
+    function onPopState() {
+      // User pressed back — redirect to home instead of letting them reach checkout
+      window.history.pushState(null, "", window.location.href)
+      router.replace("/")
+    }
+
+    window.addEventListener("popstate", onPopState)
+    return () => window.removeEventListener("popstate", onPopState)
+  }, [router])
   const orderNumber = params.get("orderNumber")
   const orderId = params.get("orderId")
 

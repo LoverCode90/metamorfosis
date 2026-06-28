@@ -1,3 +1,10 @@
+/**
+ * When false, all professional-only purchase gates, "Pro" badges, and the
+ * license-verification profile section are hidden. Flip to true when pro
+ * products go on sale. Does NOT drop any DB columns or logic.
+ */
+export const PRO_RESTRICTIONS_ENABLED = false
+
 /** Cart total threshold in cents for free shipping (defaults to $120.00). */
 export const FREE_SHIPPING_THRESHOLD_CENTS = parseInt(
   process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD_CENTS ?? "12000",
