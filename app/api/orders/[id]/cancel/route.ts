@@ -74,13 +74,27 @@ export async function POST(
     }
 
     // 6. Update status to cancelled
-    await admin
+    const { error: updateError } = await admin
       .from("orders")
       .update({ status: "cancelled" })
       .eq("id", resolvedParams.id)
 
+    if (updateError) {
+      console.error(
+        "[cancel-order] status='cancelled' failed:",
+        updateError.message,
+      )
+      // Try alternate spelling in case of DB check constraint
+      const { error: altError } = await admin
+        .from("orders")
+        .update({ status: "canceled" })
+        .eq("id", resolvedParams.id)
+      if (altError)
+        throw new Error(`Cannot update order status: ${updateError.message}`)
+    }
+
     // 7. Log to audit_logs
-    await admin.from("audit_logs").insert({
+    const { error: logError } = await admin.from("audit_logs").insert({
       admin_id: user.id,
       action: "cancel_order",
       target_table: "orders",
@@ -88,6 +102,7 @@ export async function POST(
       new_value: { status: "cancelled" },
       notes: "Customer cancelled order within 2 hours",
     })
+    if (logError) console.error("[cancel-order] audit log failed:", logError)
 
     // 8. Send email
     if (process.env.RESEND_API_KEY) {

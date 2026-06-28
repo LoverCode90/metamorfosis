@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { Check, ShoppingBag, Info } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -9,6 +10,10 @@ import { HomeFooter } from "@/components/marketing/home-footer"
 export function ConfirmationView() {
   const router = useRouter()
   const params = useSearchParams()
+
+  useEffect(() => {
+    window.history.replaceState(null, "", window.location.href)
+  }, [])
   const orderNumber = params.get("orderNumber")
   const orderId = params.get("orderId")
 

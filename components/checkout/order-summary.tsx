@@ -64,7 +64,7 @@ export function OrderSummary({
               </dd>
             </div>
           )}
-          {wizardStep !== "info" && (
+          {wizardStep === "payment" && (
             <div className="flex items-center justify-between">
               <dt className="text-muted-foreground flex items-center gap-1.5">
                 <Truck className="h-4 w-4" />

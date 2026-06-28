@@ -38,7 +38,11 @@ export function HeaderIconButton({
     prevCount.current = count
   }, [badge])
 
-  const buttonClass = cn("relative h-9 w-9", active && "bg-muted", className)
+  const buttonClass = cn(
+    "relative min-h-10 min-w-10 h-9 w-9",
+    active && "bg-muted",
+    className,
+  )
   const badgeClass =
     "absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-black shadow-sm"
 
