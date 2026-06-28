@@ -60,8 +60,12 @@ export async function POST(
   }
 
   try {
-    // 5. Call Square Refund API
-    if (order.square_order_id) {
+    // 5. Call Square Refund API — skip for test orders (never charged in Square)
+    const isTestOrder =
+      order.square_order_id?.startsWith("test-") ||
+      process.env.NEXT_PUBLIC_PAYMENT_MODE === "test"
+
+    if (order.square_order_id && !isTestOrder) {
       await refundOrder(
         order.square_order_id,
         order.total_cents,

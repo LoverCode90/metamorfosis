@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
 import {
@@ -7,7 +6,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Button } from "@/components/ui/button"
 import { AboutSectionHeading } from "@/components/marketing/about/about-section-heading"
 import { FAQS } from "@/lib/marketing/about-content"
 
@@ -40,10 +38,13 @@ export function AboutFaqs() {
         <p className="text-muted-foreground max-w-sm text-sm leading-relaxed">
           Get in touch with our team — we&apos;re friendly and happy to help.
         </p>
-        <Button size="cta" nativeButton={false} render={<Link href="/" />}>
+        <a
+          href="mailto:info@metamorfosisllc.com?subject=Question%20from%20Website"
+          className="bg-primary text-primary-foreground inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-opacity hover:opacity-90"
+        >
           Contact Us
-          <ArrowRight className="h-4 w-4" strokeWidth={2} />
-        </Button>
+          <ArrowRight className="h-4 w-4" />
+        </a>
       </div>
     </section>
   )

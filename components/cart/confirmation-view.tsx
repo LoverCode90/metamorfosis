@@ -73,10 +73,10 @@ export function ConfirmationView() {
           Continue Shopping
         </Link>
         <Link
-          href="/profile"
+          href="/orders"
           className="border-border text-foreground hover:bg-muted inline-flex h-11 items-center justify-center rounded-md border px-6 text-sm font-medium transition-colors"
         >
-          View Profile
+          My Orders
         </Link>
       </div>
     </div>

@@ -68,7 +68,7 @@ export function CartLineItem({ item }: { item: CartItem }) {
             {item.isReturnable !== false && (
               <p className="text-muted-foreground flex items-center gap-1.5">
                 <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.75} />
-                Free returns within {RETURN_WINDOW_DAYS} days
+                Returns accepted within {RETURN_WINDOW_DAYS} days if eligible
               </p>
             )}
           </div>

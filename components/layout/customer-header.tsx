@@ -81,8 +81,8 @@ export function CustomerHeader({
 
           <HeaderIconButton
             label="Search"
-            onClick={() => router.push("/products")}
-            active={pathname.startsWith("/products")}
+            onClick={() => router.push("/search")}
+            active={pathname.startsWith("/search")}
             className="sm:hidden"
           >
             <Search className="h-5 w-5" strokeWidth={1.75} />

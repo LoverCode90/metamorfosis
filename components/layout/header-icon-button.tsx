@@ -28,7 +28,8 @@ export function HeaderIconButton({
   className,
 }: HeaderIconButtonProps) {
   const buttonClass = cn("relative h-9 w-9", active && "bg-muted", className)
-  const badgeClass = "absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 text-[10px]"
+  const badgeClass =
+    "absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground"
 
   return (
     <Button
