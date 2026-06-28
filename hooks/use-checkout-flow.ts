@@ -147,12 +147,11 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
           setIsVerifiedPro(false)
           return
         }
-        const proRoles = ["professional", "student", "salon_owner", "admin"]
-        const approved =
-          proRoles.includes(data.role ?? "") &&
-          (data.verification_status === "approved" ||
-            data.verification_status === "verified")
-        setIsVerifiedPro(approved || data.role === "admin")
+        setIsVerifiedPro(
+          data.verification_status === "approved" ||
+            data.verification_status === "verified" ||
+            data.role === "admin",
+        )
       } catch {
         if (!cancelled) setIsVerifiedPro(false)
       }

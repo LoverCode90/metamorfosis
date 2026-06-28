@@ -51,7 +51,7 @@ export const ProductCard = memo(function ProductCard({
           </p>
           <Link
             href={href}
-            className="text-foreground text-sm leading-snug font-medium hover:underline"
+            className="text-foreground text-xs leading-snug font-medium hover:underline sm:text-sm"
           >
             {card.nameEn}
           </Link>

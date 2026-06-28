@@ -73,7 +73,7 @@ function EmptyCart({ onShop }: { onShop: () => void }) {
         Your cart is empty
       </h2>
       <p className="text-muted-foreground mt-1.5 max-w-sm text-sm">
-        Add a few Metamorfosis Lab essentials to get started.
+        Add a few Metamorfosis LLC essentials to get started.
       </p>
       <button
         type="button"

@@ -73,10 +73,6 @@ export function PoliciesContent() {
           </li>
           <li>Free standard shipping is available on orders over $70.00.</li>
           <li>
-            Express and overnight shipping options are available at checkout if
-            offered for your location.
-          </li>
-          <li>
             Delivery estimates are not guaranteed and may vary based on carrier
             delays.
           </li>
@@ -174,7 +170,7 @@ export function PoliciesContent() {
             Email:{" "}
             <a
               href="mailto:hello@metamorfosisllc.com"
-              className="text-primary underline"
+              className="text-foreground underline hover:opacity-80"
             >
               hello@metamorfosisllc.com
             </a>

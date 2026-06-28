@@ -32,7 +32,7 @@ export function CancelOrderButton({ orderId }: CancelOrderButtonProps) {
 
       if (data.ok) {
         setOpen(false)
-        router.refresh()
+        router.push("/orders")
       } else {
         alert(data.error || "Failed to cancel order")
       }
@@ -45,13 +45,15 @@ export function CancelOrderButton({ orderId }: CancelOrderButtonProps) {
 
   return (
     <>
-      <button
+      <Button
+        variant="destructive"
+        size="sm"
         onClick={() => setOpen(true)}
         disabled={loading}
-        className="border-destructive/30 text-destructive hover:bg-destructive/10 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50"
+        className="text-xs"
       >
         {loading ? "Cancelling..." : "Cancel Order"}
-      </button>
+      </Button>
 
       <Dialog open={open} onOpenChange={(o) => !loading && setOpen(o)}>
         <DialogContent>

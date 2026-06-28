@@ -110,15 +110,22 @@ export const WishlistRow = memo(function WishlistRow({
         />
       </Link>
       <div className="min-w-0 flex-1">
-        <Link
-          href={href}
-          className="text-foreground truncate text-sm font-medium hover:underline hover:underline-offset-2"
-        >
-          {item.name}
-        </Link>
-        {item.variant && (
-          <span className="text-muted-foreground text-sm">{item.variant}</span>
-        )}
+        <div className="flex items-center gap-0">
+          <Link
+            href={href}
+            className="text-foreground truncate text-sm font-medium hover:underline hover:underline-offset-2"
+          >
+            {item.name}
+          </Link>
+          {item.variant && (
+            <>
+              <span className="text-muted-foreground mx-1.5 text-xs">·</span>
+              <span className="text-muted-foreground shrink-0 text-sm">
+                {item.variant}
+              </span>
+            </>
+          )}
+        </div>
       </div>
       <div className="flex items-baseline gap-1.5">
         <span className="text-foreground text-sm font-semibold tabular-nums">

@@ -1,6 +1,9 @@
 import Link from "next/link"
 import { Home, Info, MapPin, ShoppingBag } from "lucide-react"
 
+const STORE_ADDRESS = "211 W B St, Ontario, CA 91762"
+const GOOGLE_MAPS_URL = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(STORE_ADDRESS)}`
+
 const MENU_ITEMS = [
   { label: "Home", href: "/", icon: Home },
   { label: "Products", href: "/products", icon: ShoppingBag },
@@ -30,13 +33,28 @@ export function HomeFooter() {
     <footer className="border-border bg-background border-t pb-20">
       <div className="mx-auto max-w-6xl px-4 pt-16 sm:px-6 xl:max-w-7xl">
         <div className="grid gap-12 lg:grid-cols-2">
-          <div className="border-border bg-muted flex min-h-[360px] items-center justify-center overflow-hidden rounded-3xl border lg:min-h-[460px]">
-            <div className="text-muted-foreground flex flex-col items-center gap-3">
-              <MapPin className="h-10 w-10" strokeWidth={1.25} />
-              <span className="text-base font-medium">Google Map Preview</span>
-              <span className="text-sm">Ontario, CA</span>
+          <a
+            href={GOOGLE_MAPS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open store location in Google Maps"
+            className="border-border bg-muted/20 hover:bg-muted/40 group relative flex min-h-[360px] w-full flex-col items-center justify-center gap-3 overflow-hidden rounded-3xl border transition-colors lg:min-h-[460px]"
+          >
+            <div className="bg-primary text-primary-foreground flex h-12 w-12 items-center justify-center rounded-full shadow-md">
+              <MapPin className="h-6 w-6" strokeWidth={2} />
             </div>
-          </div>
+            <div className="text-center">
+              <p className="text-foreground text-sm font-semibold">
+                Metamorfosis LLC
+              </p>
+              <p className="text-muted-foreground mt-0.5 text-xs">
+                {STORE_ADDRESS}
+              </p>
+              <p className="text-primary mt-2 text-xs font-medium group-hover:underline">
+                Get directions →
+              </p>
+            </div>
+          </a>
 
           <div className="flex flex-col gap-9">
             <div>

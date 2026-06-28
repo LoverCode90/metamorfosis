@@ -64,22 +64,24 @@ export function OrderSummary({
               </dd>
             </div>
           )}
-          <div className="flex items-center justify-between">
-            <dt className="text-muted-foreground flex items-center gap-1.5">
-              <Truck className="h-4 w-4" />
-              Shipping
-            </dt>
-            <dd
-              className={cn(
-                "font-medium tabular-nums",
-                shippingCents === 0
-                  ? "tracking-wide text-emerald-600 uppercase"
-                  : "text-foreground",
-              )}
-            >
-              {shippingCents === 0 ? "Free" : formatUSD(shippingCents)}
-            </dd>
-          </div>
+          {wizardStep !== "info" && (
+            <div className="flex items-center justify-between">
+              <dt className="text-muted-foreground flex items-center gap-1.5">
+                <Truck className="h-4 w-4" />
+                Shipping
+              </dt>
+              <dd
+                className={cn(
+                  "font-medium tabular-nums",
+                  shippingCents === 0
+                    ? "tracking-wide text-emerald-600 uppercase"
+                    : "text-foreground",
+                )}
+              >
+                {shippingCents === 0 ? "Free" : formatUSD(shippingCents)}
+              </dd>
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Estimated tax</dt>
             <dd className="text-foreground font-medium tabular-nums">
