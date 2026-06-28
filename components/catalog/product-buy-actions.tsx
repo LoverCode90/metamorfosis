@@ -1,6 +1,7 @@
 "use client"
 
-import { Heart, ShoppingBag } from "lucide-react"
+import { useState } from "react"
+import { Check, Heart, ShoppingBag } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { ProductQuantityStepper } from "@/components/catalog/product-quantity-stepper"
@@ -26,6 +27,14 @@ export function ProductBuyActions({
   onAdd,
   onWishlist,
 }: ProductBuyActionsProps) {
+  const [succeeded, setSucceeded] = useState(false)
+
+  function handleAdd() {
+    onAdd()
+    setSucceeded(true)
+    setTimeout(() => setSucceeded(false), 1800)
+  }
+
   const wishlistClass = cn(
     "h-11 w-11",
     wishlisted && "border-foreground bg-foreground text-background",
@@ -43,12 +52,21 @@ export function ProductBuyActions({
 
       <Button
         variant="default"
-        onClick={onAdd}
-        disabled={outOfStock}
-        className="h-11 flex-1"
+        onClick={handleAdd}
+        disabled={outOfStock || succeeded}
+        className="h-11 flex-1 transition-all"
       >
-        <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />
-        {outOfStock ? "Out of stock" : "Add to Bag"}
+        {succeeded ? (
+          <>
+            <Check className="h-4 w-4" strokeWidth={2.5} />
+            Added!
+          </>
+        ) : (
+          <>
+            <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />
+            {outOfStock ? "Out of stock" : "Add to Bag"}
+          </>
+        )}
       </Button>
 
       <Button

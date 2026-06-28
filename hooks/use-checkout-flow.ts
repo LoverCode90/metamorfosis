@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 
 import { useCart } from "@/hooks/use-cart"
 import { useUser } from "@/hooks/use-user"
+import { createClient } from "@/lib/supabase/client"
 import {
   fetchSavedCard,
   fetchTaxRate,
@@ -125,6 +126,43 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
     return () => window.removeEventListener("popstate", handlePopState)
   }, [router])
 
+  const [isVerifiedPro, setIsVerifiedPro] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    async function checkProStatus() {
+      if (!user?.id) {
+        if (!cancelled) setIsVerifiedPro(false)
+        return
+      }
+      try {
+        const supabase = createClient()
+        const { data } = await supabase
+          .from("profiles")
+          .select("verification_status, role")
+          .eq("id", user.id)
+          .single()
+        if (cancelled) return
+        if (!data) {
+          setIsVerifiedPro(false)
+          return
+        }
+        const proRoles = ["professional", "student", "salon_owner", "admin"]
+        const approved =
+          proRoles.includes(data.role ?? "") &&
+          (data.verification_status === "approved" ||
+            data.verification_status === "verified")
+        setIsVerifiedPro(approved || data.role === "admin")
+      } catch {
+        if (!cancelled) setIsVerifiedPro(false)
+      }
+    }
+    void checkProStatus()
+    return () => {
+      cancelled = true
+    }
+  }, [user?.id])
+
   const [savedCard, setSavedCard] = useState<SavedCardMeta | null>(null)
   const [address, setAddress] = useState<CheckoutAddress | null>(
     readSessionAddress,
@@ -163,10 +201,8 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
 
   // Gate: only items explicitly flagged isProfessional require verification.
   const gatedItems = items.filter((i) => i.isProfessional && !i.unavailable)
-  const isApproved = dbProfile?.verification_status === "approved"
-  const profileLoaded = dbProfile !== null && dbProfile !== undefined
   const showGate =
-    gatedItems.length > 0 && (!user || (profileLoaded && !isApproved))
+    isVerifiedPro !== null && gatedItems.length > 0 && !isVerifiedPro
 
   const hasNonReturnable = items.some(
     (i) => !i.unavailable && i.isReturnable === false,

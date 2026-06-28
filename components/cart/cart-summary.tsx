@@ -5,7 +5,6 @@ import { Separator } from "@/components/ui/separator"
 import { FreeShippingBar } from "@/components/cart/free-shipping-bar"
 import { OrderTotals } from "@/components/cart/order-totals"
 import { PromoCode } from "@/components/cart/promo-code"
-import { FREE_SHIPPING_THRESHOLD_CENTS } from "@/lib/constants"
 import { formatUSD } from "@/lib/utils/format"
 import type { Totals } from "@/lib/types"
 
@@ -26,11 +25,6 @@ export function CartSummary({
   onContinueShopping,
   disabled,
 }: CartSummaryProps) {
-  // Real shipping is computed by Shippo at checkout; here we only know whether
-  // the order already qualifies for free standard shipping.
-  const qualifiesForFreeShipping =
-    totals.subtotal - totals.discount >= FREE_SHIPPING_THRESHOLD_CENTS
-
   return (
     <aside className="lg:sticky lg:top-24">
       <div className="border-border bg-card rounded-xl border p-4 sm:p-6">
@@ -42,10 +36,7 @@ export function CartSummary({
         <PromoCode />
 
         <Separator className="my-4 sm:my-5" />
-        <OrderTotals
-          totals={totals}
-          qualifiesForFreeShipping={qualifiesForFreeShipping}
-        />
+        <OrderTotals totals={totals} />
         <Separator className="my-4 sm:my-5" />
 
         <div className="flex items-end justify-between">

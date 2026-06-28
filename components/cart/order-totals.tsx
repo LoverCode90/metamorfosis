@@ -1,26 +1,12 @@
-import { Truck } from "lucide-react"
-
 import { formatUSD } from "@/lib/utils/format"
 import type { Totals } from "@/lib/types"
-import { cn } from "@/lib/utils"
 
 interface OrderTotalsProps {
   totals: Totals
-  qualifiesForFreeShipping: boolean
 }
 
-/** Itemized cost breakdown (subtotal, discount, shipping, tax, surcharge). */
-export function OrderTotals({
-  totals,
-  qualifiesForFreeShipping,
-}: OrderTotalsProps) {
-  const shippingClass = cn(
-    "font-medium",
-    qualifiesForFreeShipping
-      ? "tracking-wide text-emerald-600 uppercase"
-      : "text-foreground tabular-nums",
-  )
-
+/** Itemized cost breakdown (subtotal, discount, tax, surcharge) — shipping shown at checkout. */
+export function OrderTotals({ totals }: OrderTotalsProps) {
   return (
     <dl className="space-y-2.5 text-sm sm:space-y-3">
       <div className="flex items-center justify-between">
@@ -39,15 +25,6 @@ export function OrderTotals({
           </dd>
         </div>
       )}
-      <div className="flex items-center justify-between">
-        <dt className="text-muted-foreground flex items-center gap-1.5">
-          <Truck className="h-4 w-4" strokeWidth={1.75} />
-          Shipping
-        </dt>
-        <dd className={shippingClass}>
-          {qualifiesForFreeShipping ? "Free" : "Calculated at checkout"}
-        </dd>
-      </div>
       <div className="flex items-center justify-between">
         <dt className="text-muted-foreground">Estimated tax</dt>
         <dd className="text-foreground font-medium tabular-nums">

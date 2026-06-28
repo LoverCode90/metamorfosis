@@ -41,13 +41,13 @@ export function ConfirmationView() {
         </p>
       </div>
 
-      <div className="mx-auto mt-8 flex max-w-lg gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-left">
-        <Info className="mt-0.5 h-5 w-5 shrink-0 text-blue-500" />
+      <div className="border-accent-amber/40 bg-accent-amber/10 mx-auto mt-8 flex max-w-lg gap-3 rounded-xl border p-4 text-left">
+        <Info className="text-accent-amber mt-0.5 h-5 w-5 shrink-0" />
         <div>
-          <h3 className="text-sm font-semibold text-blue-900">
+          <h3 className="text-accent-amber text-sm font-semibold">
             2-Hour Cancellation Window
           </h3>
-          <p className="mt-1 text-sm text-blue-800">
+          <p className="text-accent-amber/80 mt-1 text-sm">
             You have 2 hours to cancel this order. After that, cancellation is
             no longer available.
           </p>

@@ -105,12 +105,12 @@ export function StepPayment({
         <span className="text-muted-foreground text-sm leading-snug">
           I have read and agree to the{" "}
           <a
-            href="/terms.pdf"
+            href="/policies"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-foreground underline"
+            className="text-foreground underline hover:opacity-80"
           >
-            Terms & Conditions
+            Terms &amp; Conditions
           </a>
         </span>
       </label>
