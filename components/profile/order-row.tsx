@@ -18,13 +18,17 @@ type StatusEntry = {
 }
 
 const STATUS_CONFIG: Record<string, StatusEntry> = {
-  pending: { label: "Pending", badgeVariant: "warning", icon: Clock },
-  confirmed: { label: "Confirmed", badgeVariant: "violet", icon: Package },
-  processing: { label: "Processing", badgeVariant: "violet", icon: Package },
+  pending: { label: "Pending", badgeVariant: "secondary", icon: Clock },
+  confirmed: { label: "Confirmed", badgeVariant: "secondary", icon: Package },
+  processing: { label: "Processing", badgeVariant: "secondary", icon: Package },
   shipped: { label: "Shipped", badgeVariant: "secondary", icon: Truck },
-  delivered: { label: "Delivered", badgeVariant: "success", icon: CheckCircle },
-  cancelled: { label: "Cancelled", badgeVariant: "destructive", icon: XCircle },
-  refunded: { label: "Refunded", badgeVariant: "destructive", icon: XCircle },
+  delivered: {
+    label: "Delivered",
+    badgeVariant: "secondary",
+    icon: CheckCircle,
+  },
+  cancelled: { label: "Cancelled", badgeVariant: "secondary", icon: XCircle },
+  refunded: { label: "Refunded", badgeVariant: "secondary", icon: XCircle },
 }
 
 const CANCEL_WINDOW_MS = 2 * 60 * 60 * 1000
@@ -100,7 +104,7 @@ export const OrderRow = memo(function OrderRow({ order, now }: OrderRowProps) {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        {order.tracking_number ? (
+        {order.tracking_number && (
           <div>
             <p className="text-muted-foreground text-xs">Tracking</p>
             {order.tracking_url ? (
@@ -118,12 +122,6 @@ export const OrderRow = memo(function OrderRow({ order, now }: OrderRowProps) {
               </p>
             )}
           </div>
-        ) : (
-          <p className="text-muted-foreground text-xs">
-            {order.status === "delivered"
-              ? "Delivered"
-              : "Tracking not yet available"}
-          </p>
         )}
         <div className="flex items-center gap-2">
           {isCancellable && <CancelOrderButton orderId={order.id} />}

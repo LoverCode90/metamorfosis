@@ -20,7 +20,7 @@ interface ProductCardMediaProps {
 }
 
 const ARROW_CLASS =
-  "bg-background/80 absolute top-1/2 z-10 -translate-y-1/2 rounded-full opacity-0 shadow-sm backdrop-blur transition-opacity group-hover/img:opacity-100"
+  "bg-background/80 absolute top-1/2 z-10 -translate-y-1/2 rounded-full shadow-sm backdrop-blur transition-opacity opacity-100 lg:opacity-0 lg:group-hover/img:opacity-100"
 
 /** Square product image with status badges and a hover carousel. */
 export function ProductCardMedia({
@@ -75,8 +75,9 @@ export function ProductCardMedia({
             size="icon-xs"
             onClick={(e) => {
               e.preventDefault()
-              setImgIdx((i) => (i > 0 ? i - 1 : images.length - 1))
+              setImgIdx((i) => i - 1)
             }}
+            disabled={imgIdx === 0}
             aria-label="Previous image"
             className={cn(ARROW_CLASS, "left-1.5")}
           >
@@ -88,8 +89,9 @@ export function ProductCardMedia({
             size="icon-xs"
             onClick={(e) => {
               e.preventDefault()
-              setImgIdx((i) => (i + 1) % images.length)
+              setImgIdx((i) => i + 1)
             }}
+            disabled={imgIdx === images.length - 1}
             aria-label="Next image"
             className={cn(ARROW_CLASS, "right-1.5")}
           >

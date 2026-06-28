@@ -164,7 +164,9 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
   // Gate: only items explicitly flagged isProfessional require verification.
   const gatedItems = items.filter((i) => i.isProfessional && !i.unavailable)
   const isApproved = dbProfile?.verification_status === "approved"
-  const showGate = gatedItems.length > 0 && (!user || !isApproved)
+  const profileLoaded = dbProfile !== null && dbProfile !== undefined
+  const showGate =
+    gatedItems.length > 0 && (!user || (profileLoaded && !isApproved))
 
   const hasNonReturnable = items.some(
     (i) => !i.unavailable && i.isReturnable === false,

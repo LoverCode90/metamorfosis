@@ -36,7 +36,7 @@ export function ProductDetailPage({ product, related }: Props) {
 
   return (
     <>
-      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-12">
+      <div className="mx-auto max-w-6xl overflow-x-hidden px-4 py-8 sm:px-6 lg:py-12">
         <nav
           className="text-muted-foreground flex items-center gap-1.5 text-xs"
           aria-label="Breadcrumb"

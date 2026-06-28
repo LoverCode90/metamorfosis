@@ -12,14 +12,14 @@ export function CustomerNav({ pathname }: { pathname: string }) {
         const linkClass = cn(
           "relative text-sm transition-colors",
           active
-            ? "text-accent-violet font-medium"
+            ? "text-foreground font-medium"
             : "text-muted-foreground hover:text-foreground",
         )
         return (
           <Link key={link.href} href={link.href} className={linkClass}>
             {link.label}
             {active && (
-              <span className="bg-accent-violet absolute -bottom-[21px] left-0 h-px w-full" />
+              <span className="bg-foreground absolute -bottom-[21px] left-0 h-px w-full" />
             )}
           </Link>
         )

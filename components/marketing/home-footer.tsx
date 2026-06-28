@@ -65,10 +65,10 @@ export function HomeFooter() {
               </p>
               <div className="text-muted-foreground mt-3 flex flex-col gap-1.5 text-sm">
                 <a
-                  href="mailto:info@metamorfosisllc.com"
+                  href="mailto:hello@metamorfosisllc.com"
                   className="hover:text-foreground transition-colors"
                 >
-                  info@metamorfosisllc.com
+                  hello@metamorfosisllc.com
                 </a>
                 <span>211 W B St, Ontario, CA 91762</span>
                 <a

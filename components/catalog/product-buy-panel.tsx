@@ -46,7 +46,7 @@ export function ProductBuyPanel({ product, purchase }: Props) {
       sizeVariations.length > 0)
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex min-w-0 flex-col gap-6">
       <div>
         <p className="text-muted-foreground text-xs font-medium tracking-widest uppercase lg:text-sm">
           {product.categoriesHierarchy.split(" > ")[0]}

@@ -99,7 +99,7 @@ const PageButton = memo(function PageButton({
       aria-label={`Page ${pageNumber}`}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex h-9 min-w-[36px] items-center justify-center rounded-lg px-2.5 text-sm font-medium transition-all duration-150",
+        "flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium transition-all duration-150",
         active
           ? "bg-accent-violet text-white shadow-sm"
           : "text-muted-foreground hover:bg-muted hover:text-foreground",

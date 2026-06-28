@@ -60,7 +60,7 @@ export function FiltersDrawer({
   if (isDesktop) {
     return (
       <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-        <DialogContent className="flex max-h-[80dvh] max-w-sm flex-col gap-0 p-0">
+        <DialogContent className="flex max-h-[80dvh] max-w-md flex-col gap-0 p-0">
           <DialogHeader className="border-border shrink-0 border-b px-5 pt-5 pb-4">
             <DialogTitle>Filters</DialogTitle>
           </DialogHeader>
