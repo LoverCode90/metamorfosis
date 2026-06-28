@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import type { CatalogProduct, CatalogVariation } from "@/lib/catalog"
+import { PRO_RESTRICTIONS_ENABLED } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 
 interface ProductTabsProps {
@@ -82,7 +83,10 @@ function buildSpecs(
 
   rows.push({
     label: "Use",
-    value: product.isProfessional ? "Professional only" : "Retail",
+    value:
+      PRO_RESTRICTIONS_ENABLED && product.isProfessional
+        ? "Professional only"
+        : "Retail",
   })
 
   rows.push({

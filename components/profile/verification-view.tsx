@@ -3,9 +3,12 @@
 import { useUser } from "@/hooks/use-user"
 import { VerificationPanel } from "./verification-panel"
 import { ProfileSubpageShell } from "./profile-subpage-shell"
+import { PRO_RESTRICTIONS_ENABLED } from "@/lib/constants"
 
 export function VerificationView() {
   const { dbProfile, verificationStatus, isLoading } = useUser()
+
+  if (!PRO_RESTRICTIONS_ENABLED) return null
 
   return (
     <ProfileSubpageShell

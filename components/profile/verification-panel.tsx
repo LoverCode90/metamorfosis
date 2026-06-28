@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import type { VerificationStatus } from "@/lib/types"
+import { PRO_RESTRICTIONS_ENABLED } from "@/lib/constants"
 
 interface VerificationPanelProps {
   status: VerificationStatus
@@ -20,6 +21,8 @@ export function VerificationPanel({
   status,
   rejectionReason,
 }: VerificationPanelProps) {
+  if (!PRO_RESTRICTIONS_ENABLED) return null
+
   return (
     <section className="border-border bg-card rounded-2xl border p-6">
       <div className="flex items-center gap-2">

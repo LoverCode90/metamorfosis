@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import { ShieldCheck, X, Lock } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/hooks/use-cart"
+import { PRO_RESTRICTIONS_ENABLED } from "@/lib/constants"
 
 export function VerifyGateModal({
   open,
@@ -16,11 +17,11 @@ export function VerifyGateModal({
   const { items } = useCart()
 
   useEffect(() => {
-    if (!open) return
+    if (!open || !PRO_RESTRICTIONS_ENABLED) return
     const previous = document.body.style.overflow
     document.body.style.overflow = "hidden"
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose()
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose()
     }
     window.addEventListener("keydown", onKey)
     return () => {
@@ -29,9 +30,9 @@ export function VerifyGateModal({
     }
   }, [open, onClose])
 
-  if (!open) return null
+  if (!open || !PRO_RESTRICTIONS_ENABLED) return null
 
-  const proItems = items.filter((i) => i.isProfessional)
+  const proItems = items.filter((item) => item.isProfessional)
 
   return (
     <div

@@ -8,6 +8,7 @@ import {
   User,
 } from "lucide-react"
 import type { UserRole, VerificationStatus } from "@/lib/types"
+import { PRO_RESTRICTIONS_ENABLED } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 
 export function ProfileBadges({
@@ -28,7 +29,8 @@ export function ProfileBadges({
   }
 
   const isPro =
-    role === "professional" || role === "student" || role === "salon_owner"
+    PRO_RESTRICTIONS_ENABLED &&
+    (role === "professional" || role === "student" || role === "salon_owner")
 
   if (isPro && verificationStatus === "verified") {
     const roleConfig: Record<
