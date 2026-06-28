@@ -35,7 +35,7 @@ export function FiltersDrawer({
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 lg:hidden",
+        "fixed inset-0 z-50",
         open ? "pointer-events-auto" : "pointer-events-none",
       )}
       aria-hidden={!open}

@@ -1,8 +1,7 @@
 "use client"
 
-import type { ReactNode } from "react"
+import { useEffect, useRef, type ReactNode } from "react"
 
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
@@ -17,7 +16,6 @@ interface HeaderIconButtonProps {
   className?: string
 }
 
-/** Header icon button with an optional count badge and a loading placeholder. */
 export function HeaderIconButton({
   label,
   children,
@@ -27,9 +25,22 @@ export function HeaderIconButton({
   active,
   className,
 }: HeaderIconButtonProps) {
+  const badgeRef = useRef<HTMLSpanElement>(null)
+  const prevCount = useRef(badge ?? 0)
+
+  useEffect(() => {
+    const count = badge ?? 0
+    if (count > prevCount.current && badgeRef.current) {
+      badgeRef.current.classList.remove("animate-badge-pop")
+      void badgeRef.current.offsetWidth
+      badgeRef.current.classList.add("animate-badge-pop")
+    }
+    prevCount.current = count
+  }, [badge])
+
   const buttonClass = cn("relative h-9 w-9", active && "bg-muted", className)
   const badgeClass =
-    "absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground"
+    "absolute -top-1.5 -right-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-black shadow-sm"
 
   return (
     <Button
@@ -42,13 +53,11 @@ export function HeaderIconButton({
     >
       {children}
       {loading ? (
-        <Skeleton
-          className={cn(badgeClass, "border-border rounded-full border")}
-        />
+        <Skeleton className={cn(badgeClass, "border-border border")} />
       ) : badge !== undefined && badge > 0 ? (
-        <Badge variant="default" className={badgeClass}>
+        <span ref={badgeRef} className={badgeClass}>
           {badge}
-        </Badge>
+        </span>
       ) : null}
     </Button>
   )

@@ -16,6 +16,7 @@ import type { CatalogCard } from "@/lib/catalog"
 export function useProductCard(card: CatalogCard) {
   const { addToCart, toggleWishlist, isWishlisted, isAuthenticated } = useCart()
   const [showWishlistModal, setShowWishlistModal] = useState(false)
+  const [showQuickView, setShowQuickView] = useState(false)
 
   // Wishlist identity is per-variation; the card represents its default.
   const wishlistKey = card.defaultVariationId ?? card.squareProductId
@@ -37,6 +38,15 @@ export function useProductCard(card: CatalogCard) {
     addToCart(cardToProduct(card))
   }
 
+  function handleCartClick() {
+    if (outOfStock) return
+    if (hasOptions) {
+      setShowQuickView(true)
+    } else {
+      handleAdd()
+    }
+  }
+
   function handleWishlist() {
     if (!isAuthenticated) {
       setShowWishlistModal(true)
@@ -53,7 +63,10 @@ export function useProductCard(card: CatalogCard) {
     images,
     showWishlistModal,
     setShowWishlistModal,
+    showQuickView,
+    setShowQuickView,
     handleAdd,
+    handleCartClick,
     handleWishlist,
   }
 }

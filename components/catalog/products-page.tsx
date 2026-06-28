@@ -57,7 +57,7 @@ export function ProductsPage({ products }: ProductsPageProps) {
     }
   }
 
-  const activeCount = filters.categories.length + (filters.search ? 1 : 0)
+  const activeCount = filters.categories.length
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:py-12 xl:max-w-7xl 2xl:max-w-[1600px]">
@@ -70,78 +70,66 @@ export function ProductsPage({ products }: ProductsPageProps) {
         </h1>
       </div>
 
-      <div className="mt-8 flex gap-10">
-        <aside className="hidden w-60 shrink-0 lg:block">
-          <div className="sticky top-24">
-            <FiltersPanel
-              filters={filters}
-              onChange={updateFilters}
-              onClear={clearFilters}
-            />
+      <div className="mt-8">
+        <div className="flex items-center justify-between gap-3 pb-5">
+          <p className="text-muted-foreground text-sm">
+            Showing{" "}
+            <span className="text-foreground font-medium">
+              {filtered.length === 0 ? 0 : start + 1}–
+              {Math.min(start + PER_PAGE, filtered.length)}
+            </span>{" "}
+            of{" "}
+            <span className="text-foreground font-medium">
+              {filtered.length}
+            </span>{" "}
+            results
+          </p>
+
+          <button
+            type="button"
+            onClick={() => setDrawerOpen(true)}
+            className="border-border text-foreground hover:bg-muted inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium transition-colors"
+          >
+            <SlidersHorizontal className="h-4 w-4" strokeWidth={1.75} />
+            Filters
+            {activeCount > 0 && (
+              <span className="bg-foreground text-background flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-semibold">
+                {activeCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {visible.length > 0 ? (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            {visible.map((card) => (
+              <ProductCard key={card.squareProductId} product={card} />
+            ))}
           </div>
-        </aside>
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-3 pb-5">
-            <p className="text-muted-foreground text-sm">
-              Showing{" "}
-              <span className="text-foreground font-medium">
-                {filtered.length === 0 ? 0 : start + 1}–
-                {Math.min(start + PER_PAGE, filtered.length)}
-              </span>{" "}
-              of{" "}
-              <span className="text-foreground font-medium">
-                {filtered.length}
-              </span>{" "}
-              results
+        ) : (
+          <div className="border-border flex flex-col items-center justify-center rounded-xl border border-dashed py-20 text-center">
+            <p className="text-foreground text-sm font-medium">
+              No products match your filters
             </p>
-
             <button
               type="button"
-              onClick={() => setDrawerOpen(true)}
-              className="border-border text-foreground hover:bg-muted inline-flex h-10 items-center gap-2 rounded-md border px-4 text-sm font-medium transition-colors lg:hidden"
+              onClick={clearFilters}
+              className="text-muted-foreground hover:text-foreground mt-3 text-sm font-medium underline underline-offset-2"
             >
-              <SlidersHorizontal className="h-4 w-4" strokeWidth={1.75} />
-              Filters
-              {activeCount > 0 && (
-                <span className="bg-foreground text-background flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-semibold">
-                  {activeCount}
-                </span>
-              )}
+              Clear all filters
             </button>
           </div>
+        )}
 
-          {visible.length > 0 ? (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-3 lg:gap-x-6 xl:grid-cols-4 2xl:grid-cols-4 2xl:gap-x-8">
-              {visible.map((card) => (
-                <ProductCard key={card.squareProductId} product={card} />
-              ))}
-            </div>
-          ) : (
-            <div className="border-border flex flex-col items-center justify-center rounded-xl border border-dashed py-20 text-center">
-              <p className="text-foreground text-sm font-medium">
-                No products match your filters
-              </p>
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="text-muted-foreground hover:text-foreground mt-3 text-sm font-medium underline underline-offset-2"
-              >
-                Clear all filters
-              </button>
-            </div>
-          )}
-
-          {visible.length > 0 && (
-            <div className="mt-12">
-              <Pagination
-                page={safePage}
-                pageCount={pageCount}
-                onChange={goToPage}
-              />
-            </div>
-          )}
-        </div>
+        {visible.length > 0 && (
+          <div className="mt-12">
+            <Pagination
+              page={safePage}
+              pageCount={pageCount}
+              onChange={goToPage}
+            />
+          </div>
+        )}
       </div>
 
       <FiltersDrawer

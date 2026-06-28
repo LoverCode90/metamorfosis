@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useRef, useState } from "react"
 import { ChevronRight } from "lucide-react"
 import Link from "next/link"
 import type { CatalogCard, CatalogProduct } from "@/lib/catalog"
@@ -8,6 +9,7 @@ import { HomeFooter } from "@/components/marketing/home-footer"
 import { ProductGallery } from "./product-gallery"
 import { ProductBuyPanel } from "./product-buy-panel"
 import { RelatedProducts } from "./related-products"
+import { StickyAddToCartBar } from "./sticky-add-to-cart-bar"
 
 interface Props {
   product: CatalogProduct
@@ -16,6 +18,21 @@ interface Props {
 
 export function ProductDetailPage({ product, related }: Props) {
   const purchase = useProductPurchase(product)
+  const buyPanelRef = useRef<HTMLDivElement>(null)
+  const [showSticky, setShowSticky] = useState(false)
+
+  useEffect(() => {
+    const el = buyPanelRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowSticky(!entry.isIntersecting),
+      { threshold: 0 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const thumbnailUrl = purchase.galleryImages[0] ?? product.imageUrl ?? null
 
   return (
     <>
@@ -41,12 +58,22 @@ export function ProductDetailPage({ product, related }: Props) {
             imageUrls={purchase.galleryImages}
             name={product.nameEn}
           />
-          <ProductBuyPanel product={product} purchase={purchase} />
+          <div ref={buyPanelRef}>
+            <ProductBuyPanel product={product} purchase={purchase} />
+          </div>
         </div>
 
         <RelatedProducts related={related} />
       </div>
       <HomeFooter />
+      <StickyAddToCartBar
+        show={showSticky}
+        name={product.nameEn}
+        priceCents={purchase.priceCents}
+        thumbnailUrl={thumbnailUrl}
+        outOfStock={purchase.outOfStock}
+        onAdd={purchase.handleAdd}
+      />
     </>
   )
 }
