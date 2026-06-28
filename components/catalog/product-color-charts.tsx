@@ -1,5 +1,4 @@
 import { Download, FileText } from "lucide-react"
-import { Badge } from "../ui/badge"
 
 import { Button } from "@/components/ui/button"
 
@@ -8,7 +7,7 @@ export function ProductColorCharts({ pdfUrl }: { pdfUrl: string }) {
   const href = `/color-charts/${pdfUrl}`
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-3 overflow-x-hidden">
       <div className="flex flex-wrap gap-3">
         <Button
           variant="outline"
@@ -29,12 +28,9 @@ export function ProductColorCharts({ pdfUrl }: { pdfUrl: string }) {
           Download Chart
         </Button>
       </div>
-      <Badge
-        variant={"warning"}
-        className="p-3.5 text-xs font-medium lg:text-sm"
-      >
+      <div className="border-accent-amber/40 bg-accent-amber/10 text-accent-amber rounded-lg border p-3 text-xs leading-relaxed font-medium break-words lg:text-sm">
         We recommend viewing the color chart to see accurate shades.
-      </Badge>
+      </div>
     </div>
   )
 }

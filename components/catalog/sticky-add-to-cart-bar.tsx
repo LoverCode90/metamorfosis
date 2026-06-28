@@ -1,7 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
-import { ShoppingBag } from "lucide-react"
+import { useState } from "react"
+import { Check, ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { formatUSD } from "@/lib/utils/format"
 import { squareImageUrl } from "@/lib/utils/square-image"
@@ -23,6 +24,14 @@ export function StickyAddToCartBar({
   outOfStock,
   onAdd,
 }: StickyAddToCartBarProps) {
+  const [succeeded, setSucceeded] = useState(false)
+
+  function handleAdd() {
+    onAdd()
+    setSucceeded(true)
+    setTimeout(() => setSucceeded(false), 1800)
+  }
+
   if (!show) return null
 
   return (
@@ -41,9 +50,22 @@ export function StickyAddToCartBar({
             {formatUSD(priceCents)}
           </p>
         </div>
-        <Button size="sm" onClick={onAdd} disabled={outOfStock}>
-          <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />
-          Add to Bag
+        <Button
+          size="sm"
+          onClick={handleAdd}
+          disabled={outOfStock || succeeded}
+        >
+          {succeeded ? (
+            <>
+              <Check className="h-4 w-4" strokeWidth={2.5} />
+              Added!
+            </>
+          ) : (
+            <>
+              <ShoppingBag className="h-4 w-4" strokeWidth={1.75} />
+              Add to Bag
+            </>
+          )}
         </Button>
       </div>
     </div>

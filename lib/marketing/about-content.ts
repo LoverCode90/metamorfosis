@@ -57,12 +57,12 @@ export interface Faq {
 /** Frequently asked questions shown in the about-page accordion. */
 export const FAQS: Faq[] = [
   {
-    q: "Are your products safe for sensitive scalps?",
-    a: "Yes. Every formula is ammonia-free and bond-safe, built on a low-irritation base that's been dermatologically reviewed for professional and sensitive-scalp use.",
+    q: "What makes Metamorfosis professional formulas different from retail brands?",
+    a: "Our products are engineered specifically for salon performance. We use high-density pigment payloads and structural repair ingredients that ensure predictable, long-lasting results while protecting the hair's integrity from the inside out.",
   },
   {
-    q: "Are Metamorfosis products truly vegan and cruelty-free?",
-    a: "Completely. We use zero animal-derived ingredients and never test on animals at any stage — from raw material to finished product.",
+    q: "Are Metamorfosis products safe to use alongside treatments like nanoplasty or keratin?",
+    a: "Absolutely. Our formulas are completely free of harsh sulfates and heavy sodium chloride, making them ideal for maintaining and extending the lifespan of complex technical procedures and professional straightening.",
   },
   {
     q: "Do I need a professional license to purchase?",

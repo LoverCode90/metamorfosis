@@ -4,7 +4,6 @@ import { Loader2 } from "lucide-react"
 
 import { useUser } from "@/hooks/use-user"
 import { AvatarInitials } from "./avatar-initials"
-import { ProfileBadges } from "./profile-badges"
 import { ProfileNavRow } from "./profile-nav-row"
 import { SignOutButton } from "@/components/auth/sign-out-button"
 import {
@@ -57,10 +56,6 @@ export function ProfileDashboard() {
           <h1 className="text-foreground text-xl font-semibold tracking-tight">
             {profile.name || "Your name"}
           </h1>
-          <ProfileBadges
-            role={dbProfile?.role ?? "standard_customer"}
-            verificationStatus={verificationStatus}
-          />
         </div>
         <p className="text-muted-foreground mt-1 text-sm">{profile.email}</p>
       </div>

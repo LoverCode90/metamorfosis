@@ -98,10 +98,12 @@ export function ProductBuyPanel({ product, purchase }: Props) {
 
       {pdfUrl && <ProductColorCharts pdfUrl={pdfUrl} />}
 
-      <p className="text-muted-foreground bg-muted/50 rounded-lg px-4 py-3 text-xs leading-relaxed lg:text-sm">
-        Chemical products (bleach, developer, permanent color) cannot be
-        returned once shipped.
-      </p>
+      <div className="bg-muted/40 border-border overflow-hidden rounded-lg border p-3">
+        <p className="text-muted-foreground max-w-full text-xs leading-relaxed break-words lg:text-sm">
+          Chemical products (bleach, developer, permanent color) cannot be
+          returned once shipped.
+        </p>
+      </div>
 
       {outOfStock ? (
         <div className="text-destructive flex items-center gap-2 text-sm">

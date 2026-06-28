@@ -39,7 +39,7 @@ export function AboutFaqs() {
           Get in touch with our team — we&apos;re friendly and happy to help.
         </p>
         <a
-          href="mailto:info@metamorfosisllc.com?subject=Question%20from%20Website"
+          href="mailto:hello@metamorfosisllc.com?subject=Question%20from%20Website"
           className="bg-primary text-primary-foreground inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-opacity hover:opacity-90"
         >
           Contact Us
