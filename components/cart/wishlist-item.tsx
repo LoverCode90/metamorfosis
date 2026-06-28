@@ -7,6 +7,7 @@ import { LayoutGrid, List, ShoppingBag, Trash2 } from "lucide-react"
 import { formatUSD } from "@/lib/utils/format"
 import type { Product } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { AddToCartButton } from "@/components/catalog/add-to-cart-button"
 
 export type WishItem = Product & {
   category?: string
@@ -26,14 +27,14 @@ export const WishlistCard = memo(function WishlistCard({
 }) {
   const finalPrice = item.unitPrice - item.discountPerItem
   const hasDiscount = item.discountPerItem > 0
-  const lowStock = item.stock <= 10
+  const outOfStock = item.stock <= 0
   const href = `/products/${item.id}`
 
   return (
-    <article className="group flex flex-col">
-      <div className="border-border bg-muted relative aspect-square w-full overflow-hidden rounded-lg border">
+    <article className="group relative flex flex-col">
+      <div className="border-border bg-muted relative aspect-square w-full overflow-hidden rounded-xl border">
         {hasDiscount && (
-          <span className="bg-foreground text-background absolute top-2.5 left-2.5 z-10 rounded-full px-2.5 py-1 text-[10px] font-semibold tracking-wide uppercase">
+          <span className="bg-foreground text-background absolute top-2 left-2 z-10 rounded-full px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase">
             Save {formatUSD(item.discountPerItem)}
           </span>
         )}
@@ -44,11 +45,15 @@ export const WishlistCard = memo(function WishlistCard({
             onRemove()
           }}
           aria-label={`Remove ${item.name} from wishlist`}
-          className="bg-background/90 text-foreground hover:bg-destructive hover:text-background absolute top-2.5 right-2.5 z-10 flex h-8 w-8 items-center justify-center rounded-full shadow-sm backdrop-blur transition-colors"
+          className="absolute top-2 right-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur transition-colors hover:bg-black/80"
         >
           <Trash2 className="h-4 w-4" strokeWidth={1.75} />
         </button>
-        <Link href={href} aria-label={item.name} tabIndex={-1}>
+        <Link
+          href={href}
+          aria-label={item.name}
+          className="block h-full w-full"
+        >
           <img
             src={item.image || "/placeholder.svg"}
             alt={item.name}
@@ -56,47 +61,21 @@ export const WishlistCard = memo(function WishlistCard({
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         </Link>
+        <AddToCartButton
+          outOfStock={outOfStock}
+          onClick={onAdd}
+          className="absolute right-3 bottom-3 z-10 translate-y-0 opacity-100 transition-all duration-200 lg:translate-y-1 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100"
+        />
       </div>
 
-      <div className="flex flex-1 flex-col pt-2">
-        {item.brand && (
-          <p className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
-            {item.brand}
-          </p>
-        )}
-        <Link
-          href={href}
-          className="text-foreground mt-0.5 text-xs leading-snug font-medium hover:underline hover:underline-offset-2"
-        >
+      <Link href={href} className="mt-3 flex flex-col gap-0.5">
+        <span className="text-foreground line-clamp-2 text-sm leading-snug font-medium">
           {item.name}
-        </Link>
-        <div className="mt-1.5 flex items-baseline gap-1">
-          <span className="text-foreground text-xs font-semibold tabular-nums">
-            {formatUSD(finalPrice)}
-          </span>
-          {hasDiscount && (
-            <span className="text-muted-foreground text-[10px] tabular-nums line-through">
-              {formatUSD(item.unitPrice)}
-            </span>
-          )}
-        </div>
-        {lowStock && (
-          <p className="text-foreground mt-0.5 text-[10px] font-medium">
-            Only {item.stock} left
-          </p>
-        )}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation()
-            onAdd()
-          }}
-          className="bg-foreground text-background mt-2 inline-flex h-8 items-center justify-center gap-1 rounded-md px-2 text-[11px] font-semibold transition-opacity hover:opacity-90"
-        >
-          <ShoppingBag className="h-3 w-3" strokeWidth={2} />
-          Add to Cart
-        </button>
-      </div>
+        </span>
+        <span className="text-muted-foreground text-sm">
+          {outOfStock ? "Out of stock" : formatUSD(finalPrice)}
+        </span>
+      </Link>
     </article>
   )
 })

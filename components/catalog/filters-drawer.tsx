@@ -3,6 +3,13 @@
 import { useEffect } from "react"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { useMediaQuery } from "@/hooks/use-media-query"
 
 interface FiltersDrawerProps {
   open: boolean
@@ -11,15 +18,33 @@ interface FiltersDrawerProps {
   children: React.ReactNode
 }
 
+const ApplyButton = ({
+  resultCount,
+  onClose,
+}: {
+  resultCount: number
+  onClose: () => void
+}) => (
+  <button
+    type="button"
+    onClick={onClose}
+    className="bg-foreground text-background h-12 w-full rounded-md text-sm font-semibold transition-opacity hover:opacity-90"
+  >
+    Show {resultCount} result{resultCount === 1 ? "" : "s"}
+  </button>
+)
+
 export function FiltersDrawer({
   open,
   onClose,
   resultCount,
   children,
 }: FiltersDrawerProps) {
-  // Lock body scroll + close on Escape while open.
+  const isDesktop = useMediaQuery("(min-width: 1024px)")
+
+  // Lock body scroll + close on Escape while mobile sheet is open.
   useEffect(() => {
-    if (!open) return
+    if (!open || isDesktop) return
     const prev = document.body.style.overflow
     document.body.style.overflow = "hidden"
     const onKey = (e: KeyboardEvent) => {
@@ -30,7 +55,23 @@ export function FiltersDrawer({
       document.body.style.overflow = prev
       window.removeEventListener("keydown", onKey)
     }
-  }, [open, onClose])
+  }, [open, onClose, isDesktop])
+
+  if (isDesktop) {
+    return (
+      <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+        <DialogContent className="flex max-h-[80dvh] max-w-sm flex-col gap-0 p-0">
+          <DialogHeader className="border-border shrink-0 border-b px-5 pt-5 pb-4">
+            <DialogTitle>Filters</DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto px-5 py-6">{children}</div>
+          <div className="border-border shrink-0 border-t px-5 py-4">
+            <ApplyButton resultCount={resultCount} onClose={onClose} />
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
 
   return (
     <div
@@ -40,7 +81,6 @@ export function FiltersDrawer({
       )}
       aria-hidden={!open}
     >
-      {/* Backdrop */}
       <button
         type="button"
         aria-label="Close filters"
@@ -51,7 +91,6 @@ export function FiltersDrawer({
         )}
       />
 
-      {/* Slide-up sheet */}
       <div
         role="dialog"
         aria-modal="true"
@@ -61,7 +100,6 @@ export function FiltersDrawer({
           open ? "translate-y-0" : "translate-y-full",
         )}
       >
-        {/* Grabber + header */}
         <div className="border-border shrink-0 border-b px-5 pt-3 pb-4">
           <div className="bg-border mx-auto mb-3 h-1 w-10 rounded-full" />
           <div className="flex items-center justify-end">
@@ -75,19 +113,9 @@ export function FiltersDrawer({
             </button>
           </div>
         </div>
-
-        {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto px-5 py-6">{children}</div>
-
-        {/* Sticky apply footer */}
         <div className="border-border bg-background shrink-0 border-t px-5 py-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="bg-foreground text-background h-12 w-full rounded-md text-sm font-semibold transition-opacity hover:opacity-90"
-          >
-            Show {resultCount} result{resultCount === 1 ? "" : "s"}
-          </button>
+          <ApplyButton resultCount={resultCount} onClose={onClose} />
         </div>
       </div>
     </div>

@@ -46,7 +46,7 @@ export const ProductCard = memo(function ProductCard({
           }
           aria-pressed={wishlisted}
           className={cn(
-            "absolute top-2 left-2 z-10 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur transition-colors",
+            "absolute top-2 right-2 z-10 flex h-8 w-8 items-center justify-center rounded-full backdrop-blur transition-colors",
             wishlisted
               ? "bg-foreground text-background"
               : "bg-black/60 text-white shadow-md hover:bg-black/80",
@@ -71,7 +71,7 @@ export const ProductCard = memo(function ProductCard({
           <AddToCartButton
             outOfStock={outOfStock}
             onClick={handleCartClick}
-            className="absolute right-3 bottom-3 z-10 translate-y-1 opacity-0 transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100"
+            className="absolute right-3 bottom-3 z-10 translate-y-0 opacity-100 transition-all duration-200 lg:translate-y-1 lg:opacity-0 lg:group-hover:translate-y-0 lg:group-hover:opacity-100"
           />
         </div>
 

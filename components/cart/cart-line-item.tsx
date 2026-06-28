@@ -34,7 +34,7 @@ export function CartLineItem({ item }: { item: CartItem }) {
             <div className="min-w-0">
               <Link
                 href={`/products/${item.id}`}
-                className="text-foreground hover:text-accent-violet truncate text-sm font-semibold transition-colors"
+                className="text-foreground hover:text-accent-violet line-clamp-2 text-sm font-semibold transition-colors sm:line-clamp-1"
               >
                 {item.name}
               </Link>

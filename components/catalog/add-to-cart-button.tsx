@@ -34,7 +34,7 @@ export function AddToCartButton({
       disabled={outOfStock}
       aria-label={outOfStock ? "Out of stock" : "Add to cart"}
       className={cn(
-        "flex h-10 w-10 items-center justify-center rounded-full bg-white text-black shadow-md transition-transform active:scale-90 disabled:opacity-40",
+        "flex h-10 w-10 items-center justify-center rounded-full bg-black text-white shadow-md transition-transform active:scale-90 disabled:opacity-40",
         className,
       )}
     >
