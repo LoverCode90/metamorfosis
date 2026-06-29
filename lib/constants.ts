@@ -5,11 +5,9 @@
  */
 export const PRO_RESTRICTIONS_ENABLED = false
 
-/** Cart total threshold in cents for free shipping (defaults to $120.00). */
-export const FREE_SHIPPING_THRESHOLD_CENTS = parseInt(
-  process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD_CENTS ?? "12000",
-  10,
-)
+/** Cart total threshold in dollars for free shipping. Compare against cents
+ * subtotals via `FREE_SHIPPING_THRESHOLD * 100`. */
+export const FREE_SHIPPING_THRESHOLD = 120
 
 /** CA base sales tax rate. Square computes the exact tax at charge time. */
 export const TAX_RATE = 0.0975

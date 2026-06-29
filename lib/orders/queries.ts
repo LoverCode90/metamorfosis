@@ -35,6 +35,9 @@ export async function getUserOrdersPage(
     .from("orders")
     .select(ORDER_SELECT, { count: "exact" })
     .eq("user_id", userId)
+    // Cancelled orders stay in the DB for auditing — only hidden from the UI.
+    // The order_status enum value is "canceled" (single L), not "cancelled".
+    .neq("status", "canceled")
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1)
 

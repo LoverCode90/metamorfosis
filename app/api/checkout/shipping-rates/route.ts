@@ -8,6 +8,7 @@ import type { CheckoutAddress } from "@/lib/checkout/types"
 import { packItems, type PackInput } from "@/lib/shippo/packing"
 import { fetchShippoRates } from "@/lib/shippo/rates"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants"
 import type { PackageClass } from "@/lib/square/attributes"
 
 interface ShippingRatesBody {
@@ -17,10 +18,7 @@ interface ShippingRatesBody {
   items?: { variationId: string; quantity: number }[]
 }
 
-const FREE_THRESHOLD_CENTS = parseInt(
-  process.env.NEXT_PUBLIC_FREE_SHIPPING_THRESHOLD_CENTS ?? "7000",
-  10,
-)
+const FREE_THRESHOLD_CENTS = FREE_SHIPPING_THRESHOLD * 100
 
 /**
  * POST /api/checkout/shipping-rates

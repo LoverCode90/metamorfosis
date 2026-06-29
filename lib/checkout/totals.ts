@@ -2,7 +2,7 @@
 
 import {
   CARD_SURCHARGE_RATE,
-  FREE_SHIPPING_THRESHOLD_CENTS,
+  FREE_SHIPPING_THRESHOLD,
   TAX_RATE,
 } from "@/lib/constants"
 import type { PriceSheet, ShippingMethod } from "./types"
@@ -20,7 +20,7 @@ export function computeShippingCents(
   subtotalCents: number,
 ): number {
   if (method === "pickup") return 0
-  if (method === "standard" && subtotalCents >= FREE_SHIPPING_THRESHOLD_CENTS) {
+  if (method === "standard" && subtotalCents >= FREE_SHIPPING_THRESHOLD * 100) {
     return 0
   }
   return SHIPPING_RATES_CENTS[method]

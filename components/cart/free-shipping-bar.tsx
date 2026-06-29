@@ -1,8 +1,10 @@
 import { PartyPopper, Truck } from "lucide-react"
 
-import { FREE_SHIPPING_THRESHOLD_CENTS } from "@/lib/constants"
+import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants"
 import { formatUSD } from "@/lib/utils/format"
 import { cn } from "@/lib/utils"
+
+const FREE_SHIPPING_THRESHOLD_CENTS = FREE_SHIPPING_THRESHOLD * 100
 
 /**
  * Progress toward the free-shipping threshold. A single track whose fill width
