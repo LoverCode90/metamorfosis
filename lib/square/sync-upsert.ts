@@ -6,10 +6,10 @@ import {
   getColorChartPdfUrl,
   getColorFamily,
   getHexColorAttr,
-  getNumberAttr,
   getPackageClass,
   getStringAttr,
 } from "./attributes"
+import { readShippingWeightLb } from "./variation-weight"
 import { translateProductText } from "@/lib/deepl/translate"
 import {
   parseSquarePriceCents,
@@ -113,7 +113,7 @@ export async function upsertItemWithVariations(
     const vAttrs = v.customAttributeValues
     const hexColor = getHexColorAttr(vAttrs, "hex_color")
     const shadeNumber = getStringAttr(vAttrs, "shade_number")
-    const weightLb = getNumberAttr(vAttrs, "weight_lb")
+    const weightLb = readShippingWeightLb(vd, vAttrs)
     const inventoryCount = inventoryCountMap.get(v.id) ?? 0
 
     const varImageId = v.imageId ?? null

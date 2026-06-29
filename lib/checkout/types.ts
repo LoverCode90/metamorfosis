@@ -1,12 +1,16 @@
-/** Supported shipping methods matching the DB enum. */
+/** DB `shipping_method` enum. Retained for the order column + email labels. */
 export type ShippingMethod = "standard" | "express" | "overnight" | "pickup"
 
-export interface ShippingRate {
-  method: ShippingMethod
-  label: string
-  description: string
-  amountCents: number
-  display: string
+/**
+ * A live carrier rate returned by Shippo (snake_case = API response shape).
+ * `shippo_rate_id` is null for in-store pickup (no carrier rate to re-fetch).
+ */
+export interface LiveShippingRate {
+  carrier: string
+  service_name: string
+  amount_cents: number
+  estimated_days: number | null
+  shippo_rate_id: string | null
 }
 
 export interface CheckoutAddress {
@@ -27,7 +31,11 @@ export interface CheckoutAddress {
  */
 export interface CheckoutPayload {
   items: { variationId: string; quantity: number }[]
-  shippingMethod: ShippingMethod
+  /**
+   * Shippo rate id the customer selected; the server re-fetches its amount.
+   * null = in-store pickup (free, no carrier rate).
+   */
+  shippoRateId: string | null
   address: CheckoutAddress
   /** Non-returnable (chemical) products warning acknowledgment. */
   termsAccepted: boolean

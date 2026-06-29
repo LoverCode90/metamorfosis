@@ -1,3 +1,6 @@
+import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants"
+import { buildPriceSheet } from "@/lib/checkout/totals"
+import type { LiveShippingRate, PriceSheet } from "@/lib/checkout/types"
 import type { CartItem } from "@/lib/types"
 
 export interface CheckoutLineItem {
@@ -21,4 +24,30 @@ export function toPriceSheetItems(items: CartItem[]) {
     unitPriceCents: i.unitPrice,
     discountCents: i.discountPerItem ?? 0,
   }))
+}
+
+/**
+ * Client-side display price sheet. Shipping is the selected rate, or 0 when the
+ * free-shipping threshold is met or no rate is picked yet. The server
+ * recomputes the authoritative total at charge time.
+ */
+export function computeClientPriceSheet(
+  items: CartItem[],
+  selectedRate: LiveShippingRate | null,
+  taxRate: number,
+): PriceSheet {
+  const subtotalCents = items.reduce(
+    (sum, item) => sum + item.unitPrice * item.quantity,
+    0,
+  )
+  const qualifiesForFreeShipping =
+    subtotalCents >= FREE_SHIPPING_THRESHOLD * 100
+  const shippingChargedCents =
+    !selectedRate || qualifiesForFreeShipping ? 0 : selectedRate.amount_cents
+  return buildPriceSheet(
+    toPriceSheetItems(items),
+    shippingChargedCents,
+    false,
+    taxRate,
+  )
 }

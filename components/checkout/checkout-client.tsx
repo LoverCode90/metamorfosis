@@ -63,7 +63,13 @@ export function CheckoutClient() {
               address={flow.address}
               cartItems={flow.lineItems}
               initialRates={flow.cachedShippingRates}
+              selectedRateKey={
+                flow.selectedRate
+                  ? (flow.selectedRate.shippo_rate_id ?? "pickup")
+                  : null
+              }
               onRatesFetched={flow.setCachedShippingRates}
+              onSelectRate={flow.selectRate}
               onContinue={flow.continueFromShipping}
               onBack={() => flow.setWizardStep("info")}
             />

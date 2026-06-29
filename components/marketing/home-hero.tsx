@@ -36,7 +36,7 @@ export function HomeHero() {
         <div className="mt-8 flex flex-wrap items-center gap-4">
           <Link
             href="/products"
-            className="text-foreground inline-flex h-11 items-center gap-2 rounded-md bg-white px-6 text-sm font-semibold transition-opacity hover:opacity-90"
+            className="inline-flex h-11 items-center gap-2 rounded-md bg-white px-6 text-sm font-semibold text-neutral-900 transition-opacity hover:opacity-90"
           >
             Shop the catalog
             <ArrowRight className="h-4 w-4" strokeWidth={2} />

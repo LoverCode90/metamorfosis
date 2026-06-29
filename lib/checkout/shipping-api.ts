@@ -1,28 +1,28 @@
-import type { CheckoutAddress, ShippingRate } from "@/lib/checkout/types"
+import type { CheckoutAddress, LiveShippingRate } from "@/lib/checkout/types"
 
 export interface ShippingRatesResponse {
-  rates?: ShippingRate[]
-  freeThresholdNote?: string
-  oversized?: boolean
+  rates?: LiveShippingRate[]
+  freeShipping?: boolean
   message?: string
+  error?: string
 }
 
 interface FetchShippingRatesArgs {
   subtotalCents: number
-  address: CheckoutAddress
-  items: { variationId: string; quantity: number }[]
+  destinationAddress: CheckoutAddress
+  cartItems: { variationId: string; quantity: number }[]
 }
 
-/** Fetches live shipping rates (or an oversized notice) for the cart. */
+/** Fetches live carrier rates for the cart from the shipping-rates route. */
 export async function fetchShippingRates({
   subtotalCents,
-  address,
-  items,
+  destinationAddress,
+  cartItems,
 }: FetchShippingRatesArgs): Promise<ShippingRatesResponse> {
   const res = await fetch("/api/checkout/shipping-rates", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ subtotalCents, address, items }),
+    body: JSON.stringify({ subtotalCents, destinationAddress, cartItems }),
   })
   return (await res.json()) as ShippingRatesResponse
 }

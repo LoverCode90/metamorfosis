@@ -39,7 +39,6 @@ export async function POST(request: NextRequest) {
     // New format: { longText: string, shortText: string, types: string[] }
     // Old format expected: { long_name: string, short_name: string, types: string[] }
     const address_components = (data.addressComponents || []).map(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (comp: any) => ({
         long_name: comp.longText,
         short_name: comp.shortText,

@@ -1,31 +1,13 @@
 // Shared calculation logic for both server and client components
 
-import {
-  CARD_SURCHARGE_RATE,
-  FREE_SHIPPING_THRESHOLD,
-  TAX_RATE,
-} from "@/lib/constants"
-import type { PriceSheet, ShippingMethod } from "./types"
+import { CARD_SURCHARGE_RATE, TAX_RATE } from "@/lib/constants"
+import type { PriceSheet } from "./types"
 
-/** Fixed shipping rates in cents (Phase 5 — Shippo replaces in Phase 6). */
-export const SHIPPING_RATES_CENTS: Record<ShippingMethod, number> = {
-  standard: 700,
-  express: 1500,
-  overnight: 2500,
-  pickup: 0,
-}
-
-export function computeShippingCents(
-  method: ShippingMethod,
-  subtotalCents: number,
-): number {
-  if (method === "pickup") return 0
-  if (method === "standard" && subtotalCents >= FREE_SHIPPING_THRESHOLD * 100) {
-    return 0
-  }
-  return SHIPPING_RATES_CENTS[method]
-}
-
+/**
+ * Builds the order price breakdown. `shippingCents` is supplied by the caller
+ * (a live Shippo rate, or 0 when free shipping applies) — this module no
+ * longer derives shipping from fixed tiers.
+ */
 export function buildPriceSheet(
   itemsWithDiscount: {
     variationId: string
@@ -34,7 +16,7 @@ export function buildPriceSheet(
     unitPriceCents: number
     discountCents: number
   }[],
-  shippingMethod: ShippingMethod,
+  shippingCents: number,
   taxExempt = false,
   taxRate = TAX_RATE,
 ): PriceSheet {
@@ -51,10 +33,6 @@ export function buildPriceSheet(
   const discountCents = itemsWithDiscount.reduce(
     (s, i) => s + i.discountCents * i.quantity,
     0,
-  )
-  const shippingCents = computeShippingCents(
-    shippingMethod,
-    subtotalCents - discountCents,
   )
   const taxCents = taxExempt
     ? 0

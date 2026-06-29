@@ -1,10 +1,9 @@
 import type { CartItem, CheckoutStepId } from "@/lib/types"
 import type {
   CheckoutAddress,
+  LiveShippingRate,
   PlaceOrderResponse,
   PriceSheet,
-  ShippingMethod,
-  ShippingRate,
 } from "@/lib/checkout/types"
 import type { SavedCardMeta } from "@/components/checkout/steps/step-payment"
 import type { InfoFormValues } from "@/lib/validation/checkout"
@@ -26,12 +25,14 @@ export interface UseCheckoutFlowResult {
   preloadedCheckoutAddress: CheckoutAddress | null
   lineItems: { variationId: string; quantity: number }[]
   priceSheet: PriceSheet
-  cachedShippingRates: ShippingRate[] | null
-  setCachedShippingRates: (rates: ShippingRate[]) => void
+  cachedShippingRates: LiveShippingRate[] | null
+  setCachedShippingRates: (rates: LiveShippingRate[]) => void
+  selectedRate: LiveShippingRate | null
+  selectRate: (rate: LiveShippingRate) => void
   isUserLoading: boolean
   savedCard: SavedCardMeta | null
   continueFromInfo: (address: CheckoutAddress, terms: boolean) => void
-  continueFromShipping: (method: ShippingMethod) => void
+  continueFromShipping: () => void
   submitPayment: (
     sourceId: string,
     turnstileToken: string,
@@ -57,6 +58,25 @@ export function readSessionAddress(): CheckoutAddress | null {
     return raw ? (JSON.parse(raw) as CheckoutAddress) : null
   } catch {
     return null
+  }
+}
+
+/** Maps the user's saved address book entry to a checkout address (or null). */
+export function buildPreloadedAddress(
+  savedAddress: ReturnType<typeof useUser>["savedAddress"],
+  email: string,
+): CheckoutAddress | null {
+  if (!savedAddress) return null
+  return {
+    fullName: savedAddress.fullName ?? "",
+    email,
+    phone: savedAddress.phone ?? "",
+    streetLine1: savedAddress.line1 ?? "",
+    streetLine2: "",
+    city: savedAddress.city ?? "",
+    state: savedAddress.region ?? "",
+    zip: savedAddress.postalCode ?? "",
+    country: "US",
   }
 }
 

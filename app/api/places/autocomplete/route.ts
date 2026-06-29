@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     // Explicitly type and safely access properties
     const suggestions = (data.suggestions || [])
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       .map((item: any) => {
         const placePrediction = item.placePrediction
         if (!placePrediction) return null
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
         }
       })
       .filter(Boolean)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       .filter((s: any) => {
         if (!s.secondary_text) return true
         return (

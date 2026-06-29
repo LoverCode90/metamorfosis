@@ -9,12 +9,15 @@ export interface PersistOrderParams {
   squareOrderId: string
   userId: string | null
   guestEmail: string | null
-  shippingMethod: CheckoutPayload["shippingMethod"]
   priceSheet: PriceSheet
   address: CheckoutAddress
   termsAccepted: boolean
   consentTimestamp: string
   consentIp: string
+  /** Shippo carrier + delivery estimate ("pickup"/null for in-store pickup). */
+  carrier: string
+  estimatedDeliveryDate: string | null
+  shippoShipmentId: string | null
   items: CheckoutPayload["items"]
   varMap: CheckoutVariationMap
 }
@@ -38,12 +41,14 @@ export async function persistOrder(
     squareOrderId,
     userId,
     guestEmail,
-    shippingMethod,
     priceSheet,
     address,
     termsAccepted,
     consentTimestamp,
     consentIp,
+    carrier,
+    estimatedDeliveryDate,
+    shippoShipmentId,
     items,
     varMap,
   } = params
@@ -55,7 +60,8 @@ export async function persistOrder(
       user_id: userId,
       guest_email: guestEmail,
       status: "confirmed",
-      shipping_method: shippingMethod,
+      // shipping_method is a NOT NULL enum; the real provider lives in `carrier`.
+      shipping_method: "standard",
       subtotal_cents: priceSheet.subtotalCents,
       discount_cents: priceSheet.discountCents,
       shipping_cents: priceSheet.shippingCents,
@@ -63,6 +69,9 @@ export async function persistOrder(
       surcharge_cents: priceSheet.surchargeCents,
       total_cents: priceSheet.totalCents,
       shipping_address: address,
+      carrier,
+      estimated_delivery_date: estimatedDeliveryDate,
+      shippo_shipment_id: shippoShipmentId,
       terms_accepted: termsAccepted,
       surcharge_consented_at: consentTimestamp,
       surcharge_consented_ip: consentIp,

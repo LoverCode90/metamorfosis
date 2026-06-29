@@ -2,7 +2,7 @@ import "server-only"
 
 import type { CatalogCustomAttributeValue } from "square"
 
-type AttrMap = Record<string, CatalogCustomAttributeValue> | undefined
+export type AttrMap = Record<string, CatalogCustomAttributeValue> | undefined
 
 /**
  * Read a string custom attribute by key (case-insensitive key lookup).

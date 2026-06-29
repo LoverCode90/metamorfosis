@@ -3,21 +3,30 @@
 import { memo } from "react"
 import { Check } from "lucide-react"
 
-import type { ShippingMethod, ShippingRate } from "@/lib/checkout/types"
+import type { LiveShippingRate } from "@/lib/checkout/types"
+import { formatUSD } from "@/lib/utils/format"
 import { cn } from "@/lib/utils"
 
 interface ShippingRateOptionProps {
-  rate: ShippingRate
+  rate: LiveShippingRate
   selected: boolean
-  onSelect: (method: ShippingMethod) => void
+  freeShipping: boolean
+  onSelect: (rate: LiveShippingRate) => void
 }
 
-/** Selectable shipping-rate row (memoized — rendered in a list). */
+/** Selectable live-rate row (memoized — rendered in a list). */
 export const ShippingRateOption = memo(function ShippingRateOption({
   rate,
   selected,
+  freeShipping,
   onSelect,
 }: ShippingRateOptionProps) {
+  const estimatedDays = rate.estimated_days
+  const etaLabel =
+    estimatedDays != null
+      ? `${estimatedDays} business day${estimatedDays === 1 ? "" : "s"}`
+      : "Delivery estimate unavailable"
+
   const rowClass = cn(
     "flex w-full items-center justify-between rounded-lg border px-4 py-4 text-left transition-colors",
     selected
@@ -28,17 +37,14 @@ export const ShippingRateOption = memo(function ShippingRateOption({
     "flex h-4 w-4 items-center justify-center rounded-full border transition-colors",
     selected ? "border-foreground bg-foreground" : "border-border",
   )
+  const isFree = freeShipping || rate.amount_cents === 0
   const priceClass = cn(
     "text-sm font-semibold tabular-nums",
-    rate.amountCents === 0 ? "text-green-500" : "text-foreground",
+    isFree ? "text-green-500" : "text-foreground",
   )
 
   return (
-    <button
-      type="button"
-      onClick={() => onSelect(rate.method)}
-      className={rowClass}
-    >
+    <button type="button" onClick={() => onSelect(rate)} className={rowClass}>
       <div className="flex items-center gap-3">
         <span className={radioClass}>
           {selected && (
@@ -46,11 +52,15 @@ export const ShippingRateOption = memo(function ShippingRateOption({
           )}
         </span>
         <div>
-          <p className="text-foreground text-sm font-medium">{rate.label}</p>
-          <p className="text-muted-foreground text-xs">{rate.description}</p>
+          <p className="text-foreground text-sm font-medium">
+            {rate.carrier} · {rate.service_name}
+          </p>
+          <p className="text-muted-foreground text-xs">{etaLabel}</p>
         </div>
       </div>
-      <span className={priceClass}>{rate.display}</span>
+      <span className={priceClass}>
+        {isFree ? "FREE" : formatUSD(rate.amount_cents)}
+      </span>
     </button>
   )
 })

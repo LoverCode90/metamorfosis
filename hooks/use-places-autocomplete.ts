@@ -50,7 +50,6 @@ export function usePlacesAutocomplete(
     return () => clearTimeout(fetchSuggestions)
   }, [inputValue, enabled])
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getPlaceDetails = async (placeId: string): Promise<any> => {
     const res = await fetch("/api/places/details", {
       method: "POST",
