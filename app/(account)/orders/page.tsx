@@ -24,6 +24,12 @@ export default async function OrdersPage() {
   )
   const hasMore = total > orders.length
 
+  // Re-seed the client list whenever the server set changes (e.g. after a
+  // cancel + router.refresh()). useOrdersPagination seeds its state from
+  // initialOrders only at mount, so without a changing key the refreshed
+  // props would be ignored and the canceled card would linger.
+  const ordersKey = `${total}:${orders.map((order) => order.id).join("-")}`
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-12">
       <OrdersBackButton />
@@ -36,7 +42,7 @@ export default async function OrdersPage() {
         </h1>
       </div>
       <div className="mt-8">
-        <OrdersList initialOrders={orders} hasMore={hasMore} />
+        <OrdersList key={ordersKey} initialOrders={orders} hasMore={hasMore} />
       </div>
     </div>
   )
