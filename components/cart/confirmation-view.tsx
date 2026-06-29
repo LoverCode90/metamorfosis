@@ -1,13 +1,31 @@
 "use client"
 
+import { useEffect } from "react"
 import { Check, ShoppingBag, Info } from "lucide-react"
 import Link from "next/link"
+import { useRouter, useSearchParams } from "next/navigation"
 import { CopyRow } from "./copy-row"
 import { HomeFooter } from "@/components/marketing/home-footer"
-import { useConfirmationGuard } from "@/hooks/use-confirmation-guard"
 
 export function ConfirmationView() {
-  const { orderNumber, orderId, handleBackToHome } = useConfirmationGuard()
+  const router = useRouter()
+  const params = useSearchParams()
+
+  useEffect(() => {
+    // Push a dummy entry so the back button has somewhere to "go"
+    window.history.pushState(null, "", window.location.href)
+
+    function onPopState() {
+      // User pressed back — redirect to home instead of letting them reach checkout
+      window.history.pushState(null, "", window.location.href)
+      router.replace("/")
+    }
+
+    window.addEventListener("popstate", onPopState)
+    return () => window.removeEventListener("popstate", onPopState)
+  }, [router])
+  const orderNumber = params.get("orderNumber")
+  const orderId = params.get("orderId")
 
   if (!orderNumber) {
     return (
@@ -15,7 +33,7 @@ export function ConfirmationView() {
         <p className="text-muted-foreground text-sm">No recent order found.</p>
         <button
           type="button"
-          onClick={handleBackToHome}
+          onClick={() => router.push("/")}
           className="bg-foreground text-background mt-4 h-11 rounded-md px-6 text-sm font-semibold"
         >
           Back to home

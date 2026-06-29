@@ -1,7 +1,6 @@
 import { create } from "zustand"
 import type { CartItem, Product, Totals } from "@/lib/types"
 import { computeTotals } from "@/lib/utils/totals"
-import { PRO_RESTRICTIONS_ENABLED } from "@/lib/constants"
 
 interface CartState {
   items: CartItem[]
@@ -27,10 +26,8 @@ interface CartState {
 function derive(items: CartItem[]) {
   return {
     totals: computeTotals(items),
-    hasProItems:
-      PRO_RESTRICTIONS_ENABLED &&
-      items.some((item) => item.isProfessional && !item.unavailable),
-    hasUnavailableItems: items.some((item) => item.unavailable),
+    hasProItems: items.some((i) => i.isProfessional && !i.unavailable),
+    hasUnavailableItems: items.some((i) => i.unavailable),
   }
 }
 
@@ -47,17 +44,15 @@ export const useCartStore = create<CartState>()((set, get) => ({
   addToCart: (product, quantity = 1) =>
     set((state) => {
       const key = product.variationId ?? product.id
-      const existing = state.items.find(
-        (item) => (item.variationId ?? item.id) === key,
-      )
+      const existing = state.items.find((i) => (i.variationId ?? i.id) === key)
       const items: CartItem[] = existing
-        ? state.items.map((item) =>
-            (item.variationId ?? item.id) === key
+        ? state.items.map((i) =>
+            (i.variationId ?? i.id) === key
               ? {
-                  ...item,
-                  quantity: Math.min(item.quantity + quantity, item.stock),
+                  ...i,
+                  quantity: Math.min(i.quantity + quantity, i.stock),
                 }
-              : item,
+              : i,
           )
         : [
             ...state.items,
@@ -73,20 +68,20 @@ export const useCartStore = create<CartState>()((set, get) => ({
 
   increment: (variationId) =>
     set((state) => {
-      const items = state.items.map((item) =>
-        (item.variationId ?? item.id) === variationId
-          ? { ...item, quantity: Math.min(item.quantity + 1, item.stock) }
-          : item,
+      const items = state.items.map((i) =>
+        (i.variationId ?? i.id) === variationId
+          ? { ...i, quantity: Math.min(i.quantity + 1, i.stock) }
+          : i,
       )
       return { items, ...derive(items) }
     }),
 
   decrement: (variationId) =>
     set((state) => {
-      const items = state.items.map((item) =>
-        (item.variationId ?? item.id) === variationId
-          ? { ...item, quantity: Math.max(item.quantity - 1, 1) }
-          : item,
+      const items = state.items.map((i) =>
+        (i.variationId ?? i.id) === variationId
+          ? { ...i, quantity: Math.max(i.quantity - 1, 1) }
+          : i,
       )
       return { items, ...derive(items) }
     }),
@@ -94,19 +89,19 @@ export const useCartStore = create<CartState>()((set, get) => ({
   removeItem: (variationId) =>
     set((state) => {
       const items = state.items.filter(
-        (item) => (item.variationId ?? item.id) !== variationId,
+        (i) => (i.variationId ?? i.id) !== variationId,
       )
       return { items, ...derive(items) }
     }),
 
   moveToWishlist: (variationId) => {
     const target = get().items.find(
-      (item) => (item.variationId ?? item.id) === variationId,
+      (i) => (i.variationId ?? i.id) === variationId,
     )
     if (!target) return undefined
     set((state) => {
       const items = state.items.filter(
-        (item) => (item.variationId ?? item.id) !== variationId,
+        (i) => (i.variationId ?? i.id) !== variationId,
       )
       return { items, ...derive(items) }
     })
@@ -115,11 +110,9 @@ export const useCartStore = create<CartState>()((set, get) => ({
 
   markUnavailable: (variationIds) =>
     set((state) => {
-      const unavailSet = new Set(variationIds)
-      const items = state.items.map((item) =>
-        unavailSet.has(item.variationId ?? item.id)
-          ? { ...item, unavailable: true }
-          : item,
+      const set_ = new Set(variationIds)
+      const items = state.items.map((i) =>
+        set_.has(i.variationId ?? i.id) ? { ...i, unavailable: true } : i,
       )
       return { items, ...derive(items) }
     }),
