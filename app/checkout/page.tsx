@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import { CheckoutClient } from "@/components/checkout/checkout-client"
 
@@ -8,7 +9,9 @@ export const metadata: Metadata = {
 export default function CheckoutPage() {
   return (
     <div className="overflow-x-hidden">
-      <CheckoutClient />
+      <Suspense fallback={null}>
+        <CheckoutClient />
+      </Suspense>
     </div>
   )
 }
