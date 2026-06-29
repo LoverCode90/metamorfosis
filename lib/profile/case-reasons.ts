@@ -77,6 +77,13 @@ export const ALL_REASONS: readonly CaseReason[] = [
   { value: "other", label: "Other" },
 ]
 
+/** Human label for a case reason value (e.g. "damaged" → "Arrived damaged"). */
+export function caseReasonLabel(value: string): string {
+  const match = ALL_REASONS.find((reason) => reason.value === value)
+  if (match) return match.label
+  return value.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
+}
+
 /**
  * Returns the reasons selectable for an order item — the limited chemical set
  * for non-returnable items, otherwise the full set.

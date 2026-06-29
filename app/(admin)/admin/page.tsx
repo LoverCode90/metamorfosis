@@ -4,12 +4,10 @@ import { requireAdmin } from "@/lib/auth/helpers"
 import { getDashboardStats } from "@/lib/admin/dashboard-stats"
 import { formatUSD } from "@/lib/utils/format"
 import { MetricCard, QuickLink } from "@/components/admin/dashboard-cards"
+import { RevenueChart } from "@/components/admin/revenue-chart"
+import { RecentActivity } from "@/components/admin/recent-activity"
 
 export const metadata = { title: "Dashboard — Admin — Metamorfosis Beauty" }
-
-function formatAction(action: string): string {
-  return action.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-}
 
 export default async function AdminPage() {
   await requireAdmin()
@@ -26,39 +24,40 @@ export default async function AdminPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <MetricCard
           label="Orders today"
           value={stats.ordersToday.count}
           sub={`${formatUSD(stats.ordersToday.revenueCents)} revenue`}
           href="/admin/orders"
+          icon={ShoppingBag}
         />
         <MetricCard
           label="Orders this week"
           value={stats.ordersThisWeek.count}
           sub={`${formatUSD(stats.ordersThisWeek.revenueCents)} revenue`}
           href="/admin/orders"
+          icon={ShoppingBag}
         />
         <MetricCard
           label="Pending shipments"
           value={stats.pendingShipments}
-          sub="Paid orders without tracking"
+          sub="Awaiting tracking"
           href="/admin/orders?status=pending"
+          icon={Truck}
           accent={stats.pendingShipments > 0 ? "amber" : "neutral"}
         />
         <MetricCard
           label="Open cases"
           value={stats.openCases}
+          sub="Need review"
           href="/admin/cases?status=open"
+          icon={ClipboardList}
           accent={stats.openCases > 0 ? "amber" : "neutral"}
         />
-        <MetricCard
-          label="Pending verifications"
-          value={stats.pendingVerifications}
-          href="/admin/verifications"
-          accent={stats.pendingVerifications > 0 ? "amber" : "neutral"}
-        />
       </div>
+
+      <RevenueChart data={stats.dailyRevenue} />
 
       <section>
         <h2 className="text-foreground mb-3 text-sm font-semibold">
@@ -92,41 +91,7 @@ export default async function AdminPage() {
         </div>
       </section>
 
-      {stats.recentActivity.length > 0 && (
-        <section>
-          <h2 className="text-foreground mb-3 text-sm font-semibold">
-            Recent activity
-          </h2>
-          <ul className="border-border divide-border divide-y rounded-xl border">
-            {stats.recentActivity.map((entry) => (
-              <li
-                key={entry.id}
-                className="flex items-center justify-between gap-4 px-5 py-3"
-              >
-                <div>
-                  <p className="text-foreground text-sm font-medium">
-                    {formatAction(entry.action)}
-                  </p>
-                  <p className="text-muted-foreground text-xs">
-                    {entry.target_table}
-                  </p>
-                </div>
-                <time
-                  dateTime={entry.created_at}
-                  className="text-muted-foreground shrink-0 text-xs"
-                >
-                  {new Date(entry.created_at).toLocaleString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    hour: "numeric",
-                    minute: "2-digit",
-                  })}
-                </time>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <RecentActivity entries={stats.recentActivity} />
     </div>
   )
 }

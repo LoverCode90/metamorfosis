@@ -82,7 +82,7 @@ export interface AdminCaseDetail extends DbCase {
     name_en: string
     sku: string | null
     price_cents: number
-    product_translations: { is_returnable: boolean } | null
+    product_translations: { is_returnable: boolean; name_en: string } | null
   } | null
   case_messages: DbCaseMessage[]
 }

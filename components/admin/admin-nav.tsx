@@ -32,7 +32,7 @@ const NAV_ITEMS = [
     label: "Orders",
     href: "/admin/orders",
     icon: ShoppingBag,
-    enabled: false, // Phase 8+
+    enabled: true,
     exact: false,
     badgeKey: null,
   },
@@ -40,7 +40,7 @@ const NAV_ITEMS = [
     label: "Cases",
     href: "/admin/cases",
     icon: ClipboardList,
-    enabled: false, // Phase 8
+    enabled: true,
     exact: false,
     badgeKey: null,
   },

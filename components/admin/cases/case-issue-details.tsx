@@ -1,4 +1,6 @@
 import { formatCaseStatus } from "@/lib/utils/format"
+import { caseReasonLabel } from "@/lib/profile/case-reasons"
+import { itemLabel } from "@/lib/orders/item-label"
 import type { AdminCaseDetail } from "@/lib/cases/types"
 
 /** Labelled metadata cell used in the issue grid. */
@@ -29,12 +31,15 @@ export function CaseIssueDetails({ caseData }: { caseData: AdminCaseDetail }) {
       <div className="mb-6 grid gap-4 sm:grid-cols-2">
         <Field label="Reason">
           <p className="text-foreground font-medium">
-            {formatCaseStatus(caseData.reason)}
+            {caseReasonLabel(caseData.reason)}
           </p>
         </Field>
         <Field label="Item">
           <p className="text-foreground font-medium">
-            {caseData.product_variations?.name_en}
+            {itemLabel(
+              caseData.product_variations?.product_translations?.name_en,
+              caseData.product_variations?.name_en,
+            )}
           </p>
           <p className="text-muted-foreground text-sm">
             SKU: {caseData.product_variations?.sku}

@@ -30,7 +30,7 @@ export default async function AdminCaseDetailPage(props: {
       orders ( id, square_order_id, status, created_at, shipping_method ),
       product_variations (
         id, name_en, sku, price_cents,
-        product_translations ( is_returnable )
+        product_translations ( is_returnable, name_en )
       ),
       case_messages ( id, sender_id, message, created_at )`,
     )

@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth/helpers"
 import { AdminStatusFilter } from "@/components/admin/admin-status-filter"
 import { AdminPagination } from "@/components/admin/admin-pagination"
 import { OrderTableRow } from "@/components/admin/orders/order-table-row"
+import { OrderMobileCard } from "@/components/admin/orders/order-mobile-card"
 import {
   ORDERS_PER_PAGE,
   type AdminOrderListItem,
@@ -34,7 +35,14 @@ export default async function AdminOrdersPage(props: {
     .select(
       `id, square_order_id, status, total_cents, created_at, guest_email,
        tracking_number, shipping_address,
-       order_items ( quantity, product_variations ( name_en ) )`,
+       profiles ( first_name, last_name, full_name ),
+       order_items (
+         quantity,
+         product_variations (
+           name_en,
+           product_translations ( name_en )
+         )
+       )`,
       { count: "exact" },
     )
     .order("created_at", { ascending: false })
@@ -63,39 +71,42 @@ export default async function AdminOrdersPage(props: {
         options={ORDER_STATUS_FILTERS}
       />
 
-      <div className="border-border bg-card overflow-hidden rounded-2xl border">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-muted/50 text-muted-foreground text-xs uppercase">
-              <tr>
-                <th className="px-5 py-3 font-medium">Customer</th>
-                <th className="px-5 py-3 font-medium">Date</th>
-                <th className="px-5 py-3 font-medium">Items</th>
-                <th className="px-5 py-3 font-medium">Status</th>
-                <th className="px-5 py-3 font-medium">Tracking</th>
-                <th className="px-5 py-3 text-right font-medium">Total</th>
-                <th className="px-5 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-border divide-y">
-              {orders.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="text-muted-foreground px-5 py-8 text-center"
-                  >
-                    No orders found.
-                  </td>
-                </tr>
-              ) : (
-                orders.map((order) => (
-                  <OrderTableRow key={order.id} order={order} />
-                ))
-              )}
-            </tbody>
-          </table>
+      {orders.length === 0 ? (
+        <div className="border-border bg-card text-muted-foreground rounded-2xl border px-5 py-12 text-center text-sm">
+          No orders found.
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Desktop table */}
+          <div className="border-border bg-card hidden overflow-hidden rounded-2xl border md:block">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-muted/50 text-muted-foreground text-xs uppercase">
+                <tr>
+                  <th className="px-5 py-3 font-medium">Customer</th>
+                  <th className="px-5 py-3 font-medium">Date</th>
+                  <th className="px-5 py-3 font-medium">Items</th>
+                  <th className="px-5 py-3 font-medium">Status</th>
+                  <th className="px-5 py-3 font-medium">Tracking</th>
+                  <th className="px-5 py-3 text-right font-medium">Total</th>
+                  <th className="px-5 py-3" />
+                </tr>
+              </thead>
+              <tbody className="divide-border divide-y">
+                {orders.map((order) => (
+                  <OrderTableRow key={order.id} order={order} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="space-y-3 md:hidden">
+            {orders.map((order) => (
+              <OrderMobileCard key={order.id} order={order} />
+            ))}
+          </div>
+        </>
+      )}
 
       <AdminPagination
         basePath="/admin/orders"

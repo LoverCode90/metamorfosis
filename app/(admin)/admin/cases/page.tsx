@@ -1,12 +1,9 @@
-import Link from "next/link"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/auth/helpers"
-import { Badge } from "@/components/ui/badge"
 import { AdminStatusFilter } from "@/components/admin/admin-status-filter"
-import { caseStatusBadge } from "@/lib/admin/status-badge"
-import { formatCaseStatus } from "@/lib/utils/format"
+import { CaseTableRow } from "@/components/admin/cases/case-table-row"
+import { CaseMobileCard } from "@/components/admin/cases/case-mobile-card"
 import type { AdminCaseListItem } from "@/lib/cases/types"
-import { formatDistanceToNow } from "date-fns"
 
 export const metadata = { title: "Cases Admin — Metamorfosis Beauty" }
 
@@ -17,13 +14,6 @@ const CASE_STATUS_FILTERS = [
   "rejected",
   "closed",
 ]
-
-function orderLabel(squareOrderId: string | undefined): string {
-  if (!squareOrderId) return "—"
-  return squareOrderId.startsWith("MF-")
-    ? squareOrderId
-    : `#${squareOrderId.slice(0, 8).toUpperCase()}`
-}
 
 export default async function AdminCasesPage(props: {
   searchParams: Promise<{ status?: string }>
@@ -63,70 +53,40 @@ export default async function AdminCasesPage(props: {
         options={CASE_STATUS_FILTERS}
       />
 
-      <div className="border-border bg-card overflow-hidden rounded-xl border">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-muted/50 text-muted-foreground text-xs uppercase">
-              <tr>
-                <th className="px-5 py-3 font-medium">Customer</th>
-                <th className="px-5 py-3 font-medium">Order</th>
-                <th className="px-5 py-3 font-medium">Reason</th>
-                <th className="px-5 py-3 font-medium">Status</th>
-                <th className="px-5 py-3 font-medium">Opened</th>
-              </tr>
-            </thead>
-            <tbody className="divide-border divide-y">
-              {cases.map((caseItem) => {
-                const badge = caseStatusBadge(caseItem.status)
-                return (
-                  <tr
-                    key={caseItem.id}
-                    className="hover:bg-muted/30 transition-colors"
-                  >
-                    <td className="px-5 py-3">
-                      <Link
-                        href={`/admin/cases/${caseItem.id}`}
-                        className="block"
-                      >
-                        <span className="text-foreground font-medium">
-                          {caseItem.profiles?.full_name ?? "Unknown"}
-                        </span>
-                        <span className="text-muted-foreground block text-xs">
-                          {caseItem.profiles?.email ?? "—"}
-                        </span>
-                      </Link>
-                    </td>
-                    <td className="px-5 py-3 font-medium">
-                      {orderLabel(caseItem.orders?.square_order_id)}
-                    </td>
-                    <td className="px-5 py-3">
-                      {formatCaseStatus(caseItem.reason)}
-                    </td>
-                    <td className="px-5 py-3">
-                      <Badge variant={badge.variant}>{badge.label}</Badge>
-                    </td>
-                    <td className="text-muted-foreground px-5 py-3 whitespace-nowrap">
-                      {formatDistanceToNow(new Date(caseItem.created_at), {
-                        addSuffix: true,
-                      })}
-                    </td>
-                  </tr>
-                )
-              })}
-              {cases.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="text-muted-foreground px-5 py-8 text-center"
-                  >
-                    No cases found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+      {cases.length === 0 ? (
+        <div className="border-border bg-card text-muted-foreground rounded-2xl border px-5 py-12 text-center text-sm">
+          No cases found.
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Desktop table */}
+          <div className="border-border bg-card hidden overflow-hidden rounded-2xl border md:block">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-muted/50 text-muted-foreground text-xs uppercase">
+                <tr>
+                  <th className="px-5 py-3 font-medium">Customer</th>
+                  <th className="px-5 py-3 font-medium">Order</th>
+                  <th className="px-5 py-3 font-medium">Reason</th>
+                  <th className="px-5 py-3 font-medium">Status</th>
+                  <th className="px-5 py-3 font-medium">Opened</th>
+                </tr>
+              </thead>
+              <tbody className="divide-border divide-y">
+                {cases.map((caseItem) => (
+                  <CaseTableRow key={caseItem.id} caseItem={caseItem} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile cards */}
+          <div className="space-y-3 md:hidden">
+            {cases.map((caseItem) => (
+              <CaseMobileCard key={caseItem.id} caseItem={caseItem} />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   )
 }

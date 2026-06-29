@@ -9,6 +9,7 @@ import { NativeSelect } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 import { CasePhotoUpload } from "@/components/profile/case-photo-upload"
 import { useCaseForm } from "@/hooks/use-case-form"
+import { itemLabel } from "@/lib/orders/item-label"
 import { CONDITION_OPTIONS } from "@/lib/profile/case-reasons"
 import { cn } from "@/lib/utils"
 import type { DbOrder } from "@/lib/orders/types"
@@ -50,7 +51,11 @@ export function CaseForm({ order }: { order: DbOrder }) {
           >
             {order.order_items.map((item) => (
               <option key={item.id} value={item.variation_id}>
-                {item.quantity}x {item.product_variations?.name_en ?? "Item"}
+                {item.quantity}x{" "}
+                {itemLabel(
+                  item.product_variations?.product_translations?.name_en,
+                  item.product_variations?.name_en,
+                )}
               </option>
             ))}
           </NativeSelect>

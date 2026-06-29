@@ -9,6 +9,7 @@ export interface DbOrderItem {
     image_url: string | null
     product_translations: {
       square_product_id: string
+      name_en: string
       is_returnable: boolean
     } | null
   } | null

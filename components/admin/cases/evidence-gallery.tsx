@@ -17,7 +17,8 @@ export function EvidenceGallery({ caseId }: { caseId: string }) {
           throw new Error(data.error || "Failed to load evidence")
         }
         const data = await res.json()
-        setUrls(data.urls)
+        // The API returns { signedUrls: [...] }; guard against a missing array.
+        setUrls(data.signedUrls ?? [])
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : "Failed to load evidence")
       } finally {
