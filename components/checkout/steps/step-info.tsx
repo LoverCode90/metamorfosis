@@ -16,7 +16,6 @@ import type { CheckoutAddress } from "@/lib/checkout/types"
 import { infoSchema, type InfoFormValues } from "@/lib/validation/checkout"
 
 interface StepInfoProps {
-  hasNonReturnable: boolean
   defaultValues?: Partial<InfoFormValues> | undefined
   preloadedAddress?: CheckoutAddress | null
   isUserLoading?: boolean

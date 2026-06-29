@@ -18,7 +18,6 @@ import {
   hasTamperedPriceFields,
   fetchVariationMap,
   hasProfessionalItem,
-  hasChemicalItems,
   buildDiscountableItems,
 } from "@/lib/checkout/validate-payload"
 import { persistOrder } from "@/lib/checkout/persist-order"
@@ -160,19 +159,6 @@ export async function POST(
     )
   }
 
-  // Non-returnable (chemical) products require the warning acknowledgment.
-  const chemicalItems = hasChemicalItems(items, varMap)
-  if (chemicalItems && !termsAccepted) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Non-returnable products warning must be accepted",
-        code: "CONSENT_REQUIRED",
-      },
-      { status: 400 },
-    )
-  }
-
   // ── Inventory lock (row-level FOR UPDATE via RPC) ──────────────────────────
   const { data: lockResult, error: lockError } = await admin.rpc(
     "check_and_lock_inventory",
@@ -293,7 +279,6 @@ export async function POST(
     priceSheet,
     address,
     termsAccepted,
-    hasChemicalItems: chemicalItems,
     consentTimestamp,
     consentIp: ip,
     items,

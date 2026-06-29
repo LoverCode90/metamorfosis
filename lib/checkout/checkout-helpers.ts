@@ -21,7 +21,6 @@ export interface UseCheckoutFlowResult {
   isAuthenticated: boolean
   removeProItems: () => void
   // Steps
-  hasNonReturnable: boolean
   infoDefaults: Partial<InfoFormValues> | undefined
   address: CheckoutAddress | null
   preloadedCheckoutAddress: CheckoutAddress | null

@@ -51,7 +51,6 @@ export function CheckoutClient() {
         <div className="order-1 min-w-0">
           {flow.wizardStep === "info" && (
             <StepInfo
-              hasNonReturnable={flow.hasNonReturnable}
               defaultValues={flow.infoDefaults}
               preloadedAddress={flow.address ?? flow.preloadedCheckoutAddress}
               isUserLoading={flow.isUserLoading}

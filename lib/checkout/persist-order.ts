@@ -13,7 +13,6 @@ export interface PersistOrderParams {
   priceSheet: PriceSheet
   address: CheckoutAddress
   termsAccepted: boolean
-  hasChemicalItems: boolean
   consentTimestamp: string
   consentIp: string
   items: CheckoutPayload["items"]
@@ -43,7 +42,6 @@ export async function persistOrder(
     priceSheet,
     address,
     termsAccepted,
-    hasChemicalItems,
     consentTimestamp,
     consentIp,
     items,
@@ -68,12 +66,6 @@ export async function persistOrder(
       terms_accepted: termsAccepted,
       surcharge_consented_at: consentTimestamp,
       surcharge_consented_ip: consentIp,
-      ...(hasChemicalItems && termsAccepted
-        ? {
-            chemical_warning_consented_at: consentTimestamp,
-            chemical_warning_consented_ip: consentIp,
-          }
-        : {}),
     })
     .select("id")
     .single()

@@ -154,10 +154,6 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
     isVerifiedPro !== null &&
     gatedItems.length > 0 &&
     !isVerifiedPro
-  const hasNonReturnable = items.some(
-    (item) => !item.unavailable && item.isReturnable === false,
-  )
-
   const preloadedCheckoutAddress: CheckoutAddress | null = savedAddress
     ? {
         fullName: savedAddress.fullName ?? "",
@@ -248,7 +244,6 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
     isAuthenticated: !!user,
     removeProItems: () =>
       gatedItems.forEach((item) => removeItem(item.variationId ?? item.id)),
-    hasNonReturnable,
     infoDefaults: resolveInfoDefaults({
       address,
       termsAccepted,
