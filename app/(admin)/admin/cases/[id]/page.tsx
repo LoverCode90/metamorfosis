@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { CaseActions } from "@/components/admin/cases/case-actions"
 import { CaseIssueDetails } from "@/components/admin/cases/case-issue-details"
-import { CaseMessageThread } from "@/components/admin/cases/case-message-thread"
+import { CaseMessagePanel } from "@/components/admin/cases/case-message-panel"
 import { CaseSidebar } from "@/components/admin/cases/case-sidebar"
 import { EvidenceGallery } from "@/components/admin/cases/evidence-gallery"
 import { Badge } from "@/components/ui/badge"
@@ -90,7 +90,7 @@ export default async function AdminCaseDetailPage(props: {
             <EvidenceGallery caseId={c.id} />
           </section>
 
-          <CaseMessageThread caseData={c} />
+          <CaseMessagePanel caseData={c} />
         </div>
 
         <CaseSidebar caseData={c} />

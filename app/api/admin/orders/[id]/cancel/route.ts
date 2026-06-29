@@ -57,7 +57,7 @@ export async function POST(
   if (
     order.status === "shipped" ||
     order.status === "delivered" ||
-    order.status === "cancelled" ||
+    order.status === "canceled" ||
     order.status === "refunded"
   ) {
     return NextResponse.json(
@@ -67,15 +67,17 @@ export async function POST(
   }
 
   try {
-    // 3. Call Square Refund API
-    if (order.square_order_id) {
+    // 3. Call Square Refund API. Legacy "test-" orders were never charged in
+    // Square, so skip the refund call for them (real orders always refund).
+    const isLegacyTestOrder = order.square_order_id?.startsWith("test-")
+    if (order.square_order_id && !isLegacyTestOrder) {
       await refundOrder(order.square_order_id, order.total_cents, reason)
     }
 
-    // 4. Update status to cancelled
+    // 4. Update status to canceled (DB enum value — single L)
     await admin
       .from("orders")
-      .update({ status: "cancelled" })
+      .update({ status: "canceled" })
       .eq("id", resolvedParams.id)
 
     // 5. Log to audit_logs
@@ -84,7 +86,7 @@ export async function POST(
       action: "admin_cancel_order",
       target_table: "orders",
       target_id: resolvedParams.id,
-      new_value: { status: "cancelled" },
+      new_value: { status: "canceled" },
       notes: reason,
     })
 

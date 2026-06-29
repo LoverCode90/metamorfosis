@@ -1,6 +1,6 @@
 /**
  * Shared domain types for the Metamorfosis storefront.
- * Phase 3+ replaces the v0 mock variants with Supabase-synced equivalents.
+ * All product/catalog data is sourced from Supabase (Square-synced).
  */
 
 // ── Primitives ────────────────────────────────────────────────────────────────

@@ -4,7 +4,11 @@ import { clearDbCart } from "@/lib/cart/db"
 import { saveCheckoutAddress } from "@/lib/addresses/db"
 import { sendOrderConfirmation } from "@/lib/email/resend"
 import type { createAdminClient } from "@/lib/supabase/admin"
-import type { CheckoutAddress, PriceSheet } from "@/lib/checkout/types"
+import type {
+  CheckoutAddress,
+  PriceSheet,
+  ShippingMethod,
+} from "@/lib/checkout/types"
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
@@ -18,6 +22,8 @@ interface FinalizeOrderArgs {
   address: CheckoutAddress
   guestEmail: string | null
   priceSheet: PriceSheet
+  /** "pickup" suppresses shipping/tracking copy in the confirmation email. */
+  shippingMethod: ShippingMethod
 }
 
 /**
@@ -34,6 +40,7 @@ export async function finalizeOrder({
   address,
   guestEmail,
   priceSheet,
+  shippingMethod,
 }: FinalizeOrderArgs): Promise<void> {
   admin
     .from("terms_acceptance_log")
@@ -67,6 +74,6 @@ export async function finalizeOrder({
       discountCents: item.discountCents,
     })),
     priceSheet,
-    shippingMethod: "standard",
+    shippingMethod,
   }).catch((err) => console.error("[finalize-order] Email send failed:", err))
 }

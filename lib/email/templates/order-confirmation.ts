@@ -1,5 +1,11 @@
 import type { CheckoutAddress } from "@/lib/checkout/types"
 import type { ShippingMethod } from "@/lib/checkout/types"
+import {
+  PICKUP_ADDRESS,
+  PICKUP_HOURS,
+  PICKUP_HOURS_NOTE,
+  pickupHoursText,
+} from "@/lib/checkout/pickup"
 
 interface ConfirmationItem {
   name: string
@@ -40,6 +46,34 @@ export function buildOrderConfirmationHtml(
   data: OrderConfirmationData,
 ): string {
   const { orderNumber, address, items, priceSheet, shippingMethod } = data
+  const isPickup = shippingMethod === "pickup"
+
+  const pickupHoursRows = PICKUP_HOURS.map(
+    (line) =>
+      `<tr><td style="font-size:12px;color:#374151;padding:1px 0;">${line.days}</td><td style="font-size:12px;color:#374151;text-align:right;">${line.hours}</td></tr>`,
+  ).join("")
+
+  const fulfillmentBlock = isPickup
+    ? `<div style="background:#f9fafb;border-radius:8px;padding:16px;margin-bottom:24px;">
+        <p style="margin:0 0 8px;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;">Ready for pickup at</p>
+        <p style="margin:0 0 12px;font-size:13px;color:#374151;line-height:1.6;">${PICKUP_ADDRESS}</p>
+        <table width="100%" cellpadding="0" cellspacing="0">${pickupHoursRows}</table>
+        <p style="margin:8px 0 0;font-size:11px;color:#9ca3af;">${PICKUP_HOURS_NOTE}</p>
+      </div>`
+    : `<div style="background:#f9fafb;border-radius:8px;padding:16px;margin-bottom:24px;">
+        <p style="margin:0 0 8px;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;">Shipping to</p>
+        <p style="margin:0;font-size:13px;color:#374151;line-height:1.6;">
+          ${address.fullName}<br>
+          ${address.streetLine1}
+          ${address.streetLine2 ? `<br>${address.streetLine2}` : ""}
+          <br>${address.city}, ${address.state} ${address.zip}
+        </p>
+        <p style="margin:8px 0 0;font-size:12px;color:#6b7280;">${SHIPPING_LABELS[shippingMethod]}</p>
+      </div>`
+
+  const introCopy = isPickup
+    ? "Thank you for your order! We'll have it ready for pickup at our Ontario store. Bring your order number when you come by."
+    : "Thank you for your order! We're preparing it now and will send tracking information as soon as your package ships."
 
   const itemRows = items
     .map((item) => {
@@ -95,8 +129,7 @@ export function buildOrderConfirmationHtml(
                 Hi ${address.fullName.split(" ")[0]},
               </p>
               <p style="margin:0 0 24px;font-size:14px;color:#374151;line-height:1.6;">
-                Thank you for your order! We're preparing it now and will send
-                tracking information as soon as your package ships.
+                ${introCopy}
               </p>
 
               <!-- Items -->
@@ -148,21 +181,8 @@ export function buildOrderConfirmationHtml(
                 </tr>
               </table>
 
-              <!-- Shipping address -->
-              <div style="background:#f9fafb;border-radius:8px;padding:16px;margin-bottom:24px;">
-                <p style="margin:0 0 8px;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;">
-                  Shipping to
-                </p>
-                <p style="margin:0;font-size:13px;color:#374151;line-height:1.6;">
-                  ${address.fullName}<br>
-                  ${address.streetLine1}
-                  ${address.streetLine2 ? `<br>${address.streetLine2}` : ""}
-                  <br>${address.city}, ${address.state} ${address.zip}
-                </p>
-                <p style="margin:8px 0 0;font-size:12px;color:#6b7280;">
-                  ${SHIPPING_LABELS[shippingMethod]}
-                </p>
-              </div>
+              <!-- Fulfillment (pickup or shipping) -->
+              ${fulfillmentBlock}
 
               <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;">
                 Questions? Reply to this email or visit
@@ -193,13 +213,32 @@ export function buildOrderConfirmationText(
   data: OrderConfirmationData,
 ): string {
   const { orderNumber, address, items, priceSheet, shippingMethod } = data
+  const isPickup = shippingMethod === "pickup"
+
+  const fulfillmentLines = isPickup
+    ? [
+        `READY FOR PICKUP AT`,
+        PICKUP_ADDRESS,
+        ...pickupHoursText(),
+        PICKUP_HOURS_NOTE,
+      ]
+    : [
+        `SHIPPING TO`,
+        `${address.fullName}`,
+        `${address.streetLine1}${address.streetLine2 ? `, ${address.streetLine2}` : ""}`,
+        `${address.city}, ${address.state} ${address.zip}`,
+        `${SHIPPING_LABELS[shippingMethod]}`,
+      ]
+
   const lines: string[] = [
     `Metamorfosis Beauty — Order Confirmed`,
     ``,
     `Order: ${orderNumber}`,
     ``,
     `Hi ${address.fullName.split(" ")[0]},`,
-    `Thank you for your order! We're preparing it now.`,
+    isPickup
+      ? `Thank you for your order! We'll have it ready for pickup at our Ontario store.`
+      : `Thank you for your order! We're preparing it now.`,
     ``,
     `ITEMS`,
     ...items.map(
@@ -216,11 +255,7 @@ export function buildOrderConfirmationText(
     `Tax: ${fmtDollars(priceSheet.taxCents)}`,
     `Total: ${fmtDollars(priceSheet.totalCents)}`,
     ``,
-    `SHIPPING TO`,
-    `${address.fullName}`,
-    `${address.streetLine1}${address.streetLine2 ? `, ${address.streetLine2}` : ""}`,
-    `${address.city}, ${address.state} ${address.zip}`,
-    `${SHIPPING_LABELS[shippingMethod]}`,
+    ...fulfillmentLines,
     ``,
     `Questions? Contact us at metamorfosis.beauty/contact`,
   ]

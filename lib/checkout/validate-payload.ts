@@ -1,5 +1,6 @@
 import "server-only"
 import type { createAdminClient } from "@/lib/supabase/admin"
+import { itemLabel } from "@/lib/orders/item-label"
 import type { CheckoutPayload } from "./types"
 
 type AdminClient = ReturnType<typeof createAdminClient>
@@ -37,6 +38,7 @@ export interface CheckoutVariationRow {
   inventory_count: number
   is_active: boolean
   product_translations: {
+    name_en: string
     is_professional: boolean
     is_color_product: boolean
     is_returnable: boolean
@@ -47,7 +49,7 @@ export interface CheckoutVariationRow {
 export type CheckoutVariationMap = Map<string, CheckoutVariationRow>
 
 const VARIATION_SELECT =
-  "id, square_variation_id, name_en, price_cents, inventory_count, is_active, product_translations(is_professional, is_color_product, is_returnable, is_active)"
+  "id, square_variation_id, name_en, price_cents, inventory_count, is_active, product_translations(name_en, is_professional, is_color_product, is_returnable, is_active)"
 
 /**
  * Fetch the variation rows (Square-synced prices/inventory) for the cart and
@@ -100,7 +102,7 @@ export function buildDiscountableItems(
     const v = varMap.get(i.variationId)!
     return {
       variationId: i.variationId,
-      name: v.name_en,
+      name: itemLabel(v.product_translations?.name_en, v.name_en),
       quantity: i.quantity,
       unitPriceCents: v.price_cents,
       isColorProduct: v.product_translations?.is_color_product ?? false,

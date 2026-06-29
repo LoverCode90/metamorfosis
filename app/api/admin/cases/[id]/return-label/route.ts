@@ -7,6 +7,7 @@ import { FROM_ADDRESS } from "@/lib/shippo/rates"
 import { sendReturnUneconomical } from "@/lib/email/case-notifications"
 import { requireAdmin } from "@/lib/admin/require-admin"
 import { getCaseCustomer } from "@/lib/profile/case-customer"
+import { itemLabel } from "@/lib/orders/item-label"
 
 export async function POST(
   req: Request,
@@ -43,12 +44,23 @@ export async function POST(
     // ── Viability: reject if return shipping would exceed the item's value ────
     const { data: orderItem } = await supabaseAdmin
       .from("order_items")
-      .select("unit_price_cents, product_variations(name_en)")
+      .select(
+        "unit_price_cents, product_variations(name_en, product_translations(name_en))",
+      )
       .eq("order_id", caseData.order_id)
       .eq("variation_id", caseData.variation_id)
       .single()
 
     const itemCents = orderItem?.unit_price_cents ?? 0
+    const returnVariation = orderItem?.product_variations as {
+      name_en?: string
+      product_translations?: { name_en?: string } | null
+    } | null
+    const returnItemName =
+      itemLabel(
+        returnVariation?.product_translations?.name_en,
+        returnVariation?.name_en,
+      ) || "your item"
     const address = caseData.orders?.shipping_address
     if (address) {
       const returnRateCents = await estimateReturnLabelCost({
@@ -73,9 +85,7 @@ export async function POST(
           await sendReturnUneconomical({
             to: customer.email,
             customerName: customer.name,
-            itemName:
-              (orderItem?.product_variations as { name_en?: string } | null)
-                ?.name_en ?? "your item",
+            itemName: returnItemName,
             itemCents,
             shippingCents: returnRateCents,
           }).catch((err) => console.error("[return-label] email failed:", err))

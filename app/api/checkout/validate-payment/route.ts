@@ -141,6 +141,7 @@ export async function POST(
     address,
     guestEmail: guestEmail ?? null,
     priceSheet,
+    shippingMethod: shipping.carrier === "pickup" ? "pickup" : "standard",
   })
 
   return NextResponse.json({

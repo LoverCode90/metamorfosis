@@ -56,7 +56,6 @@ export function StepPayment({
     onSubmit,
   })
 
-  const isTest = process.env.NEXT_PUBLIC_PAYMENT_MODE === "test"
   const cardExpiredDate = savedCard
     ? new Date(savedCard.exp_year, savedCard.exp_month, 1)
     : null
@@ -73,12 +72,6 @@ export function StepPayment({
   return (
     <div className="space-y-6">
       <h2 className="text-foreground text-lg font-semibold">Payment</h2>
-
-      {isTest && (
-        <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-xs text-amber-400">
-          Test mode — no charge will occur.
-        </div>
-      )}
 
       <PaymentFormFields
         useSavedCard={useSavedCard}

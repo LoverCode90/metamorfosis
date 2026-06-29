@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { sendCaseFraud } from "@/lib/email/case-notifications"
 import { requireAdmin } from "@/lib/admin/require-admin"
 import { getCaseCustomer } from "@/lib/profile/case-customer"
+import { itemLabel } from "@/lib/orders/item-label"
 
 export async function POST(
   req: Request,
@@ -34,13 +35,17 @@ export async function POST(
 
     const { data: orderItem } = await supabaseAdmin
       .from("order_items")
-      .select("product_variations(name_en)")
+      .select("product_variations(name_en, product_translations(name_en))")
       .eq("order_id", caseData.order_id)
       .eq("variation_id", caseData.variation_id)
       .single()
 
+    const variation = orderItem?.product_variations as {
+      name_en?: string
+      product_translations?: { name_en?: string } | null
+    } | null
     const itemName =
-      (orderItem?.product_variations as { name_en?: string } | null)?.name_en ??
+      itemLabel(variation?.product_translations?.name_en, variation?.name_en) ||
       "your item"
 
     const resolvedAt = new Date().toISOString()

@@ -4,6 +4,7 @@ import { memo } from "react"
 import { Check } from "lucide-react"
 
 import type { LiveShippingRate } from "@/lib/checkout/types"
+import { PICKUP_HOURS } from "@/lib/checkout/pickup"
 import { formatUSD } from "@/lib/utils/format"
 import { cn } from "@/lib/utils"
 
@@ -21,6 +22,7 @@ export const ShippingRateOption = memo(function ShippingRateOption({
   freeShipping,
   onSelect,
 }: ShippingRateOptionProps) {
+  const isPickup = rate.carrier === "pickup"
   const estimatedDays = rate.estimated_days
   const etaLabel =
     estimatedDays != null
@@ -53,9 +55,24 @@ export const ShippingRateOption = memo(function ShippingRateOption({
         </span>
         <div>
           <p className="text-foreground text-sm font-medium">
-            {rate.carrier} · {rate.service_name}
+            {isPickup
+              ? rate.service_name
+              : `${rate.carrier} · ${rate.service_name}`}
           </p>
-          <p className="text-muted-foreground text-xs">{etaLabel}</p>
+          {isPickup ? (
+            <div className="text-muted-foreground mt-1 space-y-0.5 text-xs">
+              {PICKUP_HOURS.map((line) => (
+                <p key={line.days}>
+                  <span className="text-foreground font-medium">
+                    {line.days}:
+                  </span>{" "}
+                  {line.hours}
+                </p>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-xs">{etaLabel}</p>
+          )}
         </div>
       </div>
       <span className={priceClass}>

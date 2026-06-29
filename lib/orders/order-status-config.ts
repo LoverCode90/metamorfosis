@@ -6,6 +6,7 @@ export type StatusBadgeVariant =
   | "violet"
   | "secondary"
   | "success"
+  | "sky"
   | "destructive"
 
 export interface StatusEntry {
@@ -15,16 +16,14 @@ export interface StatusEntry {
 }
 
 export const ORDER_STATUS_CONFIG: Record<string, StatusEntry> = {
-  pending: { label: "Pending", badgeVariant: "secondary", icon: Clock },
+  pending: { label: "Pending", badgeVariant: "warning", icon: Clock },
   confirmed: { label: "Confirmed", badgeVariant: "secondary", icon: Package },
   processing: { label: "Processing", badgeVariant: "secondary", icon: Package },
-  shipped: { label: "Shipped", badgeVariant: "secondary", icon: Truck },
-  delivered: {
-    label: "Delivered",
-    badgeVariant: "secondary",
-    icon: CheckCircle,
-  },
-  cancelled: { label: "Cancelled", badgeVariant: "destructive", icon: XCircle },
+  shipped: { label: "Shipped", badgeVariant: "sky", icon: Truck },
+  delivered: { label: "Delivered", badgeVariant: "success", icon: CheckCircle },
+  // DB enum uses single-L "canceled"; keep "cancelled" too for safety.
+  canceled: { label: "Canceled", badgeVariant: "destructive", icon: XCircle },
+  cancelled: { label: "Canceled", badgeVariant: "destructive", icon: XCircle },
   refunded: { label: "Refunded", badgeVariant: "destructive", icon: XCircle },
 }
 

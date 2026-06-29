@@ -31,16 +31,6 @@ export async function chargeCard(
   locationId: string,
   note?: string,
 ): Promise<ChargeResult | ChargeError> {
-  // Dev/staging: tokenize via production Web Payments SDK but skip the charge.
-  if (process.env.NEXT_PUBLIC_PAYMENT_MODE === "test") {
-    return {
-      ok: true,
-      paymentId: `test-${crypto.randomUUID()}`,
-      squareOrderId: "",
-      receiptUrl: null,
-    }
-  }
-
   const client = createPaymentsClient()
   const idempotencyKey = crypto.randomUUID()
 
@@ -85,11 +75,6 @@ export async function getOrCreateCustomer(
   email: string,
   fullName: string,
 ): Promise<string | null> {
-  // Bypass if payment mode is simulation/test to avoid production Square rejection on test profiles
-  if (process.env.NEXT_PUBLIC_PAYMENT_MODE === "test") {
-    return `cust-test-${crypto.randomUUID().slice(0, 8)}`
-  }
-
   const client = createPaymentsClient()
 
   try {
@@ -135,11 +120,6 @@ export async function createCardOnFile(
     return sourceId
   }
 
-  // Bypass if payment mode is simulation/test to securely save a simulated token inside Supabase
-  if (process.env.NEXT_PUBLIC_PAYMENT_MODE === "test") {
-    return `ccof:test-${crypto.randomUUID().slice(0, 8)}`
-  }
-
   const client = createPaymentsClient()
 
   try {
@@ -171,16 +151,6 @@ export interface CardMetadata {
 export async function retrieveCardMetadata(
   cardId: string,
 ): Promise<CardMetadata | null> {
-  if (process.env.NEXT_PUBLIC_PAYMENT_MODE === "test") {
-    // Matches Square test card 4111 1111 1111 1111.
-    return {
-      brand: "VISA",
-      last4: "1111",
-      expMonth: 12,
-      expYear: 2030,
-    }
-  }
-
   const client = createPaymentsClient()
 
   try {
@@ -206,10 +176,6 @@ export async function retrieveCardMetadata(
  * the DB delete regardless, since the card is no longer trusted either way.
  */
 export async function disableCard(cardId: string): Promise<boolean> {
-  if (process.env.NEXT_PUBLIC_PAYMENT_MODE === "test") {
-    return true
-  }
-
   const client = createPaymentsClient()
 
   try {

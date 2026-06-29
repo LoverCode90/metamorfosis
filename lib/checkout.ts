@@ -3,7 +3,6 @@
  *   lib/types.ts          (Product, CartItem, Order, Totals, CheckoutStep…)
  *   lib/utils/totals.ts   (computeTotals, computeTotalsWithShipping, shippingFor)
  *   lib/utils/order.ts    (createOrder)
- *   lib/mock/cart.ts      (MOCK_INITIAL_CART, MOCK_RELATED_PRODUCTS)
  *
  * Imports from "@/lib/checkout" still resolve so existing v0 components
  * compile while they are migrated to the new paths (Phase 2).
@@ -30,10 +29,5 @@ export {
 } from "./utils/totals"
 
 export { createOrder } from "./utils/order"
-
-export {
-  MOCK_INITIAL_CART as INITIAL_CART,
-  MOCK_RELATED_PRODUCTS as RELATED_PRODUCTS,
-} from "./mock/cart"
 
 export { formatUSD } from "./utils/format"
