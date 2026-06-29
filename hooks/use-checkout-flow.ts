@@ -1,7 +1,7 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useCallback, useEffect, startTransition, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 
 import { useCart } from "@/hooks/use-cart"
 import { useUser } from "@/hooks/use-user"
@@ -16,70 +16,29 @@ import {
 import { toLineItems, toPriceSheetItems } from "@/lib/checkout/checkout-flow"
 import { buildPriceSheet } from "@/lib/checkout/totals"
 import { TAX_RATE } from "@/lib/utils/totals"
-import type { CartItem, CheckoutStepId } from "@/lib/types"
+import type { CheckoutStepId } from "@/lib/types"
 import type {
   CheckoutAddress,
   PlaceOrderResponse,
-  PriceSheet,
   ShippingMethod,
   ShippingRate,
 } from "@/lib/checkout/types"
 import type { SavedCardMeta } from "@/components/checkout/steps/step-payment"
-import type { InfoFormValues } from "@/lib/validation/checkout"
-
-export interface UseCheckoutFlowResult {
-  items: CartItem[]
-  wizardStep: CheckoutStepId
-  setWizardStep: (step: CheckoutStepId) => void
-  goToCart: () => void
-  // Gate
-  showGate: boolean
-  gatedItems: CartItem[]
-  isAuthenticated: boolean
-  removeProItems: () => void
-  // Steps
-  hasNonReturnable: boolean
-  infoDefaults: Partial<InfoFormValues> | undefined
-  address: CheckoutAddress | null
-  preloadedCheckoutAddress: CheckoutAddress | null
-  lineItems: { variationId: string; quantity: number }[]
-  priceSheet: PriceSheet
-  cachedShippingRates: ShippingRate[] | null
-  setCachedShippingRates: (rates: ShippingRate[]) => void
-  isUserLoading: boolean
-  savedCard: SavedCardMeta | null
-  continueFromInfo: (address: CheckoutAddress, terms: boolean) => void
-  continueFromShipping: (method: ShippingMethod) => void
-  submitPayment: (
-    sourceId: string,
-    turnstileToken: string,
-    surchargeConsented: boolean,
-    saveCardConsented: boolean,
-  ) => Promise<PlaceOrderResponse>
-}
-
-const CHECKOUT_STEP_KEY = "checkout_wizard_step"
-const ADDRESS_KEY = "checkout_address"
-const VALID_STEPS = new Set<string>(["info", "shipping", "payment"])
-
-function readSessionStep(): CheckoutStepId {
-  if (typeof window === "undefined") return "info"
-  const saved = sessionStorage.getItem(CHECKOUT_STEP_KEY)
-  return saved && VALID_STEPS.has(saved) ? (saved as CheckoutStepId) : "info"
-}
-
-function readSessionAddress(): CheckoutAddress | null {
-  if (typeof window === "undefined") return null
-  try {
-    const raw = sessionStorage.getItem(ADDRESS_KEY)
-    return raw ? (JSON.parse(raw) as CheckoutAddress) : null
-  } catch {
-    return null
-  }
-}
+import {
+  CHECKOUT_STEP_KEY,
+  ADDRESS_KEY,
+  VALID_STEPS,
+  readSessionStep,
+  readSessionAddress,
+  resolveInfoDefaults,
+  type UseCheckoutFlowResult,
+} from "@/lib/checkout/checkout-helpers"
 
 export function useCheckoutFlow(): UseCheckoutFlowResult {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const stepParam = searchParams.get("step")
+
   const { items, clearCart, removeItem } = useCart()
   const {
     user,
@@ -89,50 +48,39 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
     isLoading: isUserLoading,
   } = useUser()
 
-  const [wizardStep, setWizardStepRaw] =
-    useState<CheckoutStepId>(readSessionStep)
+  const [wizardStep, setWizardStepRaw] = useState<CheckoutStepId>(() => {
+    if (stepParam && VALID_STEPS.has(stepParam))
+      return stepParam as CheckoutStepId
+    return readSessionStep()
+  })
 
-  const setWizardStep = useCallback((step: CheckoutStepId) => {
-    sessionStorage.setItem(CHECKOUT_STEP_KEY, step)
-    setWizardStepRaw(step)
-    window.history.pushState({ checkoutStep: step }, "", "/checkout")
-  }, [])
-
-  // Replace the initial history entry so the popstate handler can identify
-  // the active step when the user presses the browser back button.
   useEffect(() => {
-    window.history.replaceState(
-      { checkoutStep: readSessionStep() },
-      "",
-      "/checkout",
-    )
-  }, [])
-
-  // Intercept the browser back gesture: navigate within the wizard or go to cart.
-  useEffect(() => {
-    function handlePopState(event: PopStateEvent) {
-      const previousStep = event.state?.checkoutStep as
-        | CheckoutStepId
-        | undefined
-      if (previousStep && VALID_STEPS.has(previousStep)) {
-        setWizardStepRaw(previousStep)
-        sessionStorage.setItem(CHECKOUT_STEP_KEY, previousStep)
-      } else {
-        sessionStorage.removeItem(CHECKOUT_STEP_KEY)
-        sessionStorage.removeItem(ADDRESS_KEY)
-        router.push("/cart")
-      }
+    if (stepParam && VALID_STEPS.has(stepParam)) {
+      startTransition(() => setWizardStepRaw(stepParam as CheckoutStepId))
+      sessionStorage.setItem(CHECKOUT_STEP_KEY, stepParam)
+    } else if (stepParam === null) {
+      const saved = readSessionStep()
+      startTransition(() => setWizardStepRaw(saved))
+      window.history.replaceState(null, "", `/checkout?step=${saved}`)
     }
-    window.addEventListener("popstate", handlePopState)
-    return () => window.removeEventListener("popstate", handlePopState)
-  }, [router])
+  }, [stepParam])
+
+  const setWizardStep = useCallback(
+    (step: CheckoutStepId) => {
+      sessionStorage.setItem(CHECKOUT_STEP_KEY, step)
+      setWizardStepRaw(step)
+      router.push(`/checkout?step=${step}`)
+    },
+    [router],
+  )
 
   const [isVerifiedPro, setIsVerifiedPro] = useState<boolean | null>(null)
+  const userId = user?.id
 
   useEffect(() => {
     let cancelled = false
     async function checkProStatus() {
-      if (!user?.id) {
+      if (!userId) {
         if (!cancelled) setIsVerifiedPro(false)
         return
       }
@@ -141,7 +89,7 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
         const { data } = await supabase
           .from("profiles")
           .select("verification_status, role")
-          .eq("id", user.id)
+          .eq("id", userId)
           .single()
         if (cancelled) return
         if (!data) {
@@ -161,7 +109,7 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
     return () => {
       cancelled = true
     }
-  }, [user?.id])
+  }, [userId])
 
   const [savedCard, setSavedCard] = useState<SavedCardMeta | null>(null)
   const [address, setAddress] = useState<CheckoutAddress | null>(
@@ -184,7 +132,6 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
   >(null)
   const [taxRate, setTaxRate] = useState(TAX_RATE)
 
-  const userId = user?.id
   useEffect(() => {
     if (!userId) return
     fetchSavedCard()
@@ -199,20 +146,18 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
     taxRate,
   )
 
-  // Gate: only items explicitly flagged isProfessional require verification.
-  const gatedItems = items.filter((i) => i.isProfessional && !i.unavailable)
+  const gatedItems = items.filter(
+    (item) => item.isProfessional && !item.unavailable,
+  )
   const showGate =
     PRO_RESTRICTIONS_ENABLED &&
     isVerifiedPro !== null &&
     gatedItems.length > 0 &&
     !isVerifiedPro
-
   const hasNonReturnable = items.some(
-    (i) => !i.unavailable && i.isReturnable === false,
+    (item) => !item.unavailable && item.isReturnable === false,
   )
 
-  // Synchronously derived from the Zustand address store (localStorage persist).
-  // Used to show the SavedAddressBanner without an async fetch.
   const preloadedCheckoutAddress: CheckoutAddress | null = savedAddress
     ? {
         fullName: savedAddress.fullName ?? "",
@@ -296,14 +241,13 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
     setWizardStep,
     goToCart: () => {
       sessionStorage.removeItem(CHECKOUT_STEP_KEY)
-      sessionStorage.removeItem(ADDRESS_KEY)
       router.push("/cart")
     },
     showGate,
     gatedItems,
     isAuthenticated: !!user,
     removeProItems: () =>
-      gatedItems.forEach((i) => removeItem(i.variationId ?? i.id)),
+      gatedItems.forEach((item) => removeItem(item.variationId ?? item.id)),
     hasNonReturnable,
     infoDefaults: resolveInfoDefaults({
       address,
@@ -324,57 +268,4 @@ export function useCheckoutFlow(): UseCheckoutFlowResult {
     continueFromShipping,
     submitPayment,
   }
-}
-
-type InfoDefaultsArgs = {
-  address: CheckoutAddress | null
-  termsAccepted: boolean
-  isAuthenticated: boolean
-  savedAddress: ReturnType<typeof useUser>["savedAddress"]
-  dbProfile: ReturnType<typeof useUser>["dbProfile"]
-}
-
-function resolveInfoDefaults({
-  address,
-  termsAccepted,
-  isAuthenticated,
-  savedAddress,
-  dbProfile,
-}: InfoDefaultsArgs): Partial<InfoFormValues> | undefined {
-  if (address) {
-    return {
-      fullName: address.fullName,
-      email: address.email,
-      phone: address.phone,
-      streetLine1: address.streetLine1,
-      streetLine2: address.streetLine2,
-      city: address.city,
-      state: address.state,
-      zip: address.zip,
-      termsAccepted,
-    }
-  }
-
-  if (isAuthenticated && savedAddress) {
-    return {
-      fullName: savedAddress.fullName,
-      email: dbProfile?.email || "",
-      phone: savedAddress.phone || dbProfile?.phone_number || "",
-      streetLine1: savedAddress.line1 || "",
-      streetLine2: "",
-      city: savedAddress.city || "",
-      state: savedAddress.region || "",
-      zip: savedAddress.postalCode || "",
-    }
-  }
-
-  if (isAuthenticated && dbProfile) {
-    return {
-      fullName: dbProfile.full_name,
-      email: dbProfile.email,
-      phone: dbProfile.phone_number ?? "",
-    }
-  }
-
-  return undefined
 }

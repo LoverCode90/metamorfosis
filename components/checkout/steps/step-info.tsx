@@ -1,12 +1,11 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useForm, useWatch } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
 import { AddressFormFields } from "@/components/checkout/steps/address-form-fields"
 import { SavedAddressBanner } from "@/components/checkout/steps/saved-address-banner"
-import { TermsCheckbox } from "@/components/checkout/steps/terms-checkbox"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -25,7 +24,6 @@ interface StepInfoProps {
 }
 
 export function StepInfo({
-  hasNonReturnable,
   defaultValues,
   preloadedAddress,
   isUserLoading,
@@ -44,15 +42,14 @@ export function StepInfo({
     defaultValues: buildInfoDefaults(defaultValues),
   })
 
-  const termsAccepted = useWatch({ control, name: "termsAccepted" })
-
   function onSubmit(values: InfoFormValues) {
-    if (hasNonReturnable && !values.termsAccepted) return
-    onContinue(infoValuesToAddress(values), !!values.termsAccepted)
+    onContinue(infoValuesToAddress(values), true)
   }
 
   const heading = (
-    <h2 className="text-foreground text-lg font-semibold">Contact & Address</h2>
+    <h2 className="text-foreground text-lg font-semibold">
+      Contact &amp; Address
+    </h2>
   )
 
   if (isUserLoading) {
@@ -76,22 +73,16 @@ export function StepInfo({
         {heading}
         <SavedAddressBanner
           address={preloadedAddress}
-          onEdit={() => router.push("/profile/addresses?from=checkout")}
+          onEdit={() =>
+            router.push("/profile/addresses?from=checkout&step=info")
+          }
         />
-        {hasNonReturnable && <TermsCheckbox control={control} />}
         <Button
           type="button"
           variant="default"
           size="hero"
           className="w-full"
-          disabled={hasNonReturnable && !termsAccepted}
-          onClick={() => {
-            if (hasNonReturnable && !termsAccepted) return
-            onContinue(
-              preloadedAddress,
-              hasNonReturnable ? !!termsAccepted : true,
-            )
-          }}
+          onClick={() => onContinue(preloadedAddress, true)}
         >
           Continue to Shipping
         </Button>
@@ -112,14 +103,7 @@ export function StepInfo({
       <p className="text-muted-foreground text-xs">
         We only ship within the United States.
       </p>
-      {hasNonReturnable && <TermsCheckbox control={control} />}
-      <Button
-        type="submit"
-        variant="default"
-        size="hero"
-        className="w-full"
-        disabled={hasNonReturnable && !termsAccepted}
-      >
+      <Button type="submit" variant="default" size="hero" className="w-full">
         Continue to Shipping
       </Button>
     </form>

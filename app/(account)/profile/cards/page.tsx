@@ -5,13 +5,19 @@ import type { SavedCard } from "@/components/profile/cards-view"
 
 export const metadata = { title: "Payment Methods — Metamorfosis Beauty" }
 
-export default async function CardsPage() {
+interface Props {
+  searchParams: Promise<{ from?: string; step?: string }>
+}
+
+export default async function CardsPage({ searchParams }: Props) {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   if (!user) redirect("/login")
+
+  await searchParams
 
   const { data } = await supabase
     .from("saved_cards")

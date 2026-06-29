@@ -32,7 +32,7 @@ export function CancelOrderButton({ orderId }: CancelOrderButtonProps) {
 
       if (data.ok) {
         setOpen(false)
-        router.push("/orders")
+        router.refresh()
       } else {
         alert(data.error || "Failed to cancel order")
       }

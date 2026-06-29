@@ -7,6 +7,7 @@ import { useCart } from "@/hooks/use-cart"
 import { CartLineItem } from "./cart-line-item"
 import { CartSummary } from "./cart-summary"
 import { VerifyGateModal } from "@/components/profile/verify-gate-modal"
+import { PRO_RESTRICTIONS_ENABLED } from "@/lib/constants"
 
 export function CartView() {
   const router = useRouter()
@@ -15,7 +16,7 @@ export function CartView() {
   const isEmpty = items.length === 0
 
   function handleCheckout() {
-    if (hasProItems) {
+    if (PRO_RESTRICTIONS_ENABLED && hasProItems) {
       setGateOpen(true)
       return
     }

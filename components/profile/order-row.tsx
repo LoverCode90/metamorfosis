@@ -3,36 +3,17 @@
 
 import { memo } from "react"
 import Link from "next/link"
-import { CheckCircle, Clock, Package, Truck, XCircle } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CancelOrderButton } from "@/components/profile/cancel-order-button"
 import { formatDate, formatUSD } from "@/lib/utils/format"
+import {
+  ORDER_STATUS_CONFIG,
+  CANCEL_WINDOW_MS,
+  RETURN_WINDOW_MS,
+} from "@/lib/orders/order-status-config"
 import type { DbOrder } from "@/lib/orders/types"
-
-type StatusEntry = {
-  label: string
-  badgeVariant: "warning" | "violet" | "secondary" | "success" | "destructive"
-  icon: React.ElementType
-}
-
-const STATUS_CONFIG: Record<string, StatusEntry> = {
-  pending: { label: "Pending", badgeVariant: "secondary", icon: Clock },
-  confirmed: { label: "Confirmed", badgeVariant: "secondary", icon: Package },
-  processing: { label: "Processing", badgeVariant: "secondary", icon: Package },
-  shipped: { label: "Shipped", badgeVariant: "secondary", icon: Truck },
-  delivered: {
-    label: "Delivered",
-    badgeVariant: "secondary",
-    icon: CheckCircle,
-  },
-  cancelled: { label: "Cancelled", badgeVariant: "secondary", icon: XCircle },
-  refunded: { label: "Refunded", badgeVariant: "secondary", icon: XCircle },
-}
-
-const CANCEL_WINDOW_MS = 2 * 60 * 60 * 1000
-const RETURN_WINDOW_MS = 14 * 24 * 60 * 60 * 1000
 
 interface OrderRowProps {
   order: DbOrder
@@ -41,11 +22,15 @@ interface OrderRowProps {
 }
 
 export const OrderRow = memo(function OrderRow({ order, now }: OrderRowProps) {
-  const statusConfig = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.confirmed
+  const statusConfig =
+    ORDER_STATUS_CONFIG[order.status] ?? ORDER_STATUS_CONFIG.confirmed
   const StatusIcon = statusConfig.icon
   const shippingAddress = order.shipping_address
   const itemCount = order.order_items.reduce((sum, i) => sum + i.quantity, 0)
   const firstItem = order.order_items[0]
+
+  const isCancelled =
+    order.status === "cancelled" || order.status === "refunded"
 
   const isCancellable =
     (order.status === "pending" || order.status === "confirmed") &&
@@ -104,7 +89,7 @@ export const OrderRow = memo(function OrderRow({ order, now }: OrderRowProps) {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        {order.tracking_number && (
+        {order.tracking_number && !isCancelled && (
           <div>
             <p className="text-muted-foreground text-xs">Tracking</p>
             {order.tracking_url ? (
@@ -135,14 +120,16 @@ export const OrderRow = memo(function OrderRow({ order, now }: OrderRowProps) {
               Report a problem
             </Button>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            nativeButton={false}
-            render={<Link href={`/tracking?orderId=${order.id}`} />}
-          >
-            Track order
-          </Button>
+          {!isCancelled && (
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              render={<Link href={`/tracking?orderId=${order.id}`} />}
+            >
+              Track order
+            </Button>
+          )}
         </div>
       </div>
     </div>

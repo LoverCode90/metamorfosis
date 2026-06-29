@@ -47,7 +47,7 @@ export function PaymentFormFields({
       {useSavedCard && savedCard ? (
         <div className="space-y-3">
           <p className="text-foreground text-sm font-medium">
-            Pay with saved card
+            Pay text with saved card
           </p>
           <div className="border-border bg-muted/10 flex items-center gap-3 rounded-lg border p-4">
             <div className="bg-foreground/5 flex h-10 w-14 items-center justify-center rounded border border-white/10 font-mono text-xs">
@@ -68,7 +68,7 @@ export function PaymentFormFields({
           <p className="text-muted-foreground text-xs">
             To change your card, visit{" "}
             <Link
-              href="/profile/cards"
+              href="/profile/cards?from=checkout&step=payment"
               className="text-foreground underline-offset-4 hover:underline"
             >
               Payment Methods

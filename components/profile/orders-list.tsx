@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { ChevronLeft, Package } from "lucide-react"
+import { ChevronLeft, Loader2, Package } from "lucide-react"
 import { useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { OrderRow } from "@/components/profile/order-row"
+import { useOrdersPagination } from "@/hooks/use-orders-pagination"
 import type { DbOrder } from "@/lib/orders/types"
 
 export function OrdersBackButton() {
@@ -25,14 +26,20 @@ export function OrdersBackButton() {
 }
 
 interface OrdersListProps {
-  orders: DbOrder[]
+  initialOrders: DbOrder[]
+  hasMore: boolean
 }
 
-/** List of the user's orders, or an empty state. */
-export function OrdersList({ orders }: OrdersListProps) {
-  // Read the client clock only after mount so the cancellation window does not
-  // cause an SSR/client hydration mismatch.
+export function OrdersList({
+  initialOrders,
+  hasMore: initialHasMore,
+}: OrdersListProps) {
   const [now, setNow] = useState<number | null>(null)
+  const { orders, hasMore, loading, loadMore } = useOrdersPagination(
+    initialOrders,
+    initialHasMore,
+  )
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setNow(Date.now())
@@ -71,6 +78,20 @@ export function OrdersList({ orders }: OrdersListProps) {
       {orders.map((order) => (
         <OrderRow key={order.id} order={order} now={now} />
       ))}
+      {hasMore && (
+        <div className="flex justify-center pt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadMore}
+            disabled={loading}
+            className="gap-2"
+          >
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {loading ? "Loading..." : "See more"}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

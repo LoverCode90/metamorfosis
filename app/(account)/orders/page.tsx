@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
-import { getUserOrders } from "@/lib/orders/queries"
+import { getUserOrdersPage } from "@/lib/orders/queries"
 import { OrdersList, OrdersBackButton } from "@/components/profile/orders-list"
 
 export const metadata = { title: "My Orders — Metamorfosis Beauty" }
+
+const INITIAL_PAGE_SIZE = 10
 
 export default async function OrdersPage() {
   const supabase = await createClient()
@@ -15,7 +17,12 @@ export default async function OrdersPage() {
     redirect("/login?next=/orders")
   }
 
-  const orders = await getUserOrders(user.id)
+  const { orders, total } = await getUserOrdersPage(
+    user.id,
+    INITIAL_PAGE_SIZE,
+    0,
+  )
+  const hasMore = total > orders.length
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-12">
@@ -29,7 +36,7 @@ export default async function OrdersPage() {
         </h1>
       </div>
       <div className="mt-8">
-        <OrdersList orders={orders} />
+        <OrdersList initialOrders={orders} hasMore={hasMore} />
       </div>
     </div>
   )

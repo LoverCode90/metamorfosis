@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { refundOrder } from "@/lib/square/refund"
@@ -116,6 +117,7 @@ export async function POST(
       })
     }
 
+    revalidatePath("/orders")
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     console.error("[cancel-order]", err)
