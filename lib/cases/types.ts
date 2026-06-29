@@ -15,6 +15,7 @@ export type CaseStatus =
   | "approved"
   | "rejected"
   | "closed"
+  | "fraud"
 
 export interface DbCaseMessage {
   id: string
@@ -30,11 +31,17 @@ export interface DbCase {
   variation_id: string
   reason: CaseReason
   explanation: string
+  condition: string | null
   evidence_images_urls: string[]
   status: CaseStatus
   shippo_return_transaction_id: string | null
   prepaid_label_url: string | null
+  carrier_name: string | null
   admin_notes: string | null
+  /** Customer-facing message written by the admin on approve/reject. */
+  resolution: string | null
+  /** Set when the admin clicks "Request More Info". */
+  more_info_requested_at: string | null
   resolved_at: string | null
   created_at: string
   updated_at: string

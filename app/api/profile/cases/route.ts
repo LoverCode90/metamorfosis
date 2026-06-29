@@ -21,7 +21,7 @@ const caseSchema = z.object({
   explanation: z.string().min(40, "Explanation must be at least 40 characters"),
   condition: z
     .enum(["unopened", "opened_unused", "used_good", "used_worn"])
-    .optional(),
+    .nullish(),
   // Stored as Supabase Storage paths (e.g. "userId/caseId/1.jpg"), not full URLs.
   evidenceUrls: z.array(z.string().min(1)).max(3).optional().default([]),
 })

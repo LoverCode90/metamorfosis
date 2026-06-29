@@ -56,7 +56,9 @@ export async function submitCase({
       variationId,
       reason,
       explanation,
-      condition,
+      // Send null (not an empty string) when no condition was selected so the
+      // API's optional/nullable enum accepts it.
+      condition: condition || null,
       evidenceUrls,
     }),
   })

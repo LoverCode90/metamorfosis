@@ -3,12 +3,14 @@
 import { Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { FloatingToast } from "@/components/ui/floating-toast"
 import { Label } from "@/components/ui/label"
 import { NativeSelect } from "@/components/ui/native-select"
 import { Textarea } from "@/components/ui/textarea"
 import { CasePhotoUpload } from "@/components/profile/case-photo-upload"
 import { useCaseForm } from "@/hooks/use-case-form"
 import { CONDITION_OPTIONS } from "@/lib/profile/case-reasons"
+import { cn } from "@/lib/utils"
 import type { DbOrder } from "@/lib/orders/types"
 
 /**
@@ -22,6 +24,7 @@ export function CaseForm({ order }: { order: DbOrder }) {
   return (
     <form
       onSubmit={f.submit}
+      noValidate
       className="mx-auto max-w-2xl space-y-6 overflow-hidden px-4 pt-8 pb-24 md:px-0 md:pb-8"
     >
       <div>
@@ -34,11 +37,7 @@ export function CaseForm({ order }: { order: DbOrder }) {
         </p>
       </div>
 
-      {f.error && (
-        <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm font-medium">
-          {f.error}
-        </div>
-      )}
+      <FloatingToast message={f.toast || null} onClose={f.dismissToast} />
 
       <div className="space-y-4">
         <div className="space-y-2">
@@ -129,7 +128,13 @@ export function CaseForm({ order }: { order: DbOrder }) {
         stated in our Terms &amp; Conditions.
       </p>
 
-      <Button type="submit" className="w-full" disabled={!f.canSubmit}>
+      <Button
+        type="submit"
+        className={cn(
+          "w-full",
+          !f.canSubmit && "cursor-not-allowed opacity-50",
+        )}
+      >
         {f.isSubmitting ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />

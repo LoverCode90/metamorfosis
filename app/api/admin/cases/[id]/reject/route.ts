@@ -6,8 +6,9 @@ import { requireAdmin } from "@/lib/admin/require-admin"
 import { getCaseCustomer } from "@/lib/profile/case-customer"
 import { z } from "zod"
 
+// A customer-facing resolution message is required when rejecting a case.
 const rejectSchema = z.object({
-  reason: z.string().optional().default("Case rejected by admin"),
+  resolution: z.string().trim().min(1, "A resolution message is required"),
 })
 
 export async function POST(
@@ -22,23 +23,17 @@ export async function POST(
       return NextResponse.json({ error: gate.error }, { status: gate.status })
     }
 
-    // The admin UI posts with no body, so tolerate an empty request.
-    let json: unknown = {}
-    try {
-      json = await req.json()
-    } catch {
-      json = {}
-    }
+    const json: unknown = await req.json().catch(() => ({}))
     const parsed = rejectSchema.safeParse(json)
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Invalid data", details: parsed.error.issues },
+        { error: parsed.error.issues[0]?.message ?? "Invalid data" },
         { status: 400 },
       )
     }
 
-    const { reason } = parsed.data
+    const { resolution } = parsed.data
     const supabaseAdmin = createAdminClient()
 
     const { data: caseData, error: caseError } = await supabaseAdmin
@@ -53,13 +48,15 @@ export async function POST(
 
     const resolvedAt = new Date().toISOString()
 
-    // 1. Update case status
+    // 1. Update case status. `resolution` is the customer-facing message;
+    // `admin_notes` keeps an internal copy of the same decision.
     await supabaseAdmin
       .from("cases")
       .update({
         status: "rejected",
         resolved_at: resolvedAt,
-        admin_notes: reason,
+        resolution,
+        admin_notes: resolution,
       })
       .eq("id", caseId)
 
@@ -77,8 +74,8 @@ export async function POST(
       target_table: "cases",
       target_id: caseId,
       previous_value: caseData,
-      new_value: { status: "rejected", resolved_at: resolvedAt },
-      notes: `Rejected. Reason: ${reason}`,
+      new_value: { status: "rejected", resolved_at: resolvedAt, resolution },
+      notes: `Rejected. Resolution: ${resolution}`,
     })
 
     // Notify the customer of the decision (fire-and-forget).
@@ -87,7 +84,7 @@ export async function POST(
       await sendCaseRejected({
         to: customer.email,
         customerName: customer.name,
-        adminNotes: reason,
+        adminNotes: resolution,
       }).catch((err) => console.error("[reject] email failed:", err))
     }
 

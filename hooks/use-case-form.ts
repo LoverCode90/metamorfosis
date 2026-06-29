@@ -30,7 +30,9 @@ export interface UseCaseFormResult {
   removeFile: (index: number) => void
   maxPhotos: number
   isSubmitting: boolean
-  error: string
+  /** Floating-toast message for validation/submit errors ("" when hidden). */
+  toast: string
+  dismissToast: () => void
   canSubmit: boolean
   submit: (e: React.FormEvent) => Promise<void>
 }
@@ -56,7 +58,7 @@ export function useCaseForm(order: DbOrder): UseCaseFormResult {
   const [condition, setCondition] = useState("")
   const [files, setFiles] = useState<File[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState("")
+  const [toast, setToast] = useState("")
 
   const requireCondition = ruleForReason(reason).requireCondition
 
@@ -71,10 +73,10 @@ export function useCaseForm(order: DbOrder): UseCaseFormResult {
   function addFiles(list: FileList) {
     const selected = Array.from(list)
     if (files.length + selected.length > MAX_PHOTOS) {
-      setError(`Maximum ${MAX_PHOTOS} photos allowed.`)
+      setToast(`Maximum ${MAX_PHOTOS} photos allowed.`)
       return
     }
-    setError("")
+    setToast("")
     setFiles((prev) => [...prev, ...selected].slice(0, MAX_PHOTOS))
   }
 
@@ -84,15 +86,20 @@ export function useCaseForm(order: DbOrder): UseCaseFormResult {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    setError("")
+    // Surface the first failing requirement as a floating toast.
     if (explanation.length < MIN_EXPLANATION) {
-      setError(`Explanation must be at least ${MIN_EXPLANATION} characters.`)
+      setToast("Explanation must be at least 40 characters")
       return
     }
     if (files.length === 0) {
-      setError("At least one photo is required to process your return.")
+      setToast("At least one photo is required")
       return
     }
+    if (requireCondition && condition === "") {
+      setToast("Please select the item condition")
+      return
+    }
+    setToast("")
 
     setIsSubmitting(true)
     try {
@@ -106,7 +113,7 @@ export function useCaseForm(order: DbOrder): UseCaseFormResult {
       })
       router.refresh()
     } catch (err: unknown) {
-      setError(
+      setToast(
         err instanceof Error
           ? err.message
           : "Something went wrong. Please try again.",
@@ -132,7 +139,8 @@ export function useCaseForm(order: DbOrder): UseCaseFormResult {
     removeFile,
     maxPhotos: MAX_PHOTOS,
     isSubmitting,
-    error,
+    toast,
+    dismissToast: () => setToast(""),
     canSubmit:
       !isSubmitting &&
       explanation.length >= MIN_EXPLANATION &&

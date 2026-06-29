@@ -19,6 +19,8 @@ const badgeVariants = cva(
         warning: "border-transparent bg-accent-amber/15 text-accent-amber",
         /** Destructive / rejected — rose */
         destructive: "border-transparent bg-accent-rose/15 text-accent-rose",
+        /** Shipped / in-transit — sky blue */
+        sky: "border-transparent bg-sky-500/15 text-sky-600 dark:text-sky-400",
         /** Warm neutral badge (sand) */
         sand: "border-transparent bg-accent-sand/20 text-accent-sand",
         /** Brand / premium indicator — violet */

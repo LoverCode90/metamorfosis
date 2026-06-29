@@ -18,6 +18,8 @@ export interface PersistOrderParams {
   carrier: string
   estimatedDeliveryDate: string | null
   shippoShipmentId: string | null
+  /** Saved so the admin can buy the shipping label later (null for pickup). */
+  shippoRateId: string | null
   items: CheckoutPayload["items"]
   varMap: CheckoutVariationMap
 }
@@ -49,6 +51,7 @@ export async function persistOrder(
     carrier,
     estimatedDeliveryDate,
     shippoShipmentId,
+    shippoRateId,
     items,
     varMap,
   } = params
@@ -59,7 +62,8 @@ export async function persistOrder(
       square_order_id: squareOrderId,
       user_id: userId,
       guest_email: guestEmail,
-      status: "confirmed",
+      // New orders start as "pending" until payment/fulfillment is confirmed.
+      status: "pending",
       // shipping_method is a NOT NULL enum; the real provider lives in `carrier`.
       shipping_method: "standard",
       subtotal_cents: priceSheet.subtotalCents,
@@ -72,6 +76,7 @@ export async function persistOrder(
       carrier,
       estimated_delivery_date: estimatedDeliveryDate,
       shippo_shipment_id: shippoShipmentId,
+      shippo_rate_id: shippoRateId,
       terms_accepted: termsAccepted,
       surcharge_consented_at: consentTimestamp,
       surcharge_consented_ip: consentIp,

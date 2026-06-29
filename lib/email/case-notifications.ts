@@ -12,6 +12,11 @@ import {
   type CaseAcceptedData,
 } from "./templates/case-accepted"
 import {
+  buildCaseApprovedHtml,
+  buildCaseApprovedText,
+  type CaseApprovedData,
+} from "./templates/case-approved"
+import {
   buildCaseRejectedHtml,
   buildCaseRejectedText,
   type CaseRejectedData,
@@ -71,10 +76,19 @@ export async function sendCaseAccepted(data: CaseAcceptedData): Promise<void> {
   })
 }
 
+export async function sendCaseApproved(data: CaseApprovedData): Promise<void> {
+  await dispatch({
+    to: data.to,
+    subject: "Your case has been approved — Metamorfosis",
+    html: buildCaseApprovedHtml(data),
+    text: buildCaseApprovedText(data),
+  })
+}
+
 export async function sendCaseRejected(data: CaseRejectedData): Promise<void> {
   await dispatch({
     to: data.to,
-    subject: "Update on your return request — Metamorfosis Beauty",
+    subject: "Update on your case — Metamorfosis",
     html: buildCaseRejectedHtml(data),
     text: buildCaseRejectedText(data),
   })

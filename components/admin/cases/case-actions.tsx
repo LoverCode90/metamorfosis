@@ -1,106 +1,114 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { Check, Loader2, Mail, X } from "lucide-react"
+
 import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
+import { CaseResolutionDialog } from "@/components/admin/cases/case-resolution-dialog"
+import { useCaseActions } from "@/hooks/use-case-actions"
 
 interface CaseActionsProps {
   caseId: string
-  isReturnable: boolean
+  caseNumber: string
+  customerEmail: string
   status: string
 }
 
+const RESOLVED_STATUSES = ["closed", "rejected", "approved", "fraud"]
+
+/** Approve / Reject / Request More Info controls for an admin case. */
 export function CaseActions({
   caseId,
-  isReturnable,
+  caseNumber,
+  customerEmail,
   status,
 }: CaseActionsProps) {
-  const router = useRouter()
-  const [isProcessing, setIsProcessing] = useState<string | null>(null)
-  const [error, setError] = useState("")
+  const actions = useCaseActions({ caseId, customerEmail, caseNumber })
+  const [dialog, setDialog] = useState<"approve" | "reject" | null>(null)
+  const [resolution, setResolution] = useState("")
 
-  const handleAction = async (action: string) => {
-    setIsProcessing(action)
-    setError("")
+  if (RESOLVED_STATUSES.includes(status)) {
+    return (
+      <p className="text-muted-foreground text-sm">
+        This case has been resolved. No further actions are available.
+      </p>
+    )
+  }
 
-    try {
-      const res = await fetch(`/api/admin/cases/${caseId}/${action}`, {
-        method: "POST",
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || `Failed to ${action}`)
-      }
-
-      router.refresh()
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Something went wrong")
-    } finally {
-      setIsProcessing(null)
+  async function confirmDialog() {
+    const ok =
+      dialog === "approve"
+        ? await actions.approve(resolution)
+        : await actions.reject(resolution)
+    if (ok) {
+      setDialog(null)
+      setResolution("")
     }
   }
 
-  if (status === "closed" || status === "rejected" || status === "approved") {
-    return null
-  }
+  const isApprove = dialog === "approve"
 
   return (
     <div className="space-y-4">
-      {error && (
+      {actions.error && !dialog && (
         <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm font-medium">
-          {error}
+          {actions.error}
         </div>
       )}
+
       <div className="flex flex-wrap gap-3">
         <Button
-          onClick={() => handleAction("refund")}
-          disabled={!!isProcessing}
-          className="bg-green-600 text-white hover:bg-green-700"
+          onClick={() => setDialog("approve")}
+          disabled={!!actions.isProcessing}
         >
-          {isProcessing === "refund" && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          Approve Refund
+          <Check className="mr-2 h-4 w-4" />
+          Approve
         </Button>
 
-        {isReturnable && (
-          <Button
-            onClick={() => handleAction("return-label")}
-            disabled={!!isProcessing}
-            variant="outline"
-          >
-            {isProcessing === "return-label" && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            Generate Return Label
-          </Button>
-        )}
-
         <Button
-          onClick={() => handleAction("reject")}
-          disabled={!!isProcessing}
           variant="destructive"
+          onClick={() => setDialog("reject")}
+          disabled={!!actions.isProcessing}
         >
-          {isProcessing === "reject" && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          Reject Case
+          <X className="mr-2 h-4 w-4" />
+          Reject
         </Button>
 
         <Button
-          onClick={() => handleAction("fraud")}
-          disabled={!!isProcessing}
           variant="outline"
-          className="border-destructive/40 text-destructive hover:bg-destructive/10"
+          onClick={actions.requestMoreInfo}
+          disabled={!!actions.isProcessing}
         >
-          {isProcessing === "fraud" && (
+          {actions.isProcessing === "request-info" ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Mail className="mr-2 h-4 w-4" />
           )}
-          Mark as Fraud
+          Request More Info
         </Button>
       </div>
+
+      <CaseResolutionDialog
+        open={dialog !== null}
+        onOpenChange={(open) => !open && setDialog(null)}
+        title={isApprove ? "Approve case" : "Reject case"}
+        description={
+          isApprove
+            ? "Approve this case and notify the customer. You may add an optional note."
+            : "Reject this case. A resolution message is required and will be emailed to the customer."
+        }
+        required={!isApprove}
+        confirmLabel={isApprove ? "Approve case" : "Reject case"}
+        confirmVariant={isApprove ? "default" : "destructive"}
+        value={resolution}
+        onChange={setResolution}
+        onConfirm={confirmDialog}
+        loading={
+          actions.isProcessing === "approve" ||
+          actions.isProcessing === "reject"
+        }
+        error={dialog ? actions.error : undefined}
+      />
     </div>
   )
 }

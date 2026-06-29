@@ -118,6 +118,7 @@ export async function POST(
     carrier: shipping.carrier,
     estimatedDeliveryDate: shipping.estimatedDeliveryDate,
     shippoShipmentId: shipping.shippoShipmentId,
+    shippoRateId,
     items,
     varMap,
   })

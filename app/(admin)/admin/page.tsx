@@ -1,55 +1,19 @@
-import Link from "next/link"
-import {
-  ArrowRight,
-  ClipboardList,
-  ShieldCheck,
-  ShoppingBag,
-} from "lucide-react"
+import { ClipboardList, ShieldCheck, ShoppingBag, Truck } from "lucide-react"
+
 import { requireAdmin } from "@/lib/auth/helpers"
-import { createAdminClient } from "@/lib/supabase/admin"
+import { getDashboardStats } from "@/lib/admin/dashboard-stats"
+import { formatUSD } from "@/lib/utils/format"
+import { MetricCard, QuickLink } from "@/components/admin/dashboard-cards"
 
-async function getStats() {
-  const admin = createAdminClient()
+export const metadata = { title: "Dashboard — Admin — Metamorfosis Beauty" }
 
-  const [pendingResult, ordersResult, auditResult, casesResult] = await Promise.all([
-    admin
-      .from("profiles")
-      .select("id", { count: "exact", head: true })
-      .eq("verification_status", "pending_review"),
-    admin
-      .from("orders")
-      .select("id", { count: "exact", head: true })
-      .gte(
-        "created_at",
-        new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      ),
-    admin
-      .from("audit_logs")
-      .select("id, action, target_table, created_at")
-      .order("created_at", { ascending: false })
-      .limit(5),
-    admin
-      .from("cases")
-      .select("id", { count: "exact", head: true })
-      .eq("status", "open"),
-  ])
-
-  return {
-    pendingVerifications: pendingResult.count ?? 0,
-    ordersToday: ordersResult.count ?? 0,
-    openCases: casesResult.count ?? 0,
-    recentActivity: (auditResult.data ?? []) as {
-      id: string
-      action: string
-      target_table: string
-      created_at: string
-    }[],
-  }
+function formatAction(action: string): string {
+  return action.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
 export default async function AdminPage() {
   await requireAdmin()
-  const stats = await getStats()
+  const stats = await getDashboardStats()
 
   return (
     <div className="space-y-8">
@@ -62,39 +26,56 @@ export default async function AdminPage() {
         </p>
       </div>
 
-      {/* Stat cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <MetricCard
+          label="Orders today"
+          value={stats.ordersToday.count}
+          sub={`${formatUSD(stats.ordersToday.revenueCents)} revenue`}
+          href="/admin/orders"
+        />
+        <MetricCard
+          label="Orders this week"
+          value={stats.ordersThisWeek.count}
+          sub={`${formatUSD(stats.ordersThisWeek.revenueCents)} revenue`}
+          href="/admin/orders"
+        />
+        <MetricCard
+          label="Pending shipments"
+          value={stats.pendingShipments}
+          sub="Paid orders without tracking"
+          href="/admin/orders?status=pending"
+          accent={stats.pendingShipments > 0 ? "amber" : "neutral"}
+        />
+        <MetricCard
+          label="Open cases"
+          value={stats.openCases}
+          href="/admin/cases?status=open"
+          accent={stats.openCases > 0 ? "amber" : "neutral"}
+        />
+        <MetricCard
           label="Pending verifications"
           value={stats.pendingVerifications}
           href="/admin/verifications"
           accent={stats.pendingVerifications > 0 ? "amber" : "neutral"}
         />
-        <StatCard
-          label="Orders today"
-          value={stats.ordersToday}
-          href="/admin/orders"
-        />
-        <StatCard label="Open cases" value={stats.openCases} href="/admin/cases" />
       </div>
 
-      {/* Quick actions */}
       <section>
         <h2 className="text-foreground mb-3 text-sm font-semibold">
           Quick actions
         </h2>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <QuickLink
-            href="/admin/verifications"
-            icon={ShieldCheck}
-            label="Review verifications"
-            description="Approve or reject pending license submissions"
-          />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <QuickLink
             href="/admin/orders"
             icon={ShoppingBag}
             label="Manage orders"
-            description="View order details and cancel if needed"
+            description="View details, update status, ship"
+          />
+          <QuickLink
+            href="/admin/orders?status=pending"
+            icon={Truck}
+            label="Ship orders"
+            description="Generate labels for pending shipments"
           />
           <QuickLink
             href="/admin/cases"
@@ -102,10 +83,15 @@ export default async function AdminPage() {
             label="Handle cases"
             description="Review returns and support tickets"
           />
+          <QuickLink
+            href="/admin/verifications"
+            icon={ShieldCheck}
+            label="Review verifications"
+            description="Approve or reject license submissions"
+          />
         </div>
       </section>
 
-      {/* Recent activity */}
       {stats.recentActivity.length > 0 && (
         <section>
           <h2 className="text-foreground mb-3 text-sm font-semibold">
@@ -143,87 +129,4 @@ export default async function AdminPage() {
       )}
     </div>
   )
-}
-
-function formatAction(action: string): string {
-  return action.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-}
-
-function StatCard({
-  label,
-  value,
-  href,
-  accent = "neutral",
-  disabled = false,
-}: {
-  label: string
-  value: number
-  href: string
-  accent?: "amber" | "neutral"
-  disabled?: boolean
-}) {
-  const content = (
-    <div
-      className={`border-border bg-background rounded-xl border p-5 transition-colors ${
-        !disabled ? "hover:bg-muted/40 cursor-pointer" : "opacity-60"
-      }`}
-    >
-      <p
-        className={`text-3xl font-bold tracking-tight ${
-          accent === "amber" ? "text-amber-400" : "text-foreground"
-        }`}
-      >
-        {value}
-      </p>
-      <p className="text-muted-foreground mt-1 text-sm">{label}</p>
-      {!disabled && (
-        <p className="text-muted-foreground mt-3 flex items-center gap-1 text-xs">
-          View all <ArrowRight className="h-3 w-3" />
-        </p>
-      )}
-    </div>
-  )
-
-  if (disabled) return content
-  return <Link href={href}>{content}</Link>
-}
-
-function QuickLink({
-  href,
-  icon: Icon,
-  label,
-  description,
-  disabled = false,
-}: {
-  href: string
-  icon: React.FC<{ className?: string; strokeWidth?: number }>
-  label: string
-  description: string
-  disabled?: boolean
-}) {
-  const content = (
-    <div
-      className={`border-border bg-background flex items-start gap-4 rounded-xl border p-5 transition-colors ${
-        !disabled
-          ? "hover:bg-muted/40 cursor-pointer"
-          : "cursor-not-allowed opacity-50"
-      }`}
-    >
-      <span className="bg-muted mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
-        <Icon className="text-foreground h-4 w-4" strokeWidth={1.75} />
-      </span>
-      <div>
-        <p className="text-foreground text-sm font-medium">{label}</p>
-        <p className="text-muted-foreground mt-0.5 text-xs leading-relaxed">
-          {description}
-        </p>
-        {disabled && (
-          <p className="text-muted-foreground mt-1 text-xs">Coming soon</p>
-        )}
-      </div>
-    </div>
-  )
-
-  if (disabled) return content
-  return <Link href={href}>{content}</Link>
 }
