@@ -75,10 +75,16 @@ export async function POST(req: Request) {
       .from("cases")
       .select("id")
       .eq("order_id", orderId)
-      .not("status", "in", "('closed', 'rejected', 'approved')")
+      .not("status", "in", "(closed,rejected,approved,fraud)")
       .maybeSingle()
 
     if (existingCaseError) {
+      console.error("[POST /api/profile/cases] existing-case check failed", {
+        code: existingCaseError.code,
+        message: existingCaseError.message,
+        details: existingCaseError.details,
+        hint: existingCaseError.hint,
+      })
       return NextResponse.json({ error: "Database error" }, { status: 500 })
     }
     if (existingCase) {
@@ -105,6 +111,12 @@ export async function POST(req: Request) {
       .single()
 
     if (createError || !newCase) {
+      console.error("[POST /api/profile/cases] insert failed", {
+        code: createError?.code,
+        message: createError?.message,
+        details: createError?.details,
+        hint: createError?.hint,
+      })
       return NextResponse.json(
         { error: "Failed to create case" },
         { status: 500 },
