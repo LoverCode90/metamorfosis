@@ -30,9 +30,18 @@ export async function chargeCard(
   amountCents: number,
   locationId: string,
   note?: string,
+  customerId?: string | null,
 ): Promise<ChargeResult | ChargeError> {
   const client = createPaymentsClient()
   const idempotencyKey = crypto.randomUUID()
+
+  if (sourceId.startsWith("ccof:") && !customerId) {
+    return {
+      ok: false,
+      error:
+        "customer_id must be present when supplying customer payment on file in the source_id",
+    }
+  }
 
   try {
     const result = await client.payments.create({
@@ -45,6 +54,7 @@ export async function chargeCard(
       locationId,
       note,
       autocomplete: true,
+      ...(customerId ? { customerId } : {}),
     })
 
     const payment = result.payment

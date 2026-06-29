@@ -45,8 +45,15 @@ export async function POST(
   } = payload as CheckoutPayload
 
   const supabase = await createClient()
-  const { user, role, verificationStatus, squareCustomerId } =
-    await resolveCheckoutCustomer(supabase)
+  const {
+    user,
+    role,
+    verificationStatus,
+    squareCustomerId: sessionSquareCustomerId,
+  } = await resolveCheckoutCustomer(supabase)
+
+  const initialCustomerId =
+    sessionSquareCustomerId ?? payload.squareCustomerId ?? null
 
   const admin = createAdminClient()
   const varMap = await fetchVariationMap(
@@ -83,22 +90,28 @@ export async function POST(
   const { priceSheet, shipping } = pricing
 
   // ── Charge card (resolving a saved card-on-file first when applicable) ─────
-  const paymentSourceId = user
-    ? await resolvePaymentSource({
-        admin,
-        userId: user.id,
-        sourceId,
-        saveCardConsented: !!payload.saveCardConsented,
-        squareCustomerId,
-        address,
-      })
-    : sourceId
+  let paymentSourceId = sourceId
+  let finalCustomerId = initialCustomerId
+
+  if (user) {
+    const resolved = await resolvePaymentSource({
+      admin,
+      userId: user.id,
+      sourceId,
+      saveCardConsented: !!payload.saveCardConsented,
+      squareCustomerId: initialCustomerId,
+      address,
+    })
+    paymentSourceId = resolved.sourceId
+    finalCustomerId = resolved.customerId
+  }
 
   const chargeResult = await chargeCard(
     paymentSourceId,
     priceSheet.totalCents,
     process.env.SQUARE_LOCATION_ID!,
     `Metamorfosis order — ${items.length} item(s)`,
+    finalCustomerId,
   )
   if (!chargeResult.ok) {
     return checkoutError(chargeResult.error, "PAYMENT_FAILED", 402)

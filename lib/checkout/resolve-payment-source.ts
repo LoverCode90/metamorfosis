@@ -32,17 +32,21 @@ export async function resolvePaymentSource({
   saveCardConsented,
   squareCustomerId,
   address,
-}: ResolvePaymentSourceArgs): Promise<string> {
-  if (sourceId.startsWith("ccof:")) return sourceId
-  if (!saveCardConsented) return sourceId
+}: ResolvePaymentSourceArgs): Promise<{
+  sourceId: string
+  customerId: string | null
+}> {
+  if (sourceId.startsWith("ccof:"))
+    return { sourceId, customerId: squareCustomerId }
+  if (!saveCardConsented) return { sourceId, customerId: squareCustomerId }
 
   const customerId =
     squareCustomerId ??
     (await getOrCreateCustomer(userId, address.email, address.fullName))
-  if (!customerId) return sourceId
+  if (!customerId) return { sourceId, customerId: squareCustomerId }
 
   const cardId = await createCardOnFile(sourceId, customerId)
-  if (!cardId) return sourceId
+  if (!cardId) return { sourceId, customerId }
 
   await admin
     .from("profiles")
@@ -69,5 +73,5 @@ export async function resolvePaymentSource({
       })
     }
   }
-  return cardId
+  return { sourceId: cardId, customerId }
 }

@@ -48,6 +48,8 @@ export interface CheckoutPayload {
   sourceId: string
   /** Guests only — email for order confirmation */
   guestEmail?: string
+  /** Square customer ID from frontend checkout payload */
+  squareCustomerId?: string | null
 }
 
 /** Server-computed price breakdown returned to client before/after charge. */
