@@ -65,7 +65,7 @@ export function RevenueChart({ data }: { data: DailyRevenue[] }) {
             <CartesianGrid
               vertical={false}
               stroke="var(--color-border)"
-              strokeDasharray="3 3"
+              strokeDasharray="0"
             />
             <XAxis
               dataKey="label"

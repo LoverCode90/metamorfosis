@@ -9,6 +9,7 @@ import {
   Printer,
 } from "lucide-react"
 
+import { useAdminPrefs } from "@/components/admin/admin-shell"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -18,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { cn } from "@/lib/utils"
 
 interface LabelPrintDialogProps {
   orderId: string
@@ -37,6 +39,7 @@ export function LabelPrintDialog({
   carrier,
   shippoTestMode = false,
 }: LabelPrintDialogProps) {
+  const { theme } = useAdminPrefs()
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [iframeReady, setIframeReady] = useState(false)
   const [isPrinting, setIsPrinting] = useState(false)
@@ -82,7 +85,12 @@ export function LabelPrintDialog({
         onOpenChange(nextOpen)
       }}
     >
-      <DialogContent className="flex max-h-[90dvh] min-h-0 flex-col gap-4 overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-w-2xl sm:p-6">
+      <DialogContent
+        className={cn(
+          "bg-background text-foreground flex max-h-[90dvh] min-h-0 flex-col gap-4 overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-w-2xl sm:p-6",
+          theme === "dark" && "dark",
+        )}
+      >
         <DialogHeader>
           <DialogTitle>Shipping Label</DialogTitle>
           <DialogDescription>
@@ -98,7 +106,7 @@ export function LabelPrintDialog({
         </DialogHeader>
 
         {shippoTestMode && (
-          <div className="flex gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-200">
+          <div className="flex gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <p>
               Shippo test mode — this label is marked SAMPLE and cannot be
@@ -108,13 +116,13 @@ export function LabelPrintDialog({
           </div>
         )}
 
-        <div className="border-border min-h-0 flex-1 overflow-y-auto rounded-lg border bg-white">
+        <div className="border-border flex min-h-0 flex-1 items-center justify-center overflow-y-auto rounded-lg border bg-neutral-100 p-2 dark:bg-neutral-900">
           <iframe
             ref={iframeRef}
             src={open ? pdfUrl : undefined}
             title="Shipping label"
             onLoad={() => setIframeReady(true)}
-            className="h-[min(50dvh,400px)] min-h-[240px] w-full"
+            className="h-[min(50dvh,400px)] min-h-[240px] w-full max-w-[280px] bg-white"
           />
         </div>
 

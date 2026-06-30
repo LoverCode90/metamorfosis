@@ -10,14 +10,33 @@ export type AdminShippingAddress = RawShippingAddress
 /** Customer name, contact, and shipping address for an order. */
 export function OrderCustomerCard({
   address,
+  compact = false,
+  embedded = false,
 }: {
   address: AdminShippingAddress | null
+  compact?: boolean
+  embedded?: boolean
 }) {
   const normalized = normalizeShippingAddress(address)
 
   return (
-    <div className={cn(ADMIN_SERVER_CARD_CLASS, "p-6 text-sm")}>
-      <h2 className="text-foreground mb-4 text-base font-semibold">
+    <div
+      className={cn(
+        embedded
+          ? compact
+            ? "text-sm"
+            : "text-sm"
+          : cn(ADMIN_SERVER_CARD_CLASS, "p-6 text-sm"),
+        !embedded && compact && "p-4",
+        embedded && "border-border rounded-xl border p-4",
+      )}
+    >
+      <h2
+        className={cn(
+          "text-foreground font-semibold",
+          compact ? "mb-2 text-sm" : "mb-4 text-base",
+        )}
+      >
         Customer Details
       </h2>
       {normalized ? (
@@ -28,7 +47,7 @@ export function OrderCustomerCard({
           {normalized.email && <p>{normalized.email}</p>}
           {normalized.phone && <p>{normalized.phone}</p>}
           {normalized.streetLine1 && (
-            <div className="mt-4">
+            <div className={compact ? "mt-2" : "mt-4"}>
               <p>{normalized.streetLine1}</p>
               {normalized.streetLine2 && <p>{normalized.streetLine2}</p>}
               {(normalized.city || normalized.state || normalized.zip) && (

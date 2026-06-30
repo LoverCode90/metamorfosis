@@ -61,9 +61,13 @@ export function VerificationListPanel({
         value={filter}
         onValueChange={(value) => onFilterChange(value as StatusFilter)}
       >
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:grid-cols-4">
           {FILTER_TABS.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value} className="text-xs">
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="text-xs whitespace-nowrap"
+            >
               {tab.label}
             </TabsTrigger>
           ))}

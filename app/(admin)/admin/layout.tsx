@@ -44,7 +44,7 @@ export default async function AdminLayout({
         id="admin-theme-init"
         strategy="beforeInteractive"
         dangerouslySetInnerHTML={{
-          __html: `(function(){try{var t=localStorage.getItem("admin-theme");if(t==="light"||t==="dark"){document.documentElement.dataset.adminTheme=t;}}catch(e){}})();`,
+          __html: `(function(){try{var t=localStorage.getItem("admin-theme");if(t==="light"||t==="dark"){document.documentElement.dataset.adminTheme=t;document.documentElement.classList.toggle("dark",t==="dark");}}catch(e){}})();`,
         }}
       />
       <AdminShell>

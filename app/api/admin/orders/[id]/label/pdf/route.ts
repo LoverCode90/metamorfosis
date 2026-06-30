@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin/require-admin"
 import { getTransactionLabelUrl } from "@/lib/shippo/purchase-label"
+import { normalizeLabelPdfToPortrait } from "@/lib/shippo/normalize-label-pdf"
 
 /** Streams the Shippo label PDF through our origin so the admin can print it. */
 export async function GET(
@@ -53,13 +54,18 @@ export async function GET(
       )
     }
 
-    const pdfBytes = await pdfRes.arrayBuffer()
+    const rawPdfBytes = await pdfRes.arrayBuffer()
+    const skipNormalize = new URL(req.url).searchParams.get("raw") === "1"
+    const pdfBytes = skipNormalize
+      ? new Uint8Array(rawPdfBytes)
+      : await normalizeLabelPdfToPortrait(rawPdfBytes)
+
     const download =
       new URL(req.url).searchParams.get("download") === "1"
         ? "attachment"
         : "inline"
 
-    return new NextResponse(pdfBytes, {
+    return new NextResponse(Buffer.from(pdfBytes), {
       headers: {
         "Content-Type": "application/pdf",
         "Content-Disposition": `${download}; filename="label-${orderId.slice(0, 8)}.pdf"`,

@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils"
 import { ADMIN_SERVER_CARD_CLASS } from "@/lib/admin/card-styles"
 import { formatCaseStatus } from "@/lib/utils/format"
 import { caseReasonLabel } from "@/lib/profile/case-reasons"
@@ -23,10 +24,22 @@ function Field({
 }
 
 /** Reason, item, condition, optional resolution + the customer explanation. */
-export function CaseIssueDetails({ caseData }: { caseData: AdminCaseDetail }) {
+export function CaseIssueDetails({
+  caseData,
+  embedded = false,
+}: {
+  caseData: AdminCaseDetail
+  embedded?: boolean
+}) {
   return (
-    <section className={`${ADMIN_SERVER_CARD_CLASS} p-5 sm:p-6`}>
-      <h2 className="text-foreground mb-4 text-lg font-semibold">
+    <section
+      className={cn(
+        embedded
+          ? "border-border h-full rounded-xl border p-4 sm:p-5"
+          : `${ADMIN_SERVER_CARD_CLASS} p-5 sm:p-6`,
+      )}
+    >
+      <h2 className="text-foreground mb-4 text-sm font-semibold">
         Issue Details
       </h2>
       <div className="mb-6 grid gap-4 sm:grid-cols-2">

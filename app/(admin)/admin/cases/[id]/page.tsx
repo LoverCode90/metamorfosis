@@ -7,12 +7,12 @@ import { requireAdmin } from "@/lib/auth/helpers"
 import { CaseActions } from "@/components/admin/cases/case-actions"
 import { CaseIssueDetails } from "@/components/admin/cases/case-issue-details"
 import { CaseMessagePanel } from "@/components/admin/cases/case-message-panel"
-import { CaseSidebar } from "@/components/admin/cases/case-sidebar"
-import { EvidenceGallery } from "@/components/admin/cases/evidence-gallery"
 import {
-  AdminBentoGrid,
-  AdminPageHeader,
-} from "@/components/admin/ui/admin-page-header"
+  CaseCustomerInfoCard,
+  CaseOrderContextCard,
+} from "@/components/admin/cases/case-context-cards"
+import { EvidenceGallery } from "@/components/admin/cases/evidence-gallery"
+import { AdminPageHeader } from "@/components/admin/ui/admin-page-header"
 import { ADMIN_SERVER_CARD_CLASS } from "@/lib/admin/card-styles"
 import { Badge } from "@/components/ui/badge"
 import { caseStatusBadge } from "@/lib/admin/status-badge"
@@ -69,9 +69,9 @@ export default async function AdminCaseDetailPage(props: {
         </Badge>
       </div>
 
-      <AdminBentoGrid>
-        <section className={`${ADMIN_SERVER_CARD_CLASS} p-5 sm:p-6`}>
-          <div className="mb-5">
+      <div className={`${ADMIN_SERVER_CARD_CLASS} space-y-4 p-4 sm:p-5`}>
+        <section className="border-border rounded-xl border p-4 sm:p-5">
+          <div className="mb-4">
             <h2 className="text-foreground text-sm font-semibold tracking-tight">
               Resolution actions
             </h2>
@@ -87,21 +87,25 @@ export default async function AdminCaseDetailPage(props: {
           />
         </section>
 
-        <CaseSidebar caseData={caseData} />
-
-        <div className="md:col-span-2">
-          <CaseIssueDetails caseData={caseData} />
+        <div className="grid gap-4 lg:grid-cols-2">
+          <CaseIssueDetails caseData={caseData} embedded />
+          <CaseCustomerInfoCard caseData={caseData} />
         </div>
 
-        <section className={`${ADMIN_SERVER_CARD_CLASS} p-5 sm:p-6`}>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div id="case-conversation">
+            <CaseMessagePanel caseData={caseData} />
+          </div>
+          <CaseOrderContextCard caseData={caseData} className="h-fit" />
+        </div>
+
+        <section className="border-border rounded-xl border p-4 sm:p-5">
           <h2 className="text-foreground mb-4 text-sm font-semibold tracking-tight">
             Evidence photos
           </h2>
           <EvidenceGallery caseId={caseData.id} />
         </section>
-
-        <CaseMessagePanel caseData={caseData} />
-      </AdminBentoGrid>
+      </div>
     </div>
   )
 }

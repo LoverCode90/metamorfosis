@@ -2,18 +2,15 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { notFound } from "next/navigation"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { AdminOrderActions } from "@/components/admin/orders/admin-order-actions"
-import { OrderItemsCard } from "@/components/admin/orders/order-items-card"
 import { OrderFulfillmentCard } from "@/components/admin/orders/order-fulfillment-card"
-import { OrderSummaryCard } from "@/components/admin/orders/order-summary-card"
+import { OrderItemsSummaryCard } from "@/components/admin/orders/order-items-summary-card"
 import {
   OrderCustomerCard,
   type AdminShippingAddress,
 } from "@/components/admin/orders/order-customer-card"
 import type { PackingSlipData } from "@/components/admin/orders/packing-slip-print"
-import {
-  AdminBentoGrid,
-  AdminPageHeader,
-} from "@/components/admin/ui/admin-page-header"
+import { AdminPageHeader } from "@/components/admin/ui/admin-page-header"
+import { ADMIN_SERVER_CARD_CLASS } from "@/lib/admin/card-styles"
 import { Badge } from "@/components/ui/badge"
 import { orderStatusBadge } from "@/lib/admin/status-badge"
 
@@ -95,34 +92,34 @@ export default async function AdminOrderDetailPage(props: {
         }
       />
 
-      <AdminBentoGrid>
-        <div className="md:col-span-2">
-          <OrderItemsCard items={order.order_items ?? []} />
+      <div className={`${ADMIN_SERVER_CARD_CLASS} p-4 sm:p-5`}>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="space-y-4">
+            <OrderFulfillmentCard
+              orderId={order.id}
+              status={order.status}
+              trackingNumber={order.tracking_number}
+              trackingUrl={order.tracking_url}
+              carrier={order.carrier}
+              shippingMethod={order.shipping_method}
+              shippoTransactionId={order.shippo_transaction_id}
+              packingSlip={packingSlip}
+              embedded
+            />
+            <OrderCustomerCard address={addr} compact embedded />
+          </div>
+
+          <OrderItemsSummaryCard
+            embedded
+            items={order.order_items ?? []}
+            subtotalCents={order.subtotal_cents}
+            shippingCents={order.shipping_cents}
+            taxCents={order.tax_cents}
+            discountCents={order.discount_cents}
+            totalCents={order.total_cents}
+          />
         </div>
-
-        <OrderFulfillmentCard
-          orderId={order.id}
-          status={order.status}
-          trackingNumber={order.tracking_number}
-          trackingUrl={order.tracking_url}
-          carrier={order.carrier}
-          shippingMethod={order.shipping_method}
-          shippoTransactionId={order.shippo_transaction_id}
-          packingSlip={packingSlip}
-        />
-
-        <OrderSummaryCard
-          subtotalCents={order.subtotal_cents}
-          shippingCents={order.shipping_cents}
-          taxCents={order.tax_cents}
-          discountCents={order.discount_cents}
-          totalCents={order.total_cents}
-        />
-
-        <div className="md:col-span-2">
-          <OrderCustomerCard address={addr} />
-        </div>
-      </AdminBentoGrid>
+      </div>
     </div>
   )
 }
