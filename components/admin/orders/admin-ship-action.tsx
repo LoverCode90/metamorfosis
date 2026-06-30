@@ -2,54 +2,56 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Loader2, Truck, Printer } from "lucide-react"
+import { Loader2, Printer, Truck } from "lucide-react"
 
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
+import { LabelPrintDialog } from "@/components/admin/orders/label-print-dialog"
+import {
+  PackingSlipPrint,
+  type PackingSlipData,
+} from "@/components/admin/orders/packing-slip-print"
 
 interface AdminShipActionProps {
   orderId: string
   shippingMethod?: string | null
   carrier?: string | null
+  trackingNumber?: string | null
+  shippoTransactionId?: string | null
+  packingSlip?: PackingSlipData | null
 }
 
-/** Generates a Shippo shipping label for an order, or provides a packing slip link for pickups. */
+/** Generates a Shippo shipping label or prints a pickup packing slip in-page. */
 export function AdminShipAction({
   orderId,
   shippingMethod,
   carrier,
+  trackingNumber,
+  shippoTransactionId,
+  packingSlip,
 }: AdminShipActionProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [labelOpen, setLabelOpen] = useState(false)
+  const [labelUrl, setLabelUrl] = useState<string | null>(null)
+  const [labelTracking, setLabelTracking] = useState<string | null>(
+    trackingNumber ?? null,
+  )
+  const [labelCarrier, setLabelCarrier] = useState<string | null>(
+    carrier ?? null,
+  )
 
   const isPickup =
     shippingMethod?.toLowerCase().includes("pickup") ||
     carrier?.toLowerCase().includes("pickup")
 
-  if (isPickup) {
-    return (
-      <Link
-        href={`/admin/orders/${orderId}/packing-slip`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={buttonVariants({ variant: "default" })}
-      >
-        <Printer className="mr-2 h-4 w-4" />
-        Print Packing Slip
-      </Link>
-    )
+  if (isPickup && packingSlip) {
+    return <PackingSlipPrint slip={packingSlip} />
   }
 
   async function generateLabel() {
     setLoading(true)
     setError("")
-
-    // Open popup synchronously to bypass browser popup blockers
-    const popup = window.open("", "_blank", "noopener")
-    if (popup) {
-      popup.document.write("Generating shipping label, please wait...")
-    }
 
     try {
       const res = await fetch(`/api/admin/orders/${orderId}/ship`, {
@@ -65,24 +67,79 @@ export function AdminShipAction({
         throw new Error(errorMsg)
       }
 
-      if (data.labelUrl && popup) {
-        popup.location.href = data.labelUrl
-      } else if (popup) {
-        popup.close()
-      }
-
+      setLabelUrl(data.labelUrl ?? null)
+      setLabelTracking(data.trackingNumber ?? null)
+      setLabelCarrier(data.carrier ?? carrier ?? null)
+      setLabelOpen(true)
       router.refresh()
     } catch (err: unknown) {
-      if (popup) popup.close()
       setError(err instanceof Error ? err.message : "Something went wrong")
     } finally {
       setLoading(false)
     }
   }
 
+  async function reprintLabel() {
+    if (!shippoTransactionId) return
+    setLoading(true)
+    setError("")
+
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}/label`)
+      const data = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        let errorMsg = data.error || "Failed to fetch label"
+        if (data.details) {
+          errorMsg = `${errorMsg}: ${data.details}`
+        }
+        throw new Error(errorMsg)
+      }
+
+      setLabelUrl(data.labelUrl ?? null)
+      setLabelTracking(data.trackingNumber ?? trackingNumber ?? null)
+      setLabelCarrier(data.carrier ?? carrier ?? null)
+      setLabelOpen(true)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (trackingNumber && shippoTransactionId) {
+    return (
+      <div className="space-y-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={reprintLabel}
+          disabled={loading}
+        >
+          {loading ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Printer className="mr-2 h-4 w-4" />
+          )}
+          Reprint Label
+        </Button>
+        {error && (
+          <p className="text-destructive text-sm font-medium">{error}</p>
+        )}
+        <LabelPrintDialog
+          open={labelOpen}
+          onOpenChange={setLabelOpen}
+          labelUrl={labelUrl}
+          trackingNumber={labelTracking}
+          carrier={labelCarrier}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-2">
-      <Button onClick={generateLabel} disabled={loading}>
+      <Button type="button" onClick={generateLabel} disabled={loading}>
         {loading ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : (
@@ -91,6 +148,13 @@ export function AdminShipAction({
         Generate Shipping Label
       </Button>
       {error && <p className="text-destructive text-sm font-medium">{error}</p>}
+      <LabelPrintDialog
+        open={labelOpen}
+        onOpenChange={setLabelOpen}
+        labelUrl={labelUrl}
+        trackingNumber={labelTracking}
+        carrier={labelCarrier}
+      />
     </div>
   )
 }

@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin/require-admin"
 import { createClient } from "@/lib/supabase/server"
 import { createShippoClient } from "@/lib/shippo/client"
-import { SHIP_FROM_ADDRESS } from "@/lib/shippo/live-rates"
+import { getShipFromAddress } from "@/lib/shippo/ship-from"
 
 export async function POST(req: Request) {
   try {
@@ -54,16 +54,19 @@ export async function POST(req: Request) {
       location: {
         buildingLocationType: "Store",
         buildingType: "commercial",
-        address: {
-          name: SHIP_FROM_ADDRESS.name,
-          street1: SHIP_FROM_ADDRESS.street1,
-          city: SHIP_FROM_ADDRESS.city,
-          state: SHIP_FROM_ADDRESS.state,
-          zip: SHIP_FROM_ADDRESS.zip,
-          country: SHIP_FROM_ADDRESS.country,
-          phone: SHIP_FROM_ADDRESS.phone,
-          email: "support@metamorfosis.com",
-        },
+        address: (() => {
+          const from = getShipFromAddress()
+          return {
+            name: from.name,
+            street1: from.street1,
+            city: from.city,
+            state: from.state,
+            zip: from.zip,
+            country: from.country,
+            phone: from.phone,
+            email: from.email,
+          }
+        })(),
       },
       transactions: transactionIds,
       requestedStartTime,

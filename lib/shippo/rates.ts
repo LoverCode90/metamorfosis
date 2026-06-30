@@ -1,6 +1,7 @@
 import "server-only"
 
 import { createShippoClient } from "./client"
+import { getShipFromAddress } from "./ship-from"
 import type { Parcel } from "./packing"
 import type { CheckoutAddress } from "@/lib/checkout/types"
 
@@ -11,15 +12,8 @@ export interface ShippoRates {
   overnightCents: number | null
 }
 
-export const FROM_ADDRESS = {
-  name: "Metamorfosis Beauty Supply",
-  street1: process.env.SHIPPO_FROM_STREET1 ?? "",
-  city: "Ontario",
-  state: "CA",
-  zip: "91761",
-  country: "US",
-  phone: process.env.SHIPPO_FROM_PHONE ?? "",
-}
+/** @deprecated Use getShipFromAddress() from ./ship-from */
+export const FROM_ADDRESS = getShipFromAddress()
 
 /**
  * Service level token → our shipping tier key. Shippo returns many carriers;
@@ -60,7 +54,7 @@ export async function fetchShippoRates(
   const shippo = createShippoClient()
 
   const shipment = await shippo.shipments.create({
-    addressFrom: FROM_ADDRESS,
+    addressFrom: getShipFromAddress(),
     addressTo: {
       name: address.fullName,
       street1: address.streetLine1,

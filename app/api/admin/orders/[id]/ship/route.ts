@@ -4,14 +4,18 @@ import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin/require-admin"
 import { purchaseLabel } from "@/lib/shippo/purchase-label"
+import { requoteOrderForLabel } from "@/lib/shippo/requote-order"
+import {
+  shipFromConfigErrorMessage,
+  validateShipFromConfig,
+} from "@/lib/shippo/ship-from"
 
 /**
- * Generates the shipping label for an order via Shippo transaction.create using
- * the saved `shippo_rate_id`, then stores the tracking info and marks the order
- * as shipped.
+ * Re-quotes a fresh Shippo rate, purchases the label, stores tracking, and
+ * marks the order shipped.
  */
 export async function POST(
-  req: Request,
+  _req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -22,10 +26,21 @@ export async function POST(
       return NextResponse.json({ error: gate.error }, { status: gate.status })
     }
 
+    const shipFrom = validateShipFromConfig()
+    if (!shipFrom.ok) {
+      return NextResponse.json(
+        {
+          error: shipFromConfigErrorMessage(shipFrom.missing),
+          details: `Missing: ${shipFrom.missing.join(", ")}`,
+        },
+        { status: 503 },
+      )
+    }
+
     const admin = createAdminClient()
     const { data: order, error: orderError } = await admin
       .from("orders")
-      .select("id, shippo_rate_id, tracking_number, carrier")
+      .select("id, tracking_number")
       .eq("id", orderId)
       .single()
 
@@ -38,19 +53,21 @@ export async function POST(
         { status: 400 },
       )
     }
-    if (!order.shippo_rate_id) {
+
+    let quote
+    try {
+      quote = await requoteOrderForLabel(orderId)
+    } catch (err: unknown) {
+      const details = err instanceof Error ? err.message : String(err)
       return NextResponse.json(
-        {
-          error:
-            "No saved Shippo rate for this order (was it in-store pickup?)",
-        },
-        { status: 400 },
+        { error: "Could not get shipping rates", details },
+        { status: 502 },
       )
     }
 
     let label
     try {
-      label = await purchaseLabel(order.shippo_rate_id)
+      label = await purchaseLabel(quote.rateId)
     } catch (err: unknown) {
       const details = err instanceof Error ? err.message : String(err)
       return NextResponse.json(
@@ -62,10 +79,13 @@ export async function POST(
     const { error: updateError } = await admin
       .from("orders")
       .update({
-        status: "confirmed",
+        status: "shipped",
+        shippo_rate_id: quote.rateId,
+        shippo_shipment_id: quote.shipmentId,
         shippo_transaction_id: label.transactionId,
         tracking_number: label.trackingNumber,
         tracking_url: label.trackingUrl,
+        carrier: quote.carrier,
       })
       .eq("id", orderId)
 
@@ -83,15 +103,18 @@ export async function POST(
       target_id: orderId,
       new_value: {
         tracking_number: label.trackingNumber,
-        status: "confirmed",
+        status: "shipped",
+        shippo_rate_id: quote.rateId,
       },
-      notes: "Generated shipping label via Shippo.",
+      notes: "Generated shipping label via Shippo (re-quoted rate).",
     })
 
     return NextResponse.json({
       success: true,
-      trackingNumber: label.trackingNumber,
       labelUrl: label.labelUrl,
+      trackingNumber: label.trackingNumber,
+      carrier: quote.carrier,
+      serviceName: quote.serviceName,
     })
   } catch (error) {
     console.error("[POST /api/admin/orders/[id]/ship]", error)

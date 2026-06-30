@@ -1,19 +1,12 @@
 import "server-only"
 
 import { createShippoClient } from "./client"
+import { getShipFromAddress } from "./ship-from"
 import type { ShippoParcel } from "@/lib/shipping/build-parcels"
 import type { CheckoutAddress, LiveShippingRate } from "@/lib/checkout/types"
 
-/** Ship-from origin — Metamorfosis, Ontario CA. */
-export const SHIP_FROM_ADDRESS = {
-  name: "Metamorfosis Beauty Supply",
-  street1: "211 W B St",
-  city: "Ontario",
-  state: "CA",
-  zip: "91762",
-  country: "US",
-  phone: process.env.SHIPPO_FROM_PHONE ?? "",
-}
+/** @deprecated Use getShipFromAddress() from ./ship-from */
+export const SHIP_FROM_ADDRESS = getShipFromAddress()
 
 /** Normalizes a Shippo provider string to one of our supported carriers. */
 function canonicalCarrier(provider: string): string | null {
@@ -52,7 +45,7 @@ export async function fetchLiveRates(
 ): Promise<LiveShippingRate[]> {
   const shippo = createShippoClient()
   const shipment = await shippo.shipments.create({
-    addressFrom: SHIP_FROM_ADDRESS,
+    addressFrom: getShipFromAddress(),
     addressTo: {
       name: address.fullName,
       street1: address.streetLine1,

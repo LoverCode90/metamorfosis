@@ -12,6 +12,7 @@ import {
   OrderCustomerCard,
   type AdminShippingAddress,
 } from "@/components/admin/orders/order-customer-card"
+import type { PackingSlipData } from "@/components/admin/orders/packing-slip-print"
 import { Badge } from "@/components/ui/badge"
 import { orderStatusBadge } from "@/lib/admin/status-badge"
 
@@ -46,6 +47,41 @@ export default async function AdminOrderDetailPage(props: {
   const canCancel = ["pending", "confirmed", "processing"].includes(
     order.status,
   )
+
+  const isPickup =
+    order.shipping_method === "pickup" || order.carrier === "pickup"
+
+  const packingSlip: PackingSlipData = {
+    orderId: order.id,
+    createdAt: order.created_at,
+    isPickup,
+    address: (order.shipping_address as PackingSlipData["address"]) ?? null,
+    items: (order.order_items ?? []).map(
+      (item: {
+        id: string
+        quantity: number
+        unit_price_cents: number
+        product_variations: {
+          name_en: string
+          product_translations: { name_en: string } | null
+        } | null
+      }) => ({
+        id: item.id,
+        quantity: item.quantity,
+        unitPriceCents: item.unit_price_cents,
+        productName:
+          item.product_variations?.product_translations?.name_en ??
+          "Unknown Product",
+        variationName: item.product_variations?.name_en ?? "",
+      }),
+    ),
+    subtotalCents: order.subtotal_cents,
+    discountCents: order.discount_cents,
+    surchargeCents: order.surcharge_cents ?? 0,
+    taxCents: order.tax_cents,
+    shippingCents: order.shipping_cents,
+    totalCents: order.total_cents,
+  }
 
   return (
     <div className="space-y-6">
@@ -86,6 +122,8 @@ export default async function AdminOrderDetailPage(props: {
             trackingUrl={order.tracking_url}
             carrier={order.carrier}
             shippingMethod={order.shipping_method}
+            shippoTransactionId={order.shippo_transaction_id}
+            packingSlip={packingSlip}
           />
           <OrderSummaryCard
             subtotalCents={order.subtotal_cents}
