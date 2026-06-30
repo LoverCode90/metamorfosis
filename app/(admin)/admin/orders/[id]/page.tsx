@@ -10,7 +10,10 @@ import {
   type AdminShippingAddress,
 } from "@/components/admin/orders/order-customer-card"
 import type { PackingSlipData } from "@/components/admin/orders/packing-slip-print"
-import { AdminPageHeader } from "@/components/admin/ui/admin-page-header"
+import {
+  AdminBentoGrid,
+  AdminPageHeader,
+} from "@/components/admin/ui/admin-page-header"
 import { Badge } from "@/components/ui/badge"
 import { orderStatusBadge } from "@/lib/admin/status-badge"
 
@@ -42,9 +45,7 @@ export default async function AdminOrderDetailPage(props: {
 
   const addr = order.shipping_address as AdminShippingAddress | null
   const badge = orderStatusBadge(order.status)
-  const canCancel = ["pending", "confirmed", "processing"].includes(
-    order.status,
-  )
+  const canCancel = ["pending", "confirmed"].includes(order.status)
 
   const isPickup =
     order.shipping_method === "pickup" || order.carrier === "pickup"
@@ -94,32 +95,34 @@ export default async function AdminOrderDetailPage(props: {
         }
       />
 
-      <div className="grid gap-6 xl:grid-cols-12">
-        <div className="space-y-6 xl:col-span-7">
+      <AdminBentoGrid>
+        <div className="md:col-span-2">
           <OrderItemsCard items={order.order_items ?? []} />
         </div>
 
-        <div className="space-y-6 xl:col-span-5">
-          <OrderFulfillmentCard
-            orderId={order.id}
-            status={order.status}
-            trackingNumber={order.tracking_number}
-            trackingUrl={order.tracking_url}
-            carrier={order.carrier}
-            shippingMethod={order.shipping_method}
-            shippoTransactionId={order.shippo_transaction_id}
-            packingSlip={packingSlip}
-          />
-          <OrderSummaryCard
-            subtotalCents={order.subtotal_cents}
-            shippingCents={order.shipping_cents}
-            taxCents={order.tax_cents}
-            discountCents={order.discount_cents}
-            totalCents={order.total_cents}
-          />
+        <OrderFulfillmentCard
+          orderId={order.id}
+          status={order.status}
+          trackingNumber={order.tracking_number}
+          trackingUrl={order.tracking_url}
+          carrier={order.carrier}
+          shippingMethod={order.shipping_method}
+          shippoTransactionId={order.shippo_transaction_id}
+          packingSlip={packingSlip}
+        />
+
+        <OrderSummaryCard
+          subtotalCents={order.subtotal_cents}
+          shippingCents={order.shipping_cents}
+          taxCents={order.tax_cents}
+          discountCents={order.discount_cents}
+          totalCents={order.total_cents}
+        />
+
+        <div className="md:col-span-2">
           <OrderCustomerCard address={addr} />
         </div>
-      </div>
+      </AdminBentoGrid>
     </div>
   )
 }

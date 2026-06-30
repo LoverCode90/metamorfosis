@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { AdminStatusFilter } from "@/components/admin/admin-status-filter"
@@ -32,6 +33,11 @@ export default async function AdminCasesPage(props: {
 }) {
   await requireAdmin()
   const { status } = await props.searchParams
+
+  if (!status) {
+    redirect("/admin/cases?status=open")
+  }
+
   const admin = createAdminClient()
 
   let query = admin
@@ -43,7 +49,7 @@ export default async function AdminCasesPage(props: {
     )
     .order("created_at", { ascending: false })
 
-  if (status) query = query.eq("status", status)
+  if (status !== "all") query = query.eq("status", status)
 
   const { data } = await query
   const cases = (data as unknown as AdminCaseListItem[] | null) ?? []
@@ -62,7 +68,9 @@ export default async function AdminCasesPage(props: {
       />
 
       {cases.length === 0 ? (
-        <div className="border-border/50 bg-card/90 text-muted-foreground rounded-2xl border px-5 py-12 text-center text-sm shadow-[0_0_0_1px_rgba(255,255,255,0.03)] backdrop-blur-sm">
+        <div
+          className={`${ADMIN_TABLE_SHELL_CLASS} text-muted-foreground px-5 py-12 text-center text-sm`}
+        >
           No cases found.
         </div>
       ) : (

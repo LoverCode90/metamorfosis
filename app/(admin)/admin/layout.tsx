@@ -1,3 +1,4 @@
+import Script from "next/script"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { AdminShell } from "@/components/admin/admin-shell"
@@ -38,13 +39,22 @@ export default async function AdminLayout({
   }
 
   return (
-    <AdminShell>
-      <AdminChrome
-        pendingVerificationCount={pendingVerificationCount ?? 0}
-        adminUser={adminSidebarUser}
-      >
-        {children}
-      </AdminChrome>
-    </AdminShell>
+    <>
+      <Script
+        id="admin-theme-init"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `(function(){try{var t=localStorage.getItem("admin-theme");if(t==="light"||t==="dark"){document.documentElement.dataset.adminTheme=t;}}catch(e){}})();`,
+        }}
+      />
+      <AdminShell>
+        <AdminChrome
+          pendingVerificationCount={pendingVerificationCount ?? 0}
+          adminUser={adminSidebarUser}
+        >
+          {children}
+        </AdminChrome>
+      </AdminShell>
+    </>
   )
 }

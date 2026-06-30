@@ -20,14 +20,14 @@ export function CaseMobileCard({ caseItem }: { caseItem: AdminCaseListItem }) {
   return (
     <Link
       href={`/admin/cases/${caseItem.id}`}
-      className="border-border/50 bg-card/90 hover:border-primary/30 block rounded-2xl border p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.03)] transition-colors"
+      className="border-border bg-card hover:bg-muted/30 block rounded-2xl border p-4 transition-colors"
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-foreground truncate font-medium">
+        <div className="min-w-0 flex-1">
+          <p className="text-foreground font-medium break-words">
             {caseItem.profiles?.full_name ?? "Unknown"}
           </p>
-          <p className="text-muted-foreground truncate text-xs">
+          <p className="text-muted-foreground text-xs break-all">
             {caseItem.profiles?.email ?? "—"}
           </p>
         </div>

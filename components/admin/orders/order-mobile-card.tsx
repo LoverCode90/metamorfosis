@@ -22,18 +22,18 @@ export function OrderMobileCard({ order }: { order: AdminOrderListItem }) {
       className="border-border bg-card hover:border-border-strong block rounded-2xl border p-4 transition-colors"
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-foreground truncate font-medium">
+        <div className="min-w-0 flex-1">
+          <p className="text-foreground font-medium break-words">
             {customerName(order)}
           </p>
-          <p className="text-muted-foreground truncate text-xs">
+          <p className="text-muted-foreground text-xs break-all">
             {customerEmail(order)}
           </p>
         </div>
         <Badge variant={badge.variant}>{badge.label}</Badge>
       </div>
 
-      <p className="text-muted-foreground mt-3 truncate text-sm">
+      <p className="text-muted-foreground mt-3 text-sm break-words whitespace-normal">
         {itemsSummary(order.order_items)}
       </p>
 

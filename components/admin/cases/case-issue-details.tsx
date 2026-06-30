@@ -1,3 +1,4 @@
+import { ADMIN_SERVER_CARD_CLASS } from "@/lib/admin/card-styles"
 import { formatCaseStatus } from "@/lib/utils/format"
 import { caseReasonLabel } from "@/lib/profile/case-reasons"
 import { itemLabel } from "@/lib/orders/item-label"
@@ -24,7 +25,7 @@ function Field({
 /** Reason, item, condition, optional resolution + the customer explanation. */
 export function CaseIssueDetails({ caseData }: { caseData: AdminCaseDetail }) {
   return (
-    <section className="border-border bg-card rounded-2xl border p-6">
+    <section className={`${ADMIN_SERVER_CARD_CLASS} p-5 sm:p-6`}>
       <h2 className="text-foreground mb-4 text-lg font-semibold">
         Issue Details
       </h2>

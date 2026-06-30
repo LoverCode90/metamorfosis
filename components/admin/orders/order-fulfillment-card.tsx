@@ -1,7 +1,8 @@
+import { Badge } from "@/components/ui/badge"
 import { AdminShipAction } from "@/components/admin/orders/admin-ship-action"
-import { AdminStatusSelect } from "@/components/admin/orders/admin-status-select"
 import type { PackingSlipData } from "@/components/admin/orders/packing-slip-print"
 import { ADMIN_SERVER_CARD_CLASS } from "@/lib/admin/card-styles"
+import { orderStatusBadge } from "@/lib/admin/status-badge"
 import { cn } from "@/lib/utils"
 
 interface OrderFulfillmentCardProps {
@@ -15,7 +16,7 @@ interface OrderFulfillmentCardProps {
   packingSlip?: PackingSlipData | null
 }
 
-/** Order status updater plus tracking display / label generation. */
+/** Read-only status plus tracking display and label generation. */
 export function OrderFulfillmentCard({
   orderId,
   status,
@@ -29,6 +30,7 @@ export function OrderFulfillmentCard({
   const isPickup =
     shippingMethod?.toLowerCase().includes("pickup") ||
     carrier?.toLowerCase().includes("pickup")
+  const statusBadge = orderStatusBadge(status)
 
   return (
     <div className={cn(ADMIN_SERVER_CARD_CLASS, "space-y-4 p-6 text-sm")}>
@@ -37,7 +39,11 @@ export function OrderFulfillmentCard({
         <p className="text-muted-foreground text-xs tracking-wide uppercase">
           Status
         </p>
-        <AdminStatusSelect orderId={orderId} current={status} />
+        <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+        <p className="text-muted-foreground text-xs">
+          Updated automatically via Shippo when the label is printed and when
+          the carrier scans the package.
+        </p>
       </div>
       <div className="space-y-2">
         <p className="text-muted-foreground text-xs tracking-wide uppercase">
@@ -49,7 +55,7 @@ export function OrderFulfillmentCard({
               href={trackingUrl ?? "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-foreground block font-medium hover:underline"
+              className="text-foreground block font-medium break-all hover:underline"
             >
               {trackingNumber}
               {carrier ? ` · ${carrier}` : ""}

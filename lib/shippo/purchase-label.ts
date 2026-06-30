@@ -39,7 +39,7 @@ export async function purchaseLabel(rateId: string): Promise<PurchasedLabel> {
     },
     body: JSON.stringify({
       rate: rateId,
-      label_file_type: "PDF",
+      label_file_type: "PDF_4x6",
       async: false,
     }),
   })

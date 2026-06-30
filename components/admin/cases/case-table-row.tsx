@@ -38,10 +38,10 @@ export function CaseTableRow({ caseItem }: { caseItem: AdminCaseListItem }) {
             {customerInitials(customerName)}
           </div>
           <div className="min-w-0">
-            <span className="text-foreground block font-medium">
+            <span className="text-foreground block font-medium break-words">
               {customerName}
             </span>
-            <span className="text-muted-foreground block truncate text-xs">
+            <span className="text-muted-foreground block text-xs break-all">
               {caseItem.profiles?.email ?? "—"}
             </span>
           </div>

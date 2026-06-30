@@ -157,7 +157,7 @@ function shippoTrackStatusToOrderStatus(shippoStatus: string): string | null {
       return "delivered"
     case "RETURNED":
     case "FAILURE":
-      return "cancelled"
+      return "canceled"
     default:
       return null
   }

@@ -47,7 +47,7 @@ export const ADMIN_PANEL_NAV_ITEMS: AdminPanelNavItem[] = [
   },
   {
     label: "Orders",
-    href: "/admin/orders",
+    href: "/admin/orders?status=pending",
     icon: ShoppingBag,
     exactMatch: false,
     badgeKey: null,
@@ -55,7 +55,7 @@ export const ADMIN_PANEL_NAV_ITEMS: AdminPanelNavItem[] = [
   },
   {
     label: "Cases",
-    href: "/admin/cases",
+    href: "/admin/cases?status=open",
     icon: ClipboardList,
     exactMatch: false,
     badgeKey: null,
@@ -91,8 +91,9 @@ export function isAdminNavItemActive(
   navItem: AdminPanelNavItem,
   currentPathname: string,
 ): boolean {
-  if (navItem.exactMatch) return currentPathname === navItem.href
-  return currentPathname.startsWith(navItem.href)
+  const navPath = navItem.href.split("?")[0]
+  if (navItem.exactMatch) return currentPathname === navPath
+  return currentPathname.startsWith(navPath)
 }
 
 export interface AdminBreadcrumbSegment {

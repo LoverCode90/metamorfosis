@@ -57,10 +57,10 @@ export function VerificationListItem({
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-foreground truncate text-sm font-medium">
+              <p className="text-foreground text-sm font-medium break-words">
                 {item.full_name}
               </p>
-              <p className="text-muted-foreground truncate text-xs">
+              <p className="text-muted-foreground text-xs break-all">
                 {item.email}
               </p>
             </div>

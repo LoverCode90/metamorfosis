@@ -3,7 +3,7 @@
 import type { ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
 
-import { MagicCard } from "@/components/ui/magic-card"
+import { ADMIN_SERVER_CARD_CLASS } from "@/lib/admin/card-styles"
 import { cn } from "@/lib/utils"
 
 export interface AdminSurfaceCardProps {
@@ -16,7 +16,7 @@ export interface AdminSurfaceCardProps {
   headerAction?: ReactNode
 }
 
-/** Premium admin card with Magic UI gradient border glow. */
+/** Minimal admin card — static border, no motion or glow. */
 export function AdminSurfaceCard({
   children,
   className,
@@ -27,20 +27,13 @@ export function AdminSurfaceCard({
   headerAction,
 }: AdminSurfaceCardProps) {
   return (
-    <MagicCard
-      className={cn("rounded-2xl", className)}
-      gradientFrom="var(--primary)"
-      gradientTo="color-mix(in oklch, var(--primary) 40%, #ec4899)"
-      gradientColor="color-mix(in oklch, var(--primary) 25%, transparent)"
-      gradientOpacity={0.35}
-      gradientSize={240}
-    >
+    <div className={cn(ADMIN_SERVER_CARD_CLASS, className)}>
       <div className={cn("p-5 sm:p-6", contentClassName)}>
         {(title || description || IconComponent || headerAction) && (
           <div className="mb-5 flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-start gap-3">
               {IconComponent && (
-                <div className="bg-primary/15 text-primary border-primary/20 flex size-10 shrink-0 items-center justify-center rounded-xl border">
+                <div className="bg-muted text-foreground border-border flex size-10 shrink-0 items-center justify-center rounded-xl border">
                   <IconComponent className="size-4.5" strokeWidth={1.75} />
                 </div>
               )}
@@ -62,6 +55,6 @@ export function AdminSurfaceCard({
         )}
         {children}
       </div>
-    </MagicCard>
+    </div>
   )
 }

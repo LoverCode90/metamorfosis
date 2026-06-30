@@ -26,14 +26,14 @@ export default async function AdminPage() {
           label="Orders today"
           value={stats.ordersToday.count}
           sub={`${formatUSD(stats.ordersToday.revenueCents)} revenue`}
-          href="/admin/orders"
+          href="/admin/orders?status=pending"
           icon={ShoppingBag}
         />
         <MetricCard
           label="Orders this week"
           value={stats.ordersThisWeek.count}
           sub={`${formatUSD(stats.ordersThisWeek.revenueCents)} revenue`}
-          href="/admin/orders"
+          href="/admin/orders?status=pending"
           icon={ShoppingBag}
         />
         <MetricCard
@@ -62,10 +62,10 @@ export default async function AdminPage() {
         </h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <QuickLink
-            href="/admin/orders"
+            href="/admin/orders?status=pending"
             icon={ShoppingBag}
             label="Manage orders"
-            description="View details, update status, ship"
+            description="View pending orders and print labels"
           />
           <QuickLink
             href="/admin/orders?status=pending"
@@ -74,7 +74,7 @@ export default async function AdminPage() {
             description="Generate labels for pending shipments"
           />
           <QuickLink
-            href="/admin/cases"
+            href="/admin/cases?status=open"
             icon={ClipboardList}
             label="Handle cases"
             description="Review returns and support tickets"

@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { AdminStatusFilter } from "@/components/admin/admin-status-filter"
@@ -26,18 +27,21 @@ export const metadata = { title: "Orders | Admin — Metamorfosis Beauty" }
 const ORDER_STATUS_FILTERS = [
   "pending",
   "confirmed",
-  "processing",
   "shipped",
   "delivered",
   "canceled",
-  "refunded",
-]
+] as const
 
 export default async function AdminOrdersPage(props: {
   searchParams: Promise<{ status?: string; page?: string }>
 }) {
   await requireAdmin()
   const { status, page: pageParam } = await props.searchParams
+
+  if (!status) {
+    redirect("/admin/orders?status=pending")
+  }
+
   const page = Math.max(1, Number(pageParam) || 1)
   const from = (page - 1) * ORDERS_PER_PAGE
   const admin = createAdminClient()
@@ -60,7 +64,7 @@ export default async function AdminOrdersPage(props: {
     .order("created_at", { ascending: false })
     .range(from, from + ORDERS_PER_PAGE - 1)
 
-  if (status) query = query.eq("status", status)
+  if (status !== "all") query = query.eq("status", status)
 
   const { data, count } = await query
   const orders = (data as unknown as AdminOrderListItem[] | null) ?? []

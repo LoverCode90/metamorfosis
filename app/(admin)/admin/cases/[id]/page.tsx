@@ -9,7 +9,10 @@ import { CaseIssueDetails } from "@/components/admin/cases/case-issue-details"
 import { CaseMessagePanel } from "@/components/admin/cases/case-message-panel"
 import { CaseSidebar } from "@/components/admin/cases/case-sidebar"
 import { EvidenceGallery } from "@/components/admin/cases/evidence-gallery"
-import { AdminPageHeader } from "@/components/admin/ui/admin-page-header"
+import {
+  AdminBentoGrid,
+  AdminPageHeader,
+} from "@/components/admin/ui/admin-page-header"
 import { ADMIN_SERVER_CARD_CLASS } from "@/lib/admin/card-styles"
 import { Badge } from "@/components/ui/badge"
 import { caseStatusBadge } from "@/lib/admin/status-badge"
@@ -48,10 +51,10 @@ export default async function AdminCaseDetailPage(props: {
   return (
     <div className="space-y-6 pb-12">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-start gap-3">
+        <div className="flex min-w-0 items-start gap-3">
           <Link
-            href="/admin/cases"
-            className="border-border/60 bg-card/80 hover:bg-muted flex size-10 shrink-0 items-center justify-center rounded-xl border transition-colors"
+            href="/admin/cases?status=open"
+            className="border-border bg-card hover:bg-muted flex size-10 shrink-0 items-center justify-center rounded-xl border transition-colors"
           >
             <ArrowLeft className="size-4" />
           </Link>
@@ -61,44 +64,44 @@ export default async function AdminCaseDetailPage(props: {
             className="gap-2"
           />
         </div>
-        <Badge variant={badge.variant} className="w-fit">
+        <Badge variant={badge.variant} className="w-fit shrink-0">
           {badge.label}
         </Badge>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-3 xl:gap-8">
-        <div className="space-y-6 xl:col-span-2">
-          <section className={`${ADMIN_SERVER_CARD_CLASS} p-5 sm:p-6`}>
-            <div className="mb-5">
-              <h2 className="text-foreground text-sm font-semibold tracking-tight">
-                Resolution actions
-              </h2>
-              <p className="text-muted-foreground mt-1 text-xs">
-                Approve, reject, or request more information from the customer.
-              </p>
-            </div>
-            <CaseActions
-              caseId={caseData.id}
-              caseNumber={caseNumber}
-              customerEmail={caseData.profiles?.email ?? ""}
-              status={caseData.status}
-            />
-          </section>
-
-          <CaseIssueDetails caseData={caseData} />
-
-          <section className={`${ADMIN_SERVER_CARD_CLASS} p-5 sm:p-6`}>
-            <h2 className="text-foreground mb-4 text-sm font-semibold tracking-tight">
-              Evidence photos
+      <AdminBentoGrid>
+        <section className={`${ADMIN_SERVER_CARD_CLASS} p-5 sm:p-6`}>
+          <div className="mb-5">
+            <h2 className="text-foreground text-sm font-semibold tracking-tight">
+              Resolution actions
             </h2>
-            <EvidenceGallery caseId={caseData.id} />
-          </section>
-
-          <CaseMessagePanel caseData={caseData} />
-        </div>
+            <p className="text-muted-foreground mt-1 text-xs">
+              Approve, reject, or request more information from the customer.
+            </p>
+          </div>
+          <CaseActions
+            caseId={caseData.id}
+            caseNumber={caseNumber}
+            customerEmail={caseData.profiles?.email ?? ""}
+            status={caseData.status}
+          />
+        </section>
 
         <CaseSidebar caseData={caseData} />
-      </div>
+
+        <div className="md:col-span-2">
+          <CaseIssueDetails caseData={caseData} />
+        </div>
+
+        <section className={`${ADMIN_SERVER_CARD_CLASS} p-5 sm:p-6`}>
+          <h2 className="text-foreground mb-4 text-sm font-semibold tracking-tight">
+            Evidence photos
+          </h2>
+          <EvidenceGallery caseId={caseData.id} />
+        </section>
+
+        <CaseMessagePanel caseData={caseData} />
+      </AdminBentoGrid>
     </div>
   )
 }

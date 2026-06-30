@@ -33,10 +33,10 @@ export function OrderTableRow({ order }: { order: AdminOrderListItem }) {
             {customerInitials || "?"}
           </div>
           <div className="min-w-0">
-            <span className="text-foreground block font-medium">
+            <span className="text-foreground block font-medium break-words">
               {customerDisplayName}
             </span>
-            <span className="text-muted-foreground block truncate text-xs">
+            <span className="text-muted-foreground block text-xs break-all">
               {customerEmail(order)}
             </span>
             <span className="text-muted-foreground/80 block text-[11px]">
@@ -48,7 +48,7 @@ export function OrderTableRow({ order }: { order: AdminOrderListItem }) {
       <TableCell className="text-muted-foreground px-5 py-4 whitespace-nowrap">
         {new Date(order.created_at).toLocaleDateString()}
       </TableCell>
-      <TableCell className="text-muted-foreground max-w-[200px] truncate px-5 py-4">
+      <TableCell className="text-muted-foreground max-w-[200px] px-5 py-4 break-words whitespace-normal">
         {itemsSummary(order.order_items)}
       </TableCell>
       <TableCell className="px-5 py-4">

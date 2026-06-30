@@ -6,14 +6,14 @@ import { formatCaseStatus } from "@/lib/utils/format"
 interface AdminStatusFilterProps {
   /** Route the filter links point at, e.g. "/admin/orders". */
   basePath: string
-  /** Currently active status, or undefined for "All". */
+  /** Currently active status, or "all" for no filter. */
   active?: string
   /** Selectable status values. */
   options: readonly string[]
 }
 
-function chipHref(basePath: string, value?: string): string {
-  return value ? `${basePath}?status=${value}` : basePath
+function chipHref(basePath: string, value: string): string {
+  return `${basePath}?status=${value}`
 }
 
 /** Status filter chips that drive a `?status=` search param via links. */
@@ -22,15 +22,15 @@ export function AdminStatusFilter({
   active,
   options,
 }: AdminStatusFilterProps) {
-  const chips: { value: string | undefined; label: string }[] = [
-    { value: undefined, label: "All" },
+  const chips: { value: string; label: string }[] = [
+    { value: "all", label: "All" },
     ...options.map((value) => ({ value, label: formatCaseStatus(value) })),
   ]
 
   return (
     <div className="flex flex-wrap gap-2">
       {chips.map((chip) => {
-        const isActive = chip.value === active || (!chip.value && !active)
+        const isActive = chip.value === active
         return (
           <Link
             key={chip.label}

@@ -1,7 +1,13 @@
 "use client"
 
-import { useRef } from "react"
-import { AlertTriangle, Download, ExternalLink, Printer } from "lucide-react"
+import { useRef, useState } from "react"
+import {
+  AlertTriangle,
+  Download,
+  ExternalLink,
+  Loader2,
+  Printer,
+} from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -32,19 +38,51 @@ export function LabelPrintDialog({
   shippoTestMode = false,
 }: LabelPrintDialogProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const [iframeReady, setIframeReady] = useState(false)
+  const [isPrinting, setIsPrinting] = useState(false)
   const pdfUrl = `/api/admin/orders/${orderId}/label/pdf`
   const downloadUrl = `${pdfUrl}?download=1`
 
-  function handlePrint() {
-    const frame = iframeRef.current
-    if (!frame?.contentWindow) return
-    frame.contentWindow.focus()
-    frame.contentWindow.print()
+  async function handlePrint() {
+    setIsPrinting(true)
+    try {
+      const frame = iframeRef.current
+      if (frame?.contentWindow && iframeReady) {
+        frame.contentWindow.focus()
+        frame.contentWindow.print()
+        return
+      }
+
+      const response = await fetch(pdfUrl)
+      if (!response.ok) throw new Error("Could not load label PDF")
+      const blob = await response.blob()
+      const blobUrl = URL.createObjectURL(blob)
+      const printWindow = window.open(blobUrl, "_blank")
+      if (!printWindow)
+        throw new Error("Pop-up blocked — allow pop-ups to print")
+      printWindow.addEventListener("load", () => {
+        printWindow.focus()
+        printWindow.print()
+      })
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000)
+    } catch (printError: unknown) {
+      const message =
+        printError instanceof Error ? printError.message : "Print failed"
+      window.alert(message)
+    } finally {
+      setIsPrinting(false)
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-2xl">
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) setIframeReady(false)
+        onOpenChange(nextOpen)
+      }}
+    >
+      <DialogContent className="flex max-h-[90dvh] min-h-0 flex-col gap-4 overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-w-2xl sm:p-6">
         <DialogHeader>
           <DialogTitle>Shipping Label</DialogTitle>
           <DialogDescription>
@@ -70,19 +108,28 @@ export function LabelPrintDialog({
           </div>
         )}
 
-        <div className="border-border min-h-[420px] flex-1 overflow-hidden rounded-lg border bg-white">
+        <div className="border-border min-h-0 flex-1 overflow-y-auto rounded-lg border bg-white">
           <iframe
             ref={iframeRef}
-            src={pdfUrl}
+            src={open ? pdfUrl : undefined}
             title="Shipping label"
-            className="h-[min(60vh,520px)] w-full"
+            onLoad={() => setIframeReady(true)}
+            className="h-[min(50dvh,400px)] min-h-[240px] w-full"
           />
         </div>
 
-        <DialogFooter>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" />
+        <DialogFooter className="shrink-0">
+          <div className="flex w-full flex-wrap gap-2">
+            <Button
+              type="button"
+              onClick={handlePrint}
+              disabled={isPrinting || (!iframeReady && open)}
+            >
+              {isPrinting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Printer className="mr-2 h-4 w-4" />
+              )}
               Print
             </Button>
             <Button
