@@ -33,13 +33,13 @@ export function AdminShipAction({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [labelOpen, setLabelOpen] = useState(false)
-  const [labelUrl, setLabelUrl] = useState<string | null>(null)
   const [labelTracking, setLabelTracking] = useState<string | null>(
     trackingNumber ?? null,
   )
   const [labelCarrier, setLabelCarrier] = useState<string | null>(
     carrier ?? null,
   )
+  const [shippoTestMode, setShippoTestMode] = useState(false)
 
   const isPickup =
     shippingMethod?.toLowerCase().includes("pickup") ||
@@ -67,9 +67,9 @@ export function AdminShipAction({
         throw new Error(errorMsg)
       }
 
-      setLabelUrl(data.labelUrl ?? null)
       setLabelTracking(data.trackingNumber ?? null)
       setLabelCarrier(data.carrier ?? carrier ?? null)
+      setShippoTestMode(Boolean(data.shippoTestMode))
       setLabelOpen(true)
       router.refresh()
     } catch (err: unknown) {
@@ -96,9 +96,9 @@ export function AdminShipAction({
         throw new Error(errorMsg)
       }
 
-      setLabelUrl(data.labelUrl ?? null)
       setLabelTracking(data.trackingNumber ?? trackingNumber ?? null)
       setLabelCarrier(data.carrier ?? carrier ?? null)
+      setShippoTestMode(Boolean(data.shippoTestMode))
       setLabelOpen(true)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong")
@@ -127,11 +127,12 @@ export function AdminShipAction({
           <p className="text-destructive text-sm font-medium">{error}</p>
         )}
         <LabelPrintDialog
+          orderId={orderId}
           open={labelOpen}
           onOpenChange={setLabelOpen}
-          labelUrl={labelUrl}
           trackingNumber={labelTracking}
           carrier={labelCarrier}
+          shippoTestMode={shippoTestMode}
         />
       </div>
     )
@@ -149,11 +150,12 @@ export function AdminShipAction({
       </Button>
       {error && <p className="text-destructive text-sm font-medium">{error}</p>}
       <LabelPrintDialog
+        orderId={orderId}
         open={labelOpen}
         onOpenChange={setLabelOpen}
-        labelUrl={labelUrl}
         trackingNumber={labelTracking}
         carrier={labelCarrier}
+        shippoTestMode={shippoTestMode}
       />
     </div>
   )

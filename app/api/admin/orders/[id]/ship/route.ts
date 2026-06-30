@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/admin/require-admin"
+import { isShippoTestMode } from "@/lib/shippo/env"
 import { purchaseLabel } from "@/lib/shippo/purchase-label"
 import { requoteOrderForLabel } from "@/lib/shippo/requote-order"
 import {
@@ -115,6 +116,7 @@ export async function POST(
       trackingNumber: label.trackingNumber,
       carrier: quote.carrier,
       serviceName: quote.serviceName,
+      shippoTestMode: isShippoTestMode(),
     })
   } catch (error) {
     console.error("[POST /api/admin/orders/[id]/ship]", error)
