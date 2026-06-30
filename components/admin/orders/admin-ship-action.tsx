@@ -44,15 +44,37 @@ export function AdminShipAction({
   async function generateLabel() {
     setLoading(true)
     setError("")
+
+    // Open popup synchronously to bypass browser popup blockers
+    const popup = window.open("", "_blank", "noopener")
+    if (popup) {
+      popup.document.write("Generating shipping label, please wait...")
+    }
+
     try {
       const res = await fetch(`/api/admin/orders/${orderId}/ship`, {
         method: "POST",
       })
       const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.error || "Failed to generate label")
-      if (data.labelUrl) window.open(data.labelUrl, "_blank", "noopener")
+
+      if (!res.ok) {
+        const errorMsg =
+          data.error ||
+          data.details ||
+          data.message ||
+          "Failed to generate label"
+        throw new Error(errorMsg)
+      }
+
+      if (data.labelUrl && popup) {
+        popup.location.href = data.labelUrl
+      } else if (popup) {
+        popup.close()
+      }
+
       router.refresh()
     } catch (err: unknown) {
+      if (popup) popup.close()
       setError(err instanceof Error ? err.message : "Something went wrong")
     } finally {
       setLoading(false)

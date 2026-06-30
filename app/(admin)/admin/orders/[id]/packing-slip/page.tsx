@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import { Package, Store } from "lucide-react"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/auth/helpers"
+import { formatUSD } from "@/lib/utils/format"
 import { PrintTrigger } from "./print-trigger"
 
 export const metadata = { title: "Packing Slip | Metamorfosis" }
@@ -9,9 +10,10 @@ export const metadata = { title: "Packing Slip | Metamorfosis" }
 interface OrderItem {
   id: string
   quantity: number
+  unit_price_cents: number
   product_variations: {
     name_en: string
-    product_translations: { name_en: string }[]
+    product_translations: { name_en: string } | null
   } | null
 }
 
@@ -27,7 +29,7 @@ export default async function PackingSlipPage(props: {
     .select(
       `*,
       order_items (
-        id, quantity,
+        id, quantity, unit_price_cents,
         product_variations (
           name_en,
           product_translations ( name_en )
@@ -43,6 +45,9 @@ export default async function PackingSlipPage(props: {
   const items = order.order_items as unknown as OrderItem[]
   const address = order.shipping_address as Record<string, string> | null
 
+  const isPickup =
+    order.shipping_method === "pickup" || order.carrier === "pickup"
+
   return (
     <div className="mx-auto min-h-screen max-w-sm bg-white p-4 font-sans text-black print:m-0 print:p-0">
       <PrintTrigger />
@@ -56,9 +61,12 @@ export default async function PackingSlipPage(props: {
           <p className="text-sm font-medium">
             Order #{order.id.slice(0, 8).toUpperCase()}
           </p>
+          <p className="mt-1 text-xs text-gray-500">
+            {new Date(order.created_at).toLocaleString()}
+          </p>
         </div>
 
-        {order.shipping_method === "pickup" && (
+        {isPickup && (
           <div className="rounded-md border-4 border-black py-2 text-center">
             <span className="text-xl font-black tracking-widest uppercase">
               Store Pickup
@@ -68,11 +76,23 @@ export default async function PackingSlipPage(props: {
 
         <div className="flex flex-col gap-1">
           <h2 className="text-xs font-bold tracking-wider text-gray-500 uppercase">
-            Customer
+            Customer Info
           </h2>
           <p className="text-lg font-bold">{address?.fullName || "Guest"}</p>
+          {address?.phone && (
+            <p className="text-sm font-medium">{address.phone}</p>
+          )}
           {address?.email && (
             <p className="text-sm font-medium">{address.email}</p>
+          )}
+          {address?.streetLine1 && (
+            <div className="mt-1 text-sm font-medium">
+              <p>{address.streetLine1}</p>
+              {address.streetLine2 && <p>{address.streetLine2}</p>}
+              <p>
+                {address.city}, {address.state} {address.zip}
+              </p>
+            </div>
           )}
         </div>
 
@@ -84,7 +104,7 @@ export default async function PackingSlipPage(props: {
           <div className="flex flex-col gap-3">
             {items?.map((item) => {
               const productName =
-                item.product_variations?.product_translations?.[0]?.name_en ||
+                item.product_variations?.product_translations?.name_en ||
                 "Unknown Product"
               const variationName = item.product_variations?.name_en || ""
 
@@ -100,13 +120,58 @@ export default async function PackingSlipPage(props: {
                     <span className="mt-0.5 text-sm font-medium text-gray-600">
                       {variationName}
                     </span>
+                    <span className="mt-1 text-xs font-medium">
+                      {formatUSD(item.unit_price_cents)} x {item.quantity}
+                    </span>
                   </div>
-                  <div className="flex shrink-0 items-center justify-center rounded bg-black px-2.5 py-1 text-white">
-                    <span className="text-sm font-bold">x{item.quantity}</span>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <div className="flex shrink-0 items-center justify-center rounded bg-black px-2.5 py-1 text-white">
+                      <span className="text-sm font-bold">
+                        x{item.quantity}
+                      </span>
+                    </div>
+                    <span className="text-sm font-bold">
+                      {formatUSD(item.unit_price_cents * item.quantity)}
+                    </span>
                   </div>
                 </div>
               )
             })}
+          </div>
+        </div>
+
+        <div className="border-t border-black pt-4">
+          <div className="flex flex-col gap-1.5 text-sm">
+            <div className="flex justify-between text-gray-600">
+              <span>Subtotal</span>
+              <span>{formatUSD(order.subtotal_cents)}</span>
+            </div>
+            {order.discount_cents > 0 && (
+              <div className="flex justify-between text-gray-600">
+                <span>Discount</span>
+                <span>-{formatUSD(order.discount_cents)}</span>
+              </div>
+            )}
+            {order.surcharge_cents > 0 && (
+              <div className="flex justify-between text-gray-600">
+                <span>Fee</span>
+                <span>{formatUSD(order.surcharge_cents)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-gray-600">
+              <span>Taxes</span>
+              <span>{formatUSD(order.tax_cents)}</span>
+            </div>
+            {order.shipping_cents > 0 && (
+              <div className="flex justify-between text-gray-600">
+                <span>Shipping</span>
+                <span>{formatUSD(order.shipping_cents)}</span>
+              </div>
+            )}
+            <div className="mt-2 flex justify-between border-t border-dashed border-gray-300 pt-2 text-base font-bold">
+              <span>Total</span>
+              <span>{formatUSD(order.total_cents)}</span>
+            </div>
           </div>
         </div>
       </div>
