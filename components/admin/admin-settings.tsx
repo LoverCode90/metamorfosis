@@ -7,6 +7,7 @@ import { SignOutButton } from "@/components/auth/sign-out-button"
 import { AdminAppearance } from "@/components/admin/settings/admin-appearance"
 import { AdminProfileForm } from "@/components/admin/settings/admin-profile-form"
 import { useUser } from "@/hooks/use-user"
+import { SyncCatalogButton } from "@/components/admin/settings/sync-catalog-button"
 
 /**
  * Admin settings page: editable profile name, admin-only appearance
@@ -61,6 +62,16 @@ export function AdminSettings() {
       </section>
 
       <AdminAppearance />
+
+      <section className="border-border bg-card rounded-2xl border p-6">
+        <h2 className="text-foreground text-sm font-semibold">Catalog</h2>
+        <p className="text-muted-foreground mt-1 text-xs">
+          Manually synchronize the product catalog with Square.
+        </p>
+        <div className="mt-4">
+          <SyncCatalogButton />
+        </div>
+      </section>
 
       <section className="border-border bg-card rounded-2xl border p-6">
         <h2 className="text-foreground text-sm font-semibold">Account</h2>

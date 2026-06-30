@@ -62,7 +62,7 @@ export async function POST(
     const { error: updateError } = await admin
       .from("orders")
       .update({
-        status: "shipped",
+        status: "confirmed",
         shippo_transaction_id: label.transactionId,
         tracking_number: label.trackingNumber,
         tracking_url: label.trackingUrl,
@@ -83,7 +83,7 @@ export async function POST(
       target_id: orderId,
       new_value: {
         tracking_number: label.trackingNumber,
-        status: "shipped",
+        status: "confirmed",
       },
       notes: "Generated shipping label via Shippo.",
     })

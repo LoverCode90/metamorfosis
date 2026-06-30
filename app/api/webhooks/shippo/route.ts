@@ -74,14 +74,23 @@ export async function POST(request: NextRequest) {
     }
 
     if (Object.keys(updatePayload).length > 0) {
-      const { error } = await admin
-        .from("orders")
-        .update(updatePayload)
-        .eq("tracking_number", trackingNumber)
+      try {
+        const { error: updateError } = await admin
+          .from("orders")
+          .update(updatePayload)
+          .eq("tracking_number", trackingNumber)
 
-      if (error) {
-        console.error("[shippo-webhook] track_updated DB update failed:", error)
-        return NextResponse.json({ error: "DB error" }, { status: 500 })
+        if (updateError) {
+          console.error(
+            "[shippo-webhook] track_updated DB update failed:",
+            updateError,
+          )
+        }
+      } catch (dbException) {
+        console.error(
+          "[shippo-webhook] track_updated DB exception:",
+          dbException,
+        )
       }
     }
   }
@@ -103,24 +112,32 @@ export async function POST(request: NextRequest) {
       const updatePayload: Record<string, unknown> = {
         shippo_transaction_id: transactionId,
         tracking_number: trackingNumber,
-        status: "shipped",
+        status: "confirmed",
       }
       if (txData.tracking_url_provider) {
         updatePayload.tracking_url = txData.tracking_url_provider
       }
 
-      const query = admin.from("orders").update(updatePayload)
-      if (orderId) {
-        query.eq("id", orderId)
-      } else {
-        // Fall back to transaction ID match
-        query.eq("shippo_transaction_id", transactionId)
-      }
-      const { error } = await query
-      if (error) {
+      try {
+        const query = admin.from("orders").update(updatePayload)
+        if (orderId) {
+          query.eq("id", orderId)
+        } else {
+          // Fall back to transaction ID match
+          query.eq("shippo_transaction_id", transactionId)
+        }
+
+        const { error: transactionUpdateError } = await query
+        if (transactionUpdateError) {
+          console.error(
+            "[shippo-webhook] transaction_created DB update failed:",
+            transactionUpdateError,
+          )
+        }
+      } catch (transactionException) {
         console.error(
-          "[shippo-webhook] transaction_created DB update failed:",
-          error,
+          "[shippo-webhook] transaction_created DB exception:",
+          transactionException,
         )
       }
     }
