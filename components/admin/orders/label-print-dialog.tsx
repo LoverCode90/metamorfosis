@@ -41,7 +41,7 @@ export function LabelPrintDialog({
     handlePrint,
     markIframeReady,
     resetIframeReady,
-  } = useLabelPrintAction({ orderId, isDialogOpen: open })
+  } = useLabelPrintAction({ orderId })
 
   return (
     <Dialog

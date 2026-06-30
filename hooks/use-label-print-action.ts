@@ -3,17 +3,14 @@
 import { useCallback, useRef, useState } from "react"
 
 import { buildLabelPrintUrls } from "@/lib/admin/label-print-urls"
+import { printLabelPdfFromUrl } from "@/lib/admin/print-label-pdf"
 
 interface UseLabelPrintActionOptions {
   orderId: string
-  isDialogOpen: boolean
 }
 
-/** Handles iframe and blob fallback printing for Shippo label PDFs. */
-export function useLabelPrintAction({
-  orderId,
-  isDialogOpen,
-}: UseLabelPrintActionOptions) {
+/** Preview iframe + blob-based print (avoids cross-origin iframe.print on mobile). */
+export function useLabelPrintAction({ orderId }: UseLabelPrintActionOptions) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [iframeReady, setIframeReady] = useState(false)
   const [isPrinting, setIsPrinting] = useState(false)
@@ -30,26 +27,7 @@ export function useLabelPrintAction({
   const handlePrint = useCallback(async () => {
     setIsPrinting(true)
     try {
-      const frame = iframeRef.current
-      if (frame?.contentWindow && iframeReady) {
-        frame.contentWindow.focus()
-        frame.contentWindow.print()
-        return
-      }
-
-      const response = await fetch(pdfUrl)
-      if (!response.ok) throw new Error("Could not load label PDF")
-      const blob = await response.blob()
-      const blobUrl = URL.createObjectURL(blob)
-      const printWindow = window.open(blobUrl, "_blank")
-      if (!printWindow) {
-        throw new Error("Pop-up blocked — allow pop-ups to print")
-      }
-      printWindow.addEventListener("load", () => {
-        printWindow.focus()
-        printWindow.print()
-      })
-      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000)
+      await printLabelPdfFromUrl(pdfUrl)
     } catch (printError: unknown) {
       const message =
         printError instanceof Error ? printError.message : "Print failed"
@@ -57,16 +35,14 @@ export function useLabelPrintAction({
     } finally {
       setIsPrinting(false)
     }
-  }, [iframeReady, pdfUrl])
-
-  const isPrintDisabled = isPrinting || (!iframeReady && isDialogOpen)
+  }, [pdfUrl])
 
   return {
     iframeRef,
     pdfUrl,
     iframeReady,
     isPrinting,
-    isPrintDisabled,
+    isPrintDisabled: isPrinting,
     handlePrint,
     markIframeReady,
     resetIframeReady,
