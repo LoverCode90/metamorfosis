@@ -4,16 +4,17 @@ import { ArrowLeft } from "lucide-react"
 
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/auth/helpers"
-import { CaseActions } from "@/components/admin/cases/case-actions"
+import { CaseCustomerInfoCard } from "@/components/admin/cases/case-customer-info-card"
+import { CaseEvidenceCard } from "@/components/admin/cases/case-evidence-card"
 import { CaseIssueDetails } from "@/components/admin/cases/case-issue-details"
 import { CaseMessagePanel } from "@/components/admin/cases/case-message-panel"
-import {
-  CaseCustomerInfoCard,
-  CaseOrderContextCard,
-} from "@/components/admin/cases/case-context-cards"
-import { EvidenceGallery } from "@/components/admin/cases/evidence-gallery"
+import { CaseOrderContextCard } from "@/components/admin/cases/case-order-context-card"
+import { CaseResolutionActionsCard } from "@/components/admin/cases/case-resolution-actions-card"
 import { AdminPageHeader } from "@/components/admin/ui/admin-page-header"
-import { ADMIN_SERVER_CARD_CLASS } from "@/lib/admin/card-styles"
+import {
+  CASE_DETAIL_PRIMARY_GRID_CLASS,
+  CASE_DETAIL_SPLIT_GRID_CLASS,
+} from "@/lib/admin/case-detail-grid"
 import { Badge } from "@/components/ui/badge"
 import { caseStatusBadge } from "@/lib/admin/status-badge"
 import type { AdminCaseDetail } from "@/lib/cases/types"
@@ -47,6 +48,7 @@ export default async function AdminCaseDetailPage(props: {
 
   const badge = caseStatusBadge(caseData.status)
   const caseNumber = caseData.id.slice(0, 8).toUpperCase()
+  const customerEmail = caseData.profiles?.email ?? ""
 
   return (
     <div className="space-y-6 pb-12">
@@ -69,41 +71,27 @@ export default async function AdminCaseDetailPage(props: {
         </Badge>
       </div>
 
-      <section className={`${ADMIN_SERVER_CARD_CLASS} p-5 sm:p-6`}>
-        <div className="mb-5">
-          <h2 className="text-foreground text-sm font-semibold tracking-tight">
-            Resolution actions
-          </h2>
-          <p className="text-muted-foreground mt-1 text-xs">
-            Approve, reject, or request more information from the customer.
-          </p>
-        </div>
-        <CaseActions
+      <div className={CASE_DETAIL_PRIMARY_GRID_CLASS}>
+        <CaseResolutionActionsCard
           caseId={caseData.id}
           caseNumber={caseNumber}
-          customerEmail={caseData.profiles?.email ?? ""}
+          customerEmail={customerEmail}
           status={caseData.status}
         />
-      </section>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <CaseIssueDetails caseData={caseData} />
-        <CaseCustomerInfoCard caseData={caseData} />
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div id="case-conversation">
-          <CaseMessagePanel caseData={caseData} />
-        </div>
         <CaseOrderContextCard caseData={caseData} className="h-fit" />
       </div>
 
-      <section className={`${ADMIN_SERVER_CARD_CLASS} p-5 sm:p-6`}>
-        <h2 className="text-foreground mb-4 text-sm font-semibold tracking-tight">
-          Evidence photos
-        </h2>
-        <EvidenceGallery caseId={caseData.id} />
-      </section>
+      <div className={CASE_DETAIL_PRIMARY_GRID_CLASS}>
+        <CaseIssueDetails caseData={caseData} />
+        <CaseCustomerInfoCard caseData={caseData} className="h-fit" />
+      </div>
+
+      <div className={CASE_DETAIL_SPLIT_GRID_CLASS}>
+        <div id="case-conversation" className="min-h-0">
+          <CaseMessagePanel caseData={caseData} />
+        </div>
+        <CaseEvidenceCard caseId={caseData.id} />
+      </div>
     </div>
   )
 }
