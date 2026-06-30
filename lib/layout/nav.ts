@@ -1,14 +1,7 @@
-import {
-  ClipboardList,
-  LayoutDashboard,
-  Lock,
-  MapPin,
-  Package,
-  ShieldCheck,
-  ShoppingBag,
-  User,
-} from "lucide-react"
+import { Lock, MapPin, Package, User } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+
+import { ADMIN_PANEL_NAV_ITEMS } from "@/lib/admin/nav-config"
 
 export interface NavLink {
   href: string
@@ -26,13 +19,14 @@ export const CUSTOMER_NAV_LINKS: NavLink[] = [
   { href: "/about", label: "About" },
 ]
 
-/** Admin dashboard navigation links. */
-export const ADMIN_NAV_LINKS: AdminNavLink[] = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/verifications", label: "Verifications", icon: ShieldCheck },
-  { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
-  { href: "/admin/cases", label: "Cases", icon: ClipboardList },
-]
+/** Admin dashboard navigation links (shop-context header). */
+export const ADMIN_NAV_LINKS: AdminNavLink[] = ADMIN_PANEL_NAV_ITEMS.filter(
+  (item) => item.href !== "/admin/settings",
+).map((item) => ({
+  href: item.href,
+  label: item.label,
+  icon: item.icon,
+}))
 
 /**
  * Whether a nav link is active for the current path. The root/dashboard links

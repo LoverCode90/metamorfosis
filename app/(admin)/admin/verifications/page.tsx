@@ -6,7 +6,7 @@ export const metadata = {
 
 export default function VerificationsPage() {
   return (
-    <div className="flex h-[calc(100vh-5rem)] flex-col gap-4">
+    <div className="flex min-h-0 flex-1 flex-col gap-4">
       <div>
         <h1 className="text-foreground text-xl font-semibold tracking-tight">
           Professional Verifications
