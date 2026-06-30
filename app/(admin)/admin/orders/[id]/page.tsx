@@ -8,9 +8,9 @@ import {
   OrderCustomerCard,
   type AdminShippingAddress,
 } from "@/components/admin/orders/order-customer-card"
-import type { PackingSlipData } from "@/components/admin/orders/packing-slip-print"
+import type { PackingSlipData } from "@/lib/admin/packing-slip-types"
+import { mapOrderToPackingSlipData } from "@/lib/admin/map-order-to-packing-slip"
 import { AdminPageHeader } from "@/components/admin/ui/admin-page-header"
-import { ADMIN_SERVER_CARD_CLASS } from "@/lib/admin/card-styles"
 import { Badge } from "@/components/ui/badge"
 import { orderStatusBadge } from "@/lib/admin/status-badge"
 
@@ -44,40 +44,7 @@ export default async function AdminOrderDetailPage(props: {
   const badge = orderStatusBadge(order.status)
   const canCancel = ["pending", "confirmed"].includes(order.status)
 
-  const isPickup =
-    order.shipping_method === "pickup" || order.carrier === "pickup"
-
-  const packingSlip: PackingSlipData = {
-    orderId: order.id,
-    createdAt: order.created_at,
-    isPickup,
-    address: (order.shipping_address as PackingSlipData["address"]) ?? null,
-    items: (order.order_items ?? []).map(
-      (item: {
-        id: string
-        quantity: number
-        unit_price_cents: number
-        product_variations: {
-          name_en: string
-          product_translations: { name_en: string } | null
-        } | null
-      }) => ({
-        id: item.id,
-        quantity: item.quantity,
-        unitPriceCents: item.unit_price_cents,
-        productName:
-          item.product_variations?.product_translations?.name_en ??
-          "Unknown Product",
-        variationName: item.product_variations?.name_en ?? "",
-      }),
-    ),
-    subtotalCents: order.subtotal_cents,
-    discountCents: order.discount_cents,
-    surchargeCents: order.surcharge_cents ?? 0,
-    taxCents: order.tax_cents,
-    shippingCents: order.shipping_cents,
-    totalCents: order.total_cents,
-  }
+  const packingSlip: PackingSlipData = mapOrderToPackingSlipData(order)
 
   return (
     <div className="space-y-6">
@@ -92,33 +59,29 @@ export default async function AdminOrderDetailPage(props: {
         }
       />
 
-      <div className={`${ADMIN_SERVER_CARD_CLASS} p-4 sm:p-5`}>
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="space-y-4">
-            <OrderFulfillmentCard
-              orderId={order.id}
-              status={order.status}
-              trackingNumber={order.tracking_number}
-              trackingUrl={order.tracking_url}
-              carrier={order.carrier}
-              shippingMethod={order.shipping_method}
-              shippoTransactionId={order.shippo_transaction_id}
-              packingSlip={packingSlip}
-              embedded
-            />
-            <OrderCustomerCard address={addr} compact embedded />
-          </div>
-
-          <OrderItemsSummaryCard
-            embedded
-            items={order.order_items ?? []}
-            subtotalCents={order.subtotal_cents}
-            shippingCents={order.shipping_cents}
-            taxCents={order.tax_cents}
-            discountCents={order.discount_cents}
-            totalCents={order.total_cents}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="space-y-6">
+          <OrderFulfillmentCard
+            orderId={order.id}
+            status={order.status}
+            trackingNumber={order.tracking_number}
+            trackingUrl={order.tracking_url}
+            carrier={order.carrier}
+            shippingMethod={order.shipping_method}
+            shippoTransactionId={order.shippo_transaction_id}
+            packingSlip={packingSlip}
           />
+          <OrderCustomerCard address={addr} compact />
         </div>
+
+        <OrderItemsSummaryCard
+          items={order.order_items ?? []}
+          subtotalCents={order.subtotal_cents}
+          shippingCents={order.shipping_cents}
+          taxCents={order.tax_cents}
+          discountCents={order.discount_cents}
+          totalCents={order.total_cents}
+        />
       </div>
     </div>
   )

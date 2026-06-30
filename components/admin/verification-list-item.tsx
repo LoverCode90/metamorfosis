@@ -1,8 +1,10 @@
 "use client"
 
+import { memo } from "react"
 import { ChevronRight } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { displayInitialsFromName } from "@/lib/admin/display-initials"
 import {
   statusBadgeVariant,
   statusLabel,
@@ -17,17 +19,8 @@ interface VerificationListItemProps {
   onSelect: () => void
 }
 
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase()
-}
-
 /** Selectable verification row with primary highlight when active. */
-export function VerificationListItem({
+export const VerificationListItem = memo(function VerificationListItem({
   item,
   selected,
   onSelect,
@@ -52,7 +45,7 @@ export function VerificationListItem({
               : "bg-muted text-muted-foreground ring-border/60",
           )}
         >
-          {initials(item.full_name)}
+          {displayInitialsFromName(item.full_name)}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-2">
@@ -81,4 +74,6 @@ export function VerificationListItem({
       </div>
     </button>
   )
-}
+})
+
+VerificationListItem.displayName = "VerificationListItem"

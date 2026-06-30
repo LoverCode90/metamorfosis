@@ -11,7 +11,6 @@ interface OrderItemsSummaryCardProps {
   taxCents: number
   discountCents: number
   totalCents: number
-  embedded?: boolean
 }
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
@@ -31,17 +30,9 @@ export function OrderItemsSummaryCard({
   taxCents,
   discountCents,
   totalCents,
-  embedded = false,
 }: OrderItemsSummaryCardProps) {
   return (
-    <div
-      className={cn(
-        embedded
-          ? "flex h-full flex-col"
-          : cn(ADMIN_SERVER_CARD_CLASS, "flex h-full flex-col p-6"),
-        embedded && "p-1",
-      )}
-    >
+    <div className={cn(ADMIN_SERVER_CARD_CLASS, "flex h-full flex-col p-6")}>
       <h2 className="text-foreground mb-4 text-base font-semibold">Items</h2>
       <ul className="divide-border flex-1 divide-y">
         {items?.map((item) => (

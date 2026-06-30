@@ -1,9 +1,11 @@
 import Link from "next/link"
+import { memo } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { ArrowRight } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { TableCell, TableRow } from "@/components/ui/table"
+import { displayInitialsFromName } from "@/lib/admin/display-initials"
 import { caseStatusBadge } from "@/lib/admin/status-badge"
 import { caseReasonLabel } from "@/lib/profile/case-reasons"
 import type { AdminCaseListItem } from "@/lib/cases/types"
@@ -15,17 +17,14 @@ function orderLabel(squareOrderId: string | undefined): string {
     : `#${squareOrderId.slice(0, 8).toUpperCase()}`
 }
 
-function customerInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase()
+interface CaseTableRowProps {
+  caseItem: AdminCaseListItem
 }
 
 /** One row of the admin cases table. */
-export function CaseTableRow({ caseItem }: { caseItem: AdminCaseListItem }) {
+export const CaseTableRow = memo(function CaseTableRow({
+  caseItem,
+}: CaseTableRowProps) {
   const badge = caseStatusBadge(caseItem.status)
   const customerName = caseItem.profiles?.full_name ?? "Unknown"
   const caseDetailHref = `/admin/cases/${caseItem.id}`
@@ -35,7 +34,7 @@ export function CaseTableRow({ caseItem }: { caseItem: AdminCaseListItem }) {
       <TableCell className="px-5 py-4">
         <Link href={caseDetailHref} className="flex items-center gap-3">
           <div className="bg-primary/15 text-primary ring-primary/25 flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ring-1">
-            {customerInitials(customerName)}
+            {displayInitialsFromName(customerName)}
           </div>
           <div className="min-w-0">
             <span className="text-foreground block font-medium break-words">
@@ -72,4 +71,6 @@ export function CaseTableRow({ caseItem }: { caseItem: AdminCaseListItem }) {
       </TableCell>
     </TableRow>
   )
-}
+})
+
+CaseTableRow.displayName = "CaseTableRow"

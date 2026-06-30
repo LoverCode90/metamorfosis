@@ -1,16 +1,8 @@
 "use client"
 
-import { useRef, useState } from "react"
-import {
-  AlertTriangle,
-  Download,
-  ExternalLink,
-  Loader2,
-  Printer,
-} from "lucide-react"
-
 import { useAdminPrefs } from "@/components/admin/admin-shell"
-import { Button } from "@/components/ui/button"
+import { LabelPrintActions } from "@/components/admin/orders/label-print-actions"
+import { LabelPrintTestModeBanner } from "@/components/admin/orders/label-print-test-mode-banner"
 import {
   Dialog,
   DialogContent,
@@ -19,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { useLabelPrintAction } from "@/hooks/use-label-print-action"
 import { cn } from "@/lib/utils"
 
 interface LabelPrintDialogProps {
@@ -40,48 +33,21 @@ export function LabelPrintDialog({
   shippoTestMode = false,
 }: LabelPrintDialogProps) {
   const { theme } = useAdminPrefs()
-  const iframeRef = useRef<HTMLIFrameElement>(null)
-  const [iframeReady, setIframeReady] = useState(false)
-  const [isPrinting, setIsPrinting] = useState(false)
-  const pdfUrl = `/api/admin/orders/${orderId}/label/pdf`
-  const downloadUrl = `${pdfUrl}?download=1`
-
-  async function handlePrint() {
-    setIsPrinting(true)
-    try {
-      const frame = iframeRef.current
-      if (frame?.contentWindow && iframeReady) {
-        frame.contentWindow.focus()
-        frame.contentWindow.print()
-        return
-      }
-
-      const response = await fetch(pdfUrl)
-      if (!response.ok) throw new Error("Could not load label PDF")
-      const blob = await response.blob()
-      const blobUrl = URL.createObjectURL(blob)
-      const printWindow = window.open(blobUrl, "_blank")
-      if (!printWindow)
-        throw new Error("Pop-up blocked — allow pop-ups to print")
-      printWindow.addEventListener("load", () => {
-        printWindow.focus()
-        printWindow.print()
-      })
-      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000)
-    } catch (printError: unknown) {
-      const message =
-        printError instanceof Error ? printError.message : "Print failed"
-      window.alert(message)
-    } finally {
-      setIsPrinting(false)
-    }
-  }
+  const {
+    iframeRef,
+    pdfUrl,
+    isPrinting,
+    isPrintDisabled,
+    handlePrint,
+    markIframeReady,
+    resetIframeReady,
+  } = useLabelPrintAction({ orderId, isDialogOpen: open })
 
   return (
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
-        if (!nextOpen) setIframeReady(false)
+        if (!nextOpen) resetIframeReady()
         onOpenChange(nextOpen)
       }}
     >
@@ -105,58 +71,25 @@ export function LabelPrintDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {shippoTestMode && (
-          <div className="flex gap-2 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <p>
-              Shippo test mode — this label is marked SAMPLE and cannot be
-              mailed. Replace <code className="text-xs">SHIPPO_API_KEY</code> in
-              Vercel with a live key from the business Shippo account.
-            </p>
-          </div>
-        )}
+        {shippoTestMode && <LabelPrintTestModeBanner />}
 
         <div className="border-border flex min-h-0 flex-1 items-center justify-center overflow-y-auto rounded-lg border bg-neutral-100 p-2 dark:bg-neutral-900">
           <iframe
             ref={iframeRef}
             src={open ? pdfUrl : undefined}
             title="Shipping label"
-            onLoad={() => setIframeReady(true)}
-            className="h-[min(50dvh,400px)] min-h-[240px] w-full max-w-[280px] bg-white"
+            onLoad={markIframeReady}
+            className="h-[min(55dvh,480px)] min-h-[320px] w-full max-w-[240px] bg-white"
           />
         </div>
 
         <DialogFooter className="shrink-0">
-          <div className="flex w-full flex-wrap gap-2">
-            <Button
-              type="button"
-              onClick={handlePrint}
-              disabled={isPrinting || (!iframeReady && open)}
-            >
-              {isPrinting ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Printer className="mr-2 h-4 w-4" />
-              )}
-              Print
-            </Button>
-            <Button
-              variant="outline"
-              render={<a href={downloadUrl} download />}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download
-            </Button>
-            <Button
-              variant="outline"
-              render={
-                <a href={pdfUrl} target="_blank" rel="noopener noreferrer" />
-              }
-            >
-              <ExternalLink className="mr-2 h-4 w-4" />
-              Open in tab
-            </Button>
-          </div>
+          <LabelPrintActions
+            orderId={orderId}
+            isPrinting={isPrinting}
+            isPrintDisabled={isPrintDisabled}
+            onPrintClick={handlePrint}
+          />
         </DialogFooter>
       </DialogContent>
     </Dialog>

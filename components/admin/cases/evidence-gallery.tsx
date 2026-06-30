@@ -52,18 +52,18 @@ export function EvidenceGallery({ caseId }: { caseId: string }) {
 
   return (
     <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-      {urls.map((url, i) => (
+      {urls.map((evidenceUrl, imageIndex) => (
         <a
-          key={i}
-          href={url}
+          key={evidenceUrl}
+          href={evidenceUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="border-border relative block aspect-square overflow-hidden rounded-md border transition-opacity hover:opacity-90"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={url}
-            alt={`Evidence ${i + 1}`}
+            src={evidenceUrl}
+            alt={`Evidence ${imageIndex + 1}`}
             className="h-full w-full object-cover"
           />
         </a>

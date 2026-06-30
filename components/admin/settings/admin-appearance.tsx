@@ -84,17 +84,19 @@ export function AdminAppearance({ embedded = false }: { embedded?: boolean }) {
             }}
           />
           <div className="text-muted-foreground mt-2 flex justify-between text-xs">
-            {FONT_SIZE_ORDER.map((f) => (
+            {FONT_SIZE_ORDER.map((fontSizeOption) => (
               <Button
-                key={f}
+                key={fontSizeOption}
                 variant="ghost"
                 size="xs"
-                onClick={() => setFontSize(f)}
+                onClick={() => setFontSize(fontSizeOption)}
                 className={cn(
-                  f === fontSize ? "text-foreground font-semibold" : undefined,
+                  fontSizeOption === fontSize
+                    ? "text-foreground font-semibold"
+                    : undefined,
                 )}
               >
-                {FONT_SIZE_LABELS[f]}
+                {FONT_SIZE_LABELS[fontSizeOption]}
               </Button>
             ))}
           </div>

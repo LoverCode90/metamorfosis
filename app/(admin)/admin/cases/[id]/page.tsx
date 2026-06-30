@@ -69,43 +69,41 @@ export default async function AdminCaseDetailPage(props: {
         </Badge>
       </div>
 
-      <div className={`${ADMIN_SERVER_CARD_CLASS} space-y-4 p-4 sm:p-5`}>
-        <section className="border-border rounded-xl border p-4 sm:p-5">
-          <div className="mb-4">
-            <h2 className="text-foreground text-sm font-semibold tracking-tight">
-              Resolution actions
-            </h2>
-            <p className="text-muted-foreground mt-1 text-xs">
-              Approve, reject, or request more information from the customer.
-            </p>
-          </div>
-          <CaseActions
-            caseId={caseData.id}
-            caseNumber={caseNumber}
-            customerEmail={caseData.profiles?.email ?? ""}
-            status={caseData.status}
-          />
-        </section>
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          <CaseIssueDetails caseData={caseData} embedded />
-          <CaseCustomerInfoCard caseData={caseData} />
-        </div>
-
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div id="case-conversation">
-            <CaseMessagePanel caseData={caseData} />
-          </div>
-          <CaseOrderContextCard caseData={caseData} className="h-fit" />
-        </div>
-
-        <section className="border-border rounded-xl border p-4 sm:p-5">
-          <h2 className="text-foreground mb-4 text-sm font-semibold tracking-tight">
-            Evidence photos
+      <section className={`${ADMIN_SERVER_CARD_CLASS} p-5 sm:p-6`}>
+        <div className="mb-5">
+          <h2 className="text-foreground text-sm font-semibold tracking-tight">
+            Resolution actions
           </h2>
-          <EvidenceGallery caseId={caseData.id} />
-        </section>
+          <p className="text-muted-foreground mt-1 text-xs">
+            Approve, reject, or request more information from the customer.
+          </p>
+        </div>
+        <CaseActions
+          caseId={caseData.id}
+          caseNumber={caseNumber}
+          customerEmail={caseData.profiles?.email ?? ""}
+          status={caseData.status}
+        />
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <CaseIssueDetails caseData={caseData} />
+        <CaseCustomerInfoCard caseData={caseData} />
       </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div id="case-conversation">
+          <CaseMessagePanel caseData={caseData} />
+        </div>
+        <CaseOrderContextCard caseData={caseData} className="h-fit" />
+      </div>
+
+      <section className={`${ADMIN_SERVER_CARD_CLASS} p-5 sm:p-6`}>
+        <h2 className="text-foreground mb-4 text-sm font-semibold tracking-tight">
+          Evidence photos
+        </h2>
+        <EvidenceGallery caseId={caseData.id} />
+      </section>
     </div>
   )
 }

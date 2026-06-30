@@ -1,8 +1,10 @@
 import Link from "next/link"
+import { memo } from "react"
 import { ArrowRight, Check, Minus } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { TableCell, TableRow } from "@/components/ui/table"
+import { displayInitialsFromName } from "@/lib/admin/display-initials"
 import { orderStatusBadge } from "@/lib/admin/status-badge"
 import { formatUSD } from "@/lib/utils/format"
 import {
@@ -13,24 +15,25 @@ import {
   type AdminOrderListItem,
 } from "@/lib/admin/order-list"
 
+interface OrderTableRowProps {
+  order: AdminOrderListItem
+}
+
 /** One row of the admin orders table. */
-export function OrderTableRow({ order }: { order: AdminOrderListItem }) {
+export const OrderTableRow = memo(function OrderTableRow({
+  order,
+}: OrderTableRowProps) {
   const statusBadge = orderStatusBadge(order.status)
   const orderDetailHref = `/admin/orders/${order.id}`
   const customerDisplayName = customerName(order)
-  const customerInitials = customerDisplayName
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase()
+  const customerInitials = displayInitialsFromName(customerDisplayName)
 
   return (
     <TableRow className="border-border/40 hover:bg-primary/5 data-[state=selected]:bg-primary/10">
       <TableCell className="px-5 py-4">
         <Link href={orderDetailHref} className="flex items-center gap-3">
           <div className="bg-primary/15 text-primary ring-primary/25 flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ring-1">
-            {customerInitials || "?"}
+            {customerInitials}
           </div>
           <div className="min-w-0">
             <span className="text-foreground block font-medium break-words">
@@ -79,4 +82,6 @@ export function OrderTableRow({ order }: { order: AdminOrderListItem }) {
       </TableCell>
     </TableRow>
   )
-}
+})
+
+OrderTableRow.displayName = "OrderTableRow"

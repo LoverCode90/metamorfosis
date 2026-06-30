@@ -1,40 +1,34 @@
 "use client"
 
-import Link from "next/link"
-import { Bell, MessageCircle } from "lucide-react"
+import { useCallback } from "react"
+import { useRouter } from "next/navigation"
+import { Bell } from "lucide-react"
+import { Popover } from "@base-ui/react/popover"
 
+import { AdminNotificationPanel } from "@/components/admin/sidebar/admin-notification-panel"
 import { useAdminCaseNotifications } from "@/hooks/use-admin-case-notifications"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 
-function formatRelativeTime(isoDate: string): string {
-  const diffMs = Date.now() - new Date(isoDate).getTime()
-  const diffMinutes = Math.floor(diffMs / 60_000)
-  if (diffMinutes < 1) return "Just now"
-  if (diffMinutes < 60) return `${diffMinutes}m ago`
-  const diffHours = Math.floor(diffMinutes / 60)
-  if (diffHours < 24) return `${diffHours}h ago`
-  return new Date(isoDate).toLocaleDateString()
-}
-
-/** Header bell for customer case messages that need a reply. */
+/** Header bell — opens a notifications panel; items link to the case chat. */
 export function AdminNotificationBell() {
+  const router = useRouter()
   const { notifications, count, isLoading, refresh } =
     useAdminCaseNotifications()
 
+  const handleNotificationClick = useCallback(
+    (caseId: string) => {
+      router.push(`/admin/cases/${caseId}#case-conversation`)
+    },
+    [router],
+  )
+
   return (
-    <DropdownMenu onOpenChange={(open) => open && refresh()}>
-      <DropdownMenuTrigger
+    <Popover.Root onOpenChange={(open) => open && refresh()}>
+      <Popover.Trigger
         render={
           <Button
+            type="button"
             variant="ghost"
             size="icon"
             className="relative size-9 shrink-0"
@@ -48,54 +42,33 @@ export function AdminNotificationBell() {
             {count > 9 ? "9+" : count}
           </span>
         )}
-      </DropdownMenuTrigger>
+      </Popover.Trigger>
 
-      <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel>Case messages</DropdownMenuLabel>
-        <DropdownMenuSeparator />
+      <Popover.Portal>
+        <Popover.Positioner align="end" sideOffset={8} className="z-50">
+          <Popover.Popup
+            className={cn(
+              "bg-popover text-popover-foreground border-border w-[min(100vw-2rem,22rem)] overflow-hidden rounded-xl border shadow-lg",
+              "data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95",
+              "data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            )}
+          >
+            <div className="border-border border-b px-4 py-3">
+              <h2 className="text-foreground text-sm font-semibold">
+                Notifications
+              </h2>
+            </div>
 
-        {isLoading ? (
-          <p className="text-muted-foreground px-2 py-4 text-center text-sm">
-            Loading…
-          </p>
-        ) : notifications.length === 0 ? (
-          <p className="text-muted-foreground px-2 py-4 text-center text-sm">
-            You have no notifications
-          </p>
-        ) : (
-          notifications.map((notification) => (
-            <DropdownMenuItem
-              key={notification.latestMessageId}
-              className="flex flex-col items-start gap-1 p-3"
-              render={
-                <Link
-                  href={`/admin/cases/${notification.caseId}#case-conversation`}
-                />
-              }
-            >
-              <div className="flex w-full items-center gap-2">
-                <MessageCircle className="text-primary size-3.5 shrink-0" />
-                <span className="text-foreground text-sm font-medium">
-                  Case #{notification.caseNumber}
-                </span>
-                <span className="text-muted-foreground ml-auto text-xs">
-                  {formatRelativeTime(notification.createdAt)}
-                </span>
-              </div>
-              <span className="text-muted-foreground text-xs">
-                {notification.customerName}
-              </span>
-              <p
-                className={cn(
-                  "text-muted-foreground line-clamp-2 w-full text-xs",
-                )}
-              >
-                {notification.messagePreview}
-              </p>
-            </DropdownMenuItem>
-          ))
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
+            <div className="max-h-[min(24rem,60dvh)] overflow-y-auto">
+              <AdminNotificationPanel
+                notifications={notifications}
+                isLoading={isLoading}
+                onNotificationClick={handleNotificationClick}
+              />
+            </div>
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
   )
 }
