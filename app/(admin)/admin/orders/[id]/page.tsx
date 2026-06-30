@@ -85,6 +85,7 @@ export default async function AdminOrderDetailPage(props: {
             trackingNumber={order.tracking_number}
             trackingUrl={order.tracking_url}
             carrier={order.carrier}
+            shippingMethod={order.shipping_method}
           />
           <OrderSummaryCard
             subtotalCents={order.subtotal_cents}
