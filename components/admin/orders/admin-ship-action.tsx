@@ -2,15 +2,40 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Truck } from "lucide-react"
+import Link from "next/link"
+import { Loader2, Truck, Printer } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 
-/** Generates a Shippo shipping label for an order, then refreshes the page. */
-export function AdminShipAction({ orderId }: { orderId: string }) {
+interface AdminShipActionProps {
+  orderId: string
+  shippingMethod?: string | null
+}
+
+/** Generates a Shippo shipping label for an order, or provides a packing slip link for pickups. */
+export function AdminShipAction({
+  orderId,
+  shippingMethod,
+}: AdminShipActionProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+
+  const isPickup = shippingMethod?.toLowerCase().includes("pickup")
+
+  if (isPickup) {
+    return (
+      <Link
+        href={`/admin/orders/${orderId}/packing-slip`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={buttonVariants({ variant: "default" })}
+      >
+        <Printer className="mr-2 h-4 w-4" />
+        Print Packing Slip
+      </Link>
+    )
+  }
 
   async function generateLabel() {
     setLoading(true)
