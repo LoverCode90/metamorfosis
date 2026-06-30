@@ -58,11 +58,10 @@ export function AdminShipAction({
       const data = await res.json().catch(() => ({}))
 
       if (!res.ok) {
-        const errorMsg =
-          data.error ||
-          data.details ||
-          data.message ||
-          "Failed to generate label"
+        let errorMsg = data.error || "Failed to generate label"
+        if (data.details) {
+          errorMsg = `${errorMsg}: ${data.details}`
+        }
         throw new Error(errorMsg)
       }
 
