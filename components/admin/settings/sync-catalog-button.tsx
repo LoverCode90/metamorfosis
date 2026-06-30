@@ -1,8 +1,11 @@
 "use client"
 
 import { Loader2, RefreshCw, CheckCircle2, AlertCircle } from "lucide-react"
+
+import { ADMIN_PRIMARY_BUTTON_CLASS } from "@/lib/admin/card-styles"
 import { Button } from "@/components/ui/button"
 import { useSyncCatalog } from "@/hooks/use-sync-catalog"
+import { cn } from "@/lib/utils"
 
 /**
  * UI component displaying the catalog synchronization button and its execution results.
@@ -20,7 +23,7 @@ export function SyncCatalogButton() {
           size="default"
           onClick={handleSyncCatalog}
           disabled={isSyncing}
-          className="w-full sm:w-auto"
+          className={cn("w-full sm:w-auto", ADMIN_PRIMARY_BUTTON_CLASS)}
         >
           {isSyncing ? (
             <>

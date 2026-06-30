@@ -1,87 +1,91 @@
 "use client"
 
-import { Loader2, ShieldCheck } from "lucide-react"
+import { Loader2, Palette, RefreshCw, ShieldCheck, User } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { SignOutButton } from "@/components/auth/sign-out-button"
 import { AdminAppearance } from "@/components/admin/settings/admin-appearance"
 import { AdminProfileForm } from "@/components/admin/settings/admin-profile-form"
+import {
+  AdminBentoGrid,
+  AdminPageHeader,
+} from "@/components/admin/ui/admin-page-header"
+import { AdminSurfaceCard } from "@/components/admin/ui/admin-surface-card"
 import { useUser } from "@/hooks/use-user"
 import { SyncCatalogButton } from "@/components/admin/settings/sync-catalog-button"
 
-/**
- * Admin settings page: editable profile name, admin-only appearance
- * preferences, and sign out. Data comes from {@link useUser}; the editable
- * form state lives in {@link AdminProfileForm}.
- */
+/** Admin settings in a responsive bento grid with premium cards. */
 export function AdminSettings() {
   const { profile, dbProfile, updateProfile, isLoading } = useUser()
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
-      <div>
-        <h1 className="text-foreground text-2xl font-semibold tracking-tight">
-          Settings
-        </h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Manage your admin account and display preferences.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <AdminPageHeader
+        title="Settings"
+        description="Manage your admin account, appearance preferences, and catalog tools."
+      />
 
-      <section className="border-border bg-card rounded-2xl border p-6">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-foreground text-sm font-semibold">Profile</h2>
-          <Badge variant="violet">
-            <ShieldCheck className="h-3 w-3" strokeWidth={2} />
-            Admin
-          </Badge>
-        </div>
+      <AdminBentoGrid>
+        <AdminSurfaceCard
+          className="md:col-span-2 xl:col-span-2"
+          title="Profile"
+          description="Your admin display name on this dashboard."
+          icon={User}
+          headerAction={
+            <Badge variant="violet" className="shrink-0">
+              <ShieldCheck className="h-3 w-3" strokeWidth={2} />
+              Admin
+            </Badge>
+          }
+        >
+          {isLoading ? (
+            <div className="flex items-center gap-2 text-sm">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Loading…
+            </div>
+          ) : (
+            <AdminProfileForm
+              key={`${profile.firstName}|${profile.lastName}`}
+              initialFirstName={profile.firstName}
+              initialLastName={profile.lastName}
+              email={profile.email}
+              onSave={(first, last) =>
+                updateProfile({ first_name: first, last_name: last })
+              }
+            />
+          )}
+          {dbProfile?.role && dbProfile.role !== "admin" && (
+            <p className="text-destructive mt-3 text-xs">
+              Warning: this account is no longer an admin.
+            </p>
+          )}
+        </AdminSurfaceCard>
 
-        {isLoading ? (
-          <div className="mt-5 flex items-center gap-2 text-sm">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading…
-          </div>
-        ) : (
-          // Re-mounts (fresh state) whenever the loaded/saved name changes.
-          <AdminProfileForm
-            key={`${profile.firstName}|${profile.lastName}`}
-            initialFirstName={profile.firstName}
-            initialLastName={profile.lastName}
-            email={profile.email}
-            onSave={(first, last) =>
-              updateProfile({ first_name: first, last_name: last })
-            }
-          />
-        )}
-        {dbProfile?.role && dbProfile.role !== "admin" && (
-          <p className="text-destructive mt-3 text-xs">
-            Warning: this account is no longer an admin.
-          </p>
-        )}
-      </section>
+        <AdminSurfaceCard
+          title="Appearance"
+          description="Theme and text size — admin section only."
+          icon={Palette}
+        >
+          <AdminAppearance embedded />
+        </AdminSurfaceCard>
 
-      <AdminAppearance />
-
-      <section className="border-border bg-card rounded-2xl border p-6">
-        <h2 className="text-foreground text-sm font-semibold">Catalog</h2>
-        <p className="text-muted-foreground mt-1 text-xs">
-          Manually synchronize the product catalog with Square.
-        </p>
-        <div className="mt-4">
+        <AdminSurfaceCard
+          title="Catalog"
+          description="Manually synchronize the product catalog with Square."
+          icon={RefreshCw}
+        >
           <SyncCatalogButton />
-        </div>
-      </section>
+        </AdminSurfaceCard>
 
-      <section className="border-border bg-card rounded-2xl border p-6">
-        <h2 className="text-foreground text-sm font-semibold">Account</h2>
-        <p className="text-muted-foreground mt-1 text-xs">
-          Sign out of the admin dashboard.
-        </p>
-        <div className="mt-4">
-          <SignOutButton />
-        </div>
-      </section>
+        <AdminSurfaceCard
+          className="md:col-span-2"
+          title="Account"
+          description="Sign out of the admin dashboard."
+          icon={ShieldCheck}
+        >
+          <SignOutButton className="border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive/20 w-full sm:w-auto" />
+        </AdminSurfaceCard>
+      </AdminBentoGrid>
     </div>
   )
 }

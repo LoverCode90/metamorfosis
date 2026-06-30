@@ -9,7 +9,7 @@ import {
   isAdminNavItemActive,
   type AdminNavBadgeKey,
 } from "@/lib/admin/nav-config"
-import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -69,13 +69,17 @@ export function AdminNavMain({ pendingVerificationCount }: AdminNavMainProps) {
                 isActive={isActive}
                 tooltip={navigationItem.label}
                 render={<Link href={navigationItem.href} />}
+                className={cn(
+                  isActive &&
+                    "data-active:bg-primary/15 data-active:text-primary border-primary/20 [&_svg]:text-primary border shadow-[inset_0_0_0_1px_color-mix(in_oklch,var(--primary)_35%,transparent)]",
+                )}
               >
                 <IconComponent strokeWidth={1.75} />
                 <span>{navigationItem.label}</span>
                 {badgeCount > 0 && (
-                  <Badge className="ml-auto h-5 min-w-5 justify-center rounded-full bg-amber-500 px-1.5 text-[10px] text-white hover:bg-amber-500">
+                  <span className="bg-primary text-primary-foreground ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-semibold">
                     {badgeCount > 99 ? "99+" : badgeCount}
-                  </Badge>
+                  </span>
                 )}
               </SidebarMenuButton>
             </SidebarMenuItem>

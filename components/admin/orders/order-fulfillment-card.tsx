@@ -1,6 +1,8 @@
 import { AdminShipAction } from "@/components/admin/orders/admin-ship-action"
 import { AdminStatusSelect } from "@/components/admin/orders/admin-status-select"
 import type { PackingSlipData } from "@/components/admin/orders/packing-slip-print"
+import { ADMIN_SERVER_CARD_CLASS } from "@/lib/admin/card-styles"
+import { cn } from "@/lib/utils"
 
 interface OrderFulfillmentCardProps {
   orderId: string
@@ -29,7 +31,7 @@ export function OrderFulfillmentCard({
     carrier?.toLowerCase().includes("pickup")
 
   return (
-    <div className="border-border bg-card space-y-4 rounded-2xl border p-6 text-sm">
+    <div className={cn(ADMIN_SERVER_CARD_CLASS, "space-y-4 p-6 text-sm")}>
       <h2 className="text-foreground text-base font-semibold">Fulfillment</h2>
       <div className="space-y-2">
         <p className="text-muted-foreground text-xs tracking-wide uppercase">

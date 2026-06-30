@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server"
+
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { isCaseMessagingLocked } from "@/lib/cases/messaging"
 import type { CaseStatus } from "@/lib/cases/types"
-import { z } from "zod"
-
-const messageSchema = z.object({
-  message: z.string().min(1, "Message cannot be empty"),
-})
 
 export async function POST(
-  req: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -24,59 +21,54 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const json = await req.json()
-    const parsed = messageSchema.safeParse(json)
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()
 
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid data", details: parsed.error.issues },
-        { status: 400 },
-      )
+    if (profile?.role !== "admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    const { message } = parsed.data
-
-    // 1. Verify case belongs to user
-    const { data: existingCase, error: caseError } = await supabase
+    const supabaseAdmin = createAdminClient()
+    const { data: caseData, error: caseError } = await supabaseAdmin
       .from("cases")
       .select("id, status, chat_closed_at")
       .eq("id", caseId)
-      .eq("customer_id", user.id)
       .single()
 
-    if (caseError || !existingCase) {
+    if (caseError || !caseData) {
       return NextResponse.json({ error: "Case not found" }, { status: 404 })
     }
 
     if (
       isCaseMessagingLocked({
-        status: existingCase.status as CaseStatus,
-        chat_closed_at: existingCase.chat_closed_at,
+        status: caseData.status as CaseStatus,
+        chat_closed_at: caseData.chat_closed_at,
       })
     ) {
       return NextResponse.json(
-        { error: "Messaging is disabled for this case" },
-        { status: 403 },
+        { error: "Messaging is already disabled for this case" },
+        { status: 409 },
       )
     }
 
-    // 2. Add message
-    const { error: insertError } = await supabase.from("case_messages").insert({
-      case_id: caseId,
-      sender_id: user.id,
-      message,
-    })
+    const { error: updateError } = await supabaseAdmin
+      .from("cases")
+      .update({ chat_closed_at: new Date().toISOString() })
+      .eq("id", caseId)
 
-    if (insertError) {
+    if (updateError) {
       return NextResponse.json(
-        { error: "Failed to add message" },
+        { error: "Failed to close chat" },
         { status: 500 },
       )
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error("[POST /api/profile/cases/[id]/messages]", error)
+    console.error("[POST /api/admin/cases/[id]/close-chat]", error)
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },

@@ -11,11 +11,9 @@ import {
 } from "@/components/ui/sidebar"
 import { AdminNavMain } from "@/components/admin/sidebar/admin-nav-main"
 import { AdminNavQuickLinks } from "@/components/admin/sidebar/admin-nav-quick-links"
-import {
-  AdminNavUser,
-  type AdminSidebarUser,
-} from "@/components/admin/sidebar/admin-nav-user"
+import { AdminNavUser } from "@/components/admin/sidebar/admin-nav-user"
 import { AdminSidebarBrand } from "@/components/admin/sidebar/admin-sidebar-brand"
+import type { AdminSidebarUser } from "@/lib/admin/sidebar-user"
 
 interface AdminAppSidebarProps extends ComponentProps<typeof Sidebar> {
   pendingVerificationCount: number

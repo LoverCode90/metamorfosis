@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ArrowRight, Check, Minus } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { TableCell, TableRow } from "@/components/ui/table"
 import { orderStatusBadge } from "@/lib/admin/status-badge"
 import { formatUSD } from "@/lib/utils/format"
 import {
@@ -14,56 +15,68 @@ import {
 
 /** One row of the admin orders table. */
 export function OrderTableRow({ order }: { order: AdminOrderListItem }) {
-  const badge = orderStatusBadge(order.status)
-  const href = `/admin/orders/${order.id}`
+  const statusBadge = orderStatusBadge(order.status)
+  const orderDetailHref = `/admin/orders/${order.id}`
+  const customerDisplayName = customerName(order)
+  const customerInitials = customerDisplayName
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase()
 
   return (
-    <tr className="hover:bg-muted/40 transition-colors">
-      <td className="px-5 py-3">
-        <Link href={href} className="block">
-          <span className="text-foreground font-medium">
-            {customerName(order)}
-          </span>
-          <span className="text-muted-foreground block text-xs">
-            {customerEmail(order)}
-          </span>
-          <span className="text-muted-foreground block text-xs">
-            {orderLabel(order.square_order_id)}
-          </span>
+    <TableRow className="border-border/40 hover:bg-primary/5 data-[state=selected]:bg-primary/10">
+      <TableCell className="px-5 py-4">
+        <Link href={orderDetailHref} className="flex items-center gap-3">
+          <div className="bg-primary/15 text-primary ring-primary/25 flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ring-1">
+            {customerInitials || "?"}
+          </div>
+          <div className="min-w-0">
+            <span className="text-foreground block font-medium">
+              {customerDisplayName}
+            </span>
+            <span className="text-muted-foreground block truncate text-xs">
+              {customerEmail(order)}
+            </span>
+            <span className="text-muted-foreground/80 block text-[11px]">
+              {orderLabel(order.square_order_id)}
+            </span>
+          </div>
         </Link>
-      </td>
-      <td className="text-muted-foreground px-5 py-3 whitespace-nowrap">
+      </TableCell>
+      <TableCell className="text-muted-foreground px-5 py-4 whitespace-nowrap">
         {new Date(order.created_at).toLocaleDateString()}
-      </td>
-      <td className="text-muted-foreground px-5 py-3">
+      </TableCell>
+      <TableCell className="text-muted-foreground max-w-[200px] truncate px-5 py-4">
         {itemsSummary(order.order_items)}
-      </td>
-      <td className="px-5 py-3">
-        <Badge variant={badge.variant}>{badge.label}</Badge>
-      </td>
-      <td className="px-5 py-3">
+      </TableCell>
+      <TableCell className="px-5 py-4">
+        <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
+      </TableCell>
+      <TableCell className="px-5 py-4">
         {order.tracking_number ? (
-          <span className="text-accent-emerald inline-flex items-center gap-1 text-xs font-medium">
+          <span className="text-accent-emerald inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium ring-1 ring-emerald-500/20">
             <Check className="h-3.5 w-3.5" /> Yes
           </span>
         ) : (
-          <span className="text-muted-foreground inline-flex items-center gap-1 text-xs">
+          <span className="text-muted-foreground bg-muted/50 ring-border/50 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ring-1">
             <Minus className="h-3.5 w-3.5" /> No
           </span>
         )}
-      </td>
-      <td className="text-foreground px-5 py-3 text-right font-medium whitespace-nowrap">
+      </TableCell>
+      <TableCell className="text-foreground px-5 py-4 text-right font-semibold whitespace-nowrap">
         {formatUSD(order.total_cents)}
-      </td>
-      <td className="px-5 py-3 text-right">
+      </TableCell>
+      <TableCell className="px-5 py-4 text-right">
         <Link
-          href={href}
-          className="text-muted-foreground hover:bg-muted inline-flex items-center justify-center rounded-md p-2"
+          href={orderDetailHref}
+          className="text-primary hover:bg-primary/10 inline-flex items-center justify-center rounded-lg p-2 transition-colors"
           aria-label="View order"
         >
           <ArrowRight className="h-4 w-4" />
         </Link>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   )
 }

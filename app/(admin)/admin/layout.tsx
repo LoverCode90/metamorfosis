@@ -2,7 +2,7 @@ import { requireAdmin } from "@/lib/auth/helpers"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { AdminShell } from "@/components/admin/admin-shell"
 import { AdminChrome } from "@/components/admin/sidebar/admin-chrome"
-import type { AdminSidebarUser } from "@/components/admin/sidebar/admin-nav-user"
+import type { AdminSidebarUser } from "@/lib/admin/sidebar-user"
 
 export const metadata = { title: "Admin — Metamorfosis Beauty" }
 

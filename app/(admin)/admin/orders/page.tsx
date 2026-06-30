@@ -4,6 +4,18 @@ import { AdminStatusFilter } from "@/components/admin/admin-status-filter"
 import { AdminPagination } from "@/components/admin/admin-pagination"
 import { OrderTableRow } from "@/components/admin/orders/order-table-row"
 import { OrderMobileCard } from "@/components/admin/orders/order-mobile-card"
+import { AdminPageHeader } from "@/components/admin/ui/admin-page-header"
+import {
+  ADMIN_TABLE_HEAD_CLASS,
+  ADMIN_TABLE_SHELL_CLASS,
+} from "@/lib/admin/card-styles"
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import {
   ORDERS_PER_PAGE,
   type AdminOrderListItem,
@@ -56,14 +68,10 @@ export default async function AdminOrdersPage(props: {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-foreground text-2xl font-semibold tracking-tight">
-          Orders
-        </h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Manage customer web orders
-        </p>
-      </div>
+      <AdminPageHeader
+        title="Orders"
+        description="Manage customer web orders, fulfillment, and tracking."
+      />
 
       <AdminStatusFilter
         basePath="/admin/orders"
@@ -72,34 +80,50 @@ export default async function AdminOrdersPage(props: {
       />
 
       {orders.length === 0 ? (
-        <div className="border-border bg-card text-muted-foreground rounded-2xl border px-5 py-12 text-center text-sm">
+        <div
+          className={`${ADMIN_TABLE_SHELL_CLASS} text-muted-foreground px-5 py-16 text-center text-sm`}
+        >
           No orders found.
         </div>
       ) : (
         <>
-          {/* Desktop table */}
-          <div className="border-border bg-card hidden overflow-hidden rounded-2xl border md:block">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-muted/50 text-muted-foreground text-xs uppercase">
-                <tr>
-                  <th className="px-5 py-3 font-medium">Customer</th>
-                  <th className="px-5 py-3 font-medium">Date</th>
-                  <th className="px-5 py-3 font-medium">Items</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium">Tracking</th>
-                  <th className="px-5 py-3 text-right font-medium">Total</th>
-                  <th className="px-5 py-3" />
-                </tr>
-              </thead>
-              <tbody className="divide-border divide-y">
+          <div className={`${ADMIN_TABLE_SHELL_CLASS} hidden md:block`}>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border/50 hover:bg-transparent">
+                  <TableHead className={`${ADMIN_TABLE_HEAD_CLASS} h-11 px-5`}>
+                    Customer
+                  </TableHead>
+                  <TableHead className={`${ADMIN_TABLE_HEAD_CLASS} h-11 px-5`}>
+                    Date
+                  </TableHead>
+                  <TableHead className={`${ADMIN_TABLE_HEAD_CLASS} h-11 px-5`}>
+                    Items
+                  </TableHead>
+                  <TableHead className={`${ADMIN_TABLE_HEAD_CLASS} h-11 px-5`}>
+                    Status
+                  </TableHead>
+                  <TableHead className={`${ADMIN_TABLE_HEAD_CLASS} h-11 px-5`}>
+                    Tracking
+                  </TableHead>
+                  <TableHead
+                    className={`${ADMIN_TABLE_HEAD_CLASS} h-11 px-5 text-right`}
+                  >
+                    Total
+                  </TableHead>
+                  <TableHead
+                    className={`${ADMIN_TABLE_HEAD_CLASS} h-11 w-12 px-5`}
+                  />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {orders.map((order) => (
                   <OrderTableRow key={order.id} order={order} />
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
-          {/* Mobile cards */}
           <div className="space-y-3 md:hidden">
             {orders.map((order) => (
               <OrderMobileCard key={order.id} order={order} />

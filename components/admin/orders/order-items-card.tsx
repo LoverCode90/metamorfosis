@@ -1,11 +1,13 @@
-import { formatUSD } from "@/lib/utils/format"
 import { itemLabel } from "@/lib/orders/item-label"
 import type { DbOrderItem } from "@/lib/orders/types"
+import { ADMIN_SERVER_CARD_CLASS } from "@/lib/admin/card-styles"
+import { formatUSD } from "@/lib/utils/format"
+import { cn } from "@/lib/utils"
 
 /** Line items for an order with per-line totals. */
 export function OrderItemsCard({ items }: { items: DbOrderItem[] }) {
   return (
-    <div className="border-border bg-card rounded-2xl border p-6">
+    <div className={cn(ADMIN_SERVER_CARD_CLASS, "p-6")}>
       <h2 className="text-foreground mb-4 text-base font-semibold">Items</h2>
       <ul className="divide-border divide-y">
         {items?.map((item) => (

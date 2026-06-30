@@ -3,12 +3,12 @@
 import { VerificationDetail } from "@/components/admin/verification-detail"
 import { VerificationDetailSheet } from "@/components/admin/verification-detail-sheet"
 import { VerificationListPanel } from "@/components/admin/verification-list-panel"
+import { AdminSurfaceCard } from "@/components/admin/ui/admin-surface-card"
 import { useVerifications } from "@/hooks/use-verifications"
 
 /**
  * Admin dashboard for reviewing professional/student verification requests.
- * Two-pane on desktop (list + detail) and a bottom sheet for the detail on
- * smaller screens. All data and mutations come from {@link useVerifications}.
+ * Two-pane on desktop and a bottom sheet on mobile.
  */
 export function VerificationsDashboard() {
   const {
@@ -27,7 +27,7 @@ export function VerificationsDashboard() {
   } = useVerifications()
 
   return (
-    <div className="flex h-full min-h-0 gap-6">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row lg:gap-6">
       <VerificationListPanel
         filter={filter}
         onFilterChange={setFilter}
@@ -41,17 +41,24 @@ export function VerificationsDashboard() {
         onLoadMore={loadMore}
       />
 
-      <div className="hidden flex-1 lg:block">
+      <div className="hidden min-h-0 min-w-0 flex-1 lg:flex lg:flex-col">
         {selectedVerification ? (
-          <VerificationDetail
-            item={selectedVerification}
-            onApprove={approve}
-            onReject={reject}
-          />
+          <AdminSurfaceCard
+            className="flex min-h-0 flex-1 flex-col"
+            contentClassName="flex min-h-0 flex-1 flex-col p-0"
+          >
+            <VerificationDetail
+              item={selectedVerification}
+              onApprove={approve}
+              onReject={reject}
+            />
+          </AdminSurfaceCard>
         ) : (
-          <div className="border-border text-muted-foreground flex h-64 items-center justify-center rounded-xl border border-dashed text-sm">
-            Select a verification to review
-          </div>
+          <AdminSurfaceCard className="flex min-h-[320px] flex-1 items-center justify-center">
+            <p className="text-muted-foreground text-sm">
+              Select a verification to review
+            </p>
+          </AdminSurfaceCard>
         )}
       </div>
 

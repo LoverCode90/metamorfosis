@@ -3,6 +3,7 @@ import { ClipboardList, ShieldCheck, ShoppingBag, Truck } from "lucide-react"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { getDashboardStats } from "@/lib/admin/dashboard-stats"
 import { formatUSD } from "@/lib/utils/format"
+import { AdminPageHeader } from "@/components/admin/ui/admin-page-header"
 import { MetricCard, QuickLink } from "@/components/admin/dashboard-cards"
 import { RevenueChart } from "@/components/admin/revenue-chart"
 import { RecentActivity } from "@/components/admin/recent-activity"
@@ -15,14 +16,10 @@ export default async function AdminPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-foreground text-2xl font-semibold tracking-tight">
-          Dashboard
-        </h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Metamorfosis Beauty Supply — Admin
-        </p>
-      </div>
+      <AdminPageHeader
+        title="Dashboard"
+        description="Metamorfosis Beauty Supply — operations overview."
+      />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <MetricCard

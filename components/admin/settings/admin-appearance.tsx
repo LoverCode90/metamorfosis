@@ -13,19 +13,13 @@ import {
 import { cn } from "@/lib/utils"
 
 /** Admin-only appearance controls: theme toggle and base font-size slider. */
-export function AdminAppearance() {
+export function AdminAppearance({ embedded = false }: { embedded?: boolean }) {
   const { theme, setTheme, fontSize, setFontSize } = useAdminPrefs()
   const fontIndex = FONT_SIZE_ORDER.indexOf(fontSize)
 
-  return (
-    <section className="border-border bg-card rounded-2xl border p-6">
-      <h2 className="text-foreground text-sm font-semibold">Appearance</h2>
-      <p className="text-muted-foreground mt-1 text-xs">
-        These preferences only affect the admin section. The store always uses
-        the dark theme.
-      </p>
-
-      <div className="mt-5 flex items-center justify-between gap-4">
+  const content = (
+    <>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-foreground text-sm font-medium">Theme</p>
           <p className="text-muted-foreground text-xs">
@@ -36,6 +30,7 @@ export function AdminAppearance() {
           <Button
             variant={theme === "dark" ? "default" : "ghost"}
             size="sm"
+            className={theme === "dark" ? "bg-primary hover:bg-primary/90" : ""}
             onClick={() => setTheme("dark")}
             aria-pressed={theme === "dark"}
           >
@@ -45,6 +40,9 @@ export function AdminAppearance() {
           <Button
             variant={theme === "light" ? "default" : "ghost"}
             size="sm"
+            className={
+              theme === "light" ? "bg-primary hover:bg-primary/90" : ""
+            }
             onClick={() => setTheme("light")}
             aria-pressed={theme === "light"}
           >
@@ -54,7 +52,7 @@ export function AdminAppearance() {
         </div>
       </div>
 
-      <div className="border-border mt-6 border-t pt-6">
+      <div className="border-border border-border/50 mt-6 border-t pt-6">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-foreground flex items-center gap-1.5 text-sm font-medium">
@@ -102,6 +100,19 @@ export function AdminAppearance() {
           </div>
         </div>
       </div>
+    </>
+  )
+
+  if (embedded) return content
+
+  return (
+    <section className="border-border bg-card rounded-2xl border p-6">
+      <h2 className="text-foreground text-sm font-semibold">Appearance</h2>
+      <p className="text-muted-foreground mt-1 text-xs">
+        These preferences only affect the admin section. The store always uses
+        the dark theme.
+      </p>
+      <div className="mt-5">{content}</div>
     </section>
   )
 }

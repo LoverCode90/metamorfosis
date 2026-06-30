@@ -2,6 +2,8 @@ import {
   normalizeShippingAddress,
   type RawShippingAddress,
 } from "@/lib/admin/normalize-shipping-address"
+import { ADMIN_SERVER_CARD_CLASS } from "@/lib/admin/card-styles"
+import { cn } from "@/lib/utils"
 
 export type AdminShippingAddress = RawShippingAddress
 
@@ -14,7 +16,7 @@ export function OrderCustomerCard({
   const normalized = normalizeShippingAddress(address)
 
   return (
-    <div className="border-border bg-card rounded-2xl border p-6 text-sm">
+    <div className={cn(ADMIN_SERVER_CARD_CLASS, "p-6 text-sm")}>
       <h2 className="text-foreground mb-4 text-base font-semibold">
         Customer Details
       </h2>

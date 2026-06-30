@@ -140,7 +140,12 @@ export function AdminShipAction({
 
   return (
     <div className="space-y-2">
-      <Button type="button" onClick={generateLabel} disabled={loading}>
+      <Button
+        type="button"
+        onClick={generateLabel}
+        disabled={loading}
+        className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_-4px_var(--primary)]"
+      >
         {loading ? (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         ) : (

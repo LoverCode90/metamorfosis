@@ -3,6 +3,18 @@ import { requireAdmin } from "@/lib/auth/helpers"
 import { AdminStatusFilter } from "@/components/admin/admin-status-filter"
 import { CaseTableRow } from "@/components/admin/cases/case-table-row"
 import { CaseMobileCard } from "@/components/admin/cases/case-mobile-card"
+import { AdminPageHeader } from "@/components/admin/ui/admin-page-header"
+import {
+  ADMIN_TABLE_HEAD_CLASS,
+  ADMIN_TABLE_SHELL_CLASS,
+} from "@/lib/admin/card-styles"
+import {
+  Table,
+  TableBody,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import type { AdminCaseListItem } from "@/lib/cases/types"
 
 export const metadata = { title: "Cases Admin — Metamorfosis Beauty" }
@@ -38,14 +50,10 @@ export default async function AdminCasesPage(props: {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-foreground text-2xl font-semibold tracking-tight">
-          Cases &amp; Returns
-        </h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Manage support tickets and return requests.
-        </p>
-      </div>
+      <AdminPageHeader
+        title="Cases & Returns"
+        description="Manage support tickets, return requests, and customer conversations."
+      />
 
       <AdminStatusFilter
         basePath="/admin/cases"
@@ -54,32 +62,45 @@ export default async function AdminCasesPage(props: {
       />
 
       {cases.length === 0 ? (
-        <div className="border-border bg-card text-muted-foreground rounded-2xl border px-5 py-12 text-center text-sm">
+        <div className="border-border/50 bg-card/90 text-muted-foreground rounded-2xl border px-5 py-12 text-center text-sm shadow-[0_0_0_1px_rgba(255,255,255,0.03)] backdrop-blur-sm">
           No cases found.
         </div>
       ) : (
         <>
-          {/* Desktop table */}
-          <div className="border-border bg-card hidden overflow-hidden rounded-2xl border md:block">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-muted/50 text-muted-foreground text-xs uppercase">
-                <tr>
-                  <th className="px-5 py-3 font-medium">Customer</th>
-                  <th className="px-5 py-3 font-medium">Order</th>
-                  <th className="px-5 py-3 font-medium">Reason</th>
-                  <th className="px-5 py-3 font-medium">Status</th>
-                  <th className="px-5 py-3 font-medium">Opened</th>
-                </tr>
-              </thead>
-              <tbody className="divide-border divide-y">
+          <div className={`hidden md:block ${ADMIN_TABLE_SHELL_CLASS}`}>
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border/40 hover:bg-transparent">
+                  <TableHead className={`${ADMIN_TABLE_HEAD_CLASS} px-5 py-3`}>
+                    Customer
+                  </TableHead>
+                  <TableHead className={`${ADMIN_TABLE_HEAD_CLASS} px-5 py-3`}>
+                    Order
+                  </TableHead>
+                  <TableHead className={`${ADMIN_TABLE_HEAD_CLASS} px-5 py-3`}>
+                    Reason
+                  </TableHead>
+                  <TableHead className={`${ADMIN_TABLE_HEAD_CLASS} px-5 py-3`}>
+                    Status
+                  </TableHead>
+                  <TableHead className={`${ADMIN_TABLE_HEAD_CLASS} px-5 py-3`}>
+                    Opened
+                  </TableHead>
+                  <TableHead
+                    className={`${ADMIN_TABLE_HEAD_CLASS} px-5 py-3 text-right`}
+                  >
+                    Action
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {cases.map((caseItem) => (
                   <CaseTableRow key={caseItem.id} caseItem={caseItem} />
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
 
-          {/* Mobile cards */}
           <div className="space-y-3 md:hidden">
             {cases.map((caseItem) => (
               <CaseMobileCard key={caseItem.id} caseItem={caseItem} />

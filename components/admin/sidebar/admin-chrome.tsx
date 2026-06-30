@@ -6,8 +6,9 @@ import { usePathname } from "next/navigation"
 import { isAdminChromelessRoute } from "@/lib/admin/nav-config"
 import { AdminAppSidebar } from "@/components/admin/sidebar/admin-app-sidebar"
 import { AdminHeader } from "@/components/admin/sidebar/admin-header"
-import type { AdminSidebarUser } from "@/components/admin/sidebar/admin-nav-user"
+import type { AdminSidebarUser } from "@/lib/admin/sidebar-user"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { AdminContentBackdrop } from "@/components/admin/ui/admin-content-backdrop"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 interface AdminChromeProps {
@@ -41,9 +42,11 @@ export function AdminChrome({
         />
         <SidebarInset className="flex min-h-svh flex-col">
           <AdminHeader />
-          <div className="flex flex-1 flex-col gap-4 p-4 md:p-6">
-            {children}
-          </div>
+          <AdminContentBackdrop>
+            <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
+              {children}
+            </div>
+          </AdminContentBackdrop>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>

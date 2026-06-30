@@ -9,6 +9,8 @@ import { CaseIssueDetails } from "@/components/admin/cases/case-issue-details"
 import { CaseMessagePanel } from "@/components/admin/cases/case-message-panel"
 import { CaseSidebar } from "@/components/admin/cases/case-sidebar"
 import { EvidenceGallery } from "@/components/admin/cases/evidence-gallery"
+import { AdminPageHeader } from "@/components/admin/ui/admin-page-header"
+import { ADMIN_SERVER_CARD_CLASS } from "@/lib/admin/card-styles"
 import { Badge } from "@/components/ui/badge"
 import { caseStatusBadge } from "@/lib/admin/status-badge"
 import type { AdminCaseDetail } from "@/lib/cases/types"
@@ -37,63 +39,65 @@ export default async function AdminCaseDetailPage(props: {
     .eq("id", params.id)
     .single()
 
-  const c = data as unknown as AdminCaseDetail | null
-  if (!c) notFound()
+  const caseData = data as unknown as AdminCaseDetail | null
+  if (!caseData) notFound()
 
-  const badge = caseStatusBadge(c.status)
+  const badge = caseStatusBadge(caseData.status)
+  const caseNumber = caseData.id.slice(0, 8).toUpperCase()
 
   return (
-    <div className="space-y-8 pb-12">
-      <div className="flex items-center gap-4">
-        <Link
-          href="/admin/cases"
-          className="border-border bg-background hover:bg-muted flex h-10 w-10 items-center justify-center rounded-md border transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
-        <div>
-          <h1 className="text-foreground text-2xl font-semibold tracking-tight">
-            Case Details
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Review issue and manage resolution.
-          </p>
+    <div className="space-y-6 pb-12">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3">
+          <Link
+            href="/admin/cases"
+            className="border-border/60 bg-card/80 hover:bg-muted flex size-10 shrink-0 items-center justify-center rounded-xl border transition-colors"
+          >
+            <ArrowLeft className="size-4" />
+          </Link>
+          <AdminPageHeader
+            title={`Case #${caseNumber}`}
+            description="Review the issue, evidence, and customer conversation."
+            className="gap-2"
+          />
         </div>
+        <Badge variant={badge.variant} className="w-fit">
+          {badge.label}
+        </Badge>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-3">
-        <div className="space-y-8 lg:col-span-2">
-          <section className="border-border bg-card rounded-2xl border p-6">
-            <div className="mb-6">
-              <h2 className="text-foreground text-lg font-semibold">
-                Resolution Actions
+      <div className="grid gap-6 xl:grid-cols-3 xl:gap-8">
+        <div className="space-y-6 xl:col-span-2">
+          <section className={`${ADMIN_SERVER_CARD_CLASS} p-5 sm:p-6`}>
+            <div className="mb-5">
+              <h2 className="text-foreground text-sm font-semibold tracking-tight">
+                Resolution actions
               </h2>
-              <div className="text-muted-foreground mt-1 flex items-center gap-2 text-sm">
-                Current Status:
-                <Badge variant={badge.variant}>{badge.label}</Badge>
-              </div>
+              <p className="text-muted-foreground mt-1 text-xs">
+                Approve, reject, or request more information from the customer.
+              </p>
             </div>
             <CaseActions
-              caseId={c.id}
-              caseNumber={c.id.slice(0, 8).toUpperCase()}
-              customerEmail={c.profiles?.email ?? ""}
-              status={c.status}
+              caseId={caseData.id}
+              caseNumber={caseNumber}
+              customerEmail={caseData.profiles?.email ?? ""}
+              status={caseData.status}
             />
           </section>
 
-          <CaseIssueDetails caseData={c} />
+          <CaseIssueDetails caseData={caseData} />
 
-          <section className="border-border bg-card rounded-2xl border p-6">
-            <h2 className="text-foreground mb-4 text-lg font-semibold">
-              Evidence Photos
+          <section className={`${ADMIN_SERVER_CARD_CLASS} p-5 sm:p-6`}>
+            <h2 className="text-foreground mb-4 text-sm font-semibold tracking-tight">
+              Evidence photos
             </h2>
-            <EvidenceGallery caseId={c.id} />
+            <EvidenceGallery caseId={caseData.id} />
           </section>
 
-          <CaseMessagePanel caseData={c} />
+          <CaseMessagePanel caseData={caseData} />
         </div>
 
-        <CaseSidebar caseData={c} />
+        <CaseSidebar caseData={caseData} />
       </div>
     </div>
   )

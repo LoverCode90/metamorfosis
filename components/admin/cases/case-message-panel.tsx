@@ -1,90 +1,104 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { Loader2, Send } from "lucide-react"
+import { useState } from "react"
+import { Lock } from "lucide-react"
 
+import { CaseChatPanel } from "@/components/cases/case-chat-panel"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { MessageBubble } from "@/components/cases/message-bubble"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import { useAdminCaseMessages } from "@/hooks/use-admin-case-messages"
+import { useAdminCloseChat } from "@/hooks/use-admin-close-chat"
+import {
+  isCaseMessagingLocked,
+  messagingLockedMessage,
+} from "@/lib/cases/messaging"
 import type { AdminCaseDetail } from "@/lib/cases/types"
 
-const LOCKED_STATUSES = ["approved", "rejected", "closed", "fraud"]
-
-/** Admin-side case thread with a composer; locked once the case is resolved. */
+/** Admin case thread with optional close-chat action. */
 export function CaseMessagePanel({ caseData }: { caseData: AdminCaseDetail }) {
   const { message, setMessage, isSending, error, sendMessage } =
     useAdminCaseMessages(caseData.id)
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const {
+    closeChat,
+    isClosing,
+    error: closeError,
+  } = useAdminCloseChat(caseData.id)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
-  const messages = [...(caseData.case_messages ?? [])].sort(
-    (a, b) =>
-      new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-  )
-  const isLocked = LOCKED_STATUSES.includes(caseData.status)
-  const customerId = caseData.profiles?.id
+  const isLocked = isCaseMessagingLocked(caseData)
+  const canCloseChat = !isLocked
+  const customerId = caseData.profiles?.id ?? ""
   const customerName = caseData.profiles?.full_name ?? "Customer"
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages.length])
+  async function handleCloseChat() {
+    await closeChat()
+    setConfirmOpen(false)
+  }
+
+  const headerAction = canCloseChat ? (
+    <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+      <DialogTrigger
+        render={
+          <Button variant="outline" size="sm" className="shrink-0 gap-1.5" />
+        }
+      >
+        <Lock className="size-3.5" />
+        Close chat
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Close this conversation?</DialogTitle>
+          <DialogDescription>
+            The customer will no longer be able to send messages in this case.
+            You can still review the thread and resolve the case separately.
+          </DialogDescription>
+        </DialogHeader>
+        {closeError && (
+          <p className="text-destructive text-sm font-medium">{closeError}</p>
+        )}
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setConfirmOpen(false)}
+            disabled={isClosing}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={handleCloseChat}
+            disabled={isClosing}
+          >
+            {isClosing ? "Closing…" : "Close chat"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  ) : null
 
   return (
-    <section className="border-border bg-card flex min-h-[420px] flex-col rounded-2xl border p-6">
-      <h2 className="text-foreground mb-4 text-lg font-semibold">Messages</h2>
-
-      <div className="mb-4 flex-1 space-y-4 overflow-y-auto pr-1">
-        {messages.length === 0 ? (
-          <p className="text-muted-foreground py-8 text-center text-sm">
-            No messages yet.
-          </p>
-        ) : (
-          messages.map((msg) => (
-            <MessageBubble
-              key={msg.id}
-              text={msg.message}
-              createdAt={msg.created_at}
-              mine={msg.sender_id !== customerId}
-              label={customerName}
-            />
-          ))
-        )}
-        <div ref={bottomRef} />
-      </div>
-
-      {error && (
-        <p className="text-destructive mb-2 text-sm font-medium">{error}</p>
-      )}
-
-      {isLocked ? (
-        <p className="border-border text-muted-foreground border-t pt-4 text-sm">
-          This case is resolved — messaging is disabled.
-        </p>
-      ) : (
-        <form
-          onSubmit={sendMessage}
-          className="border-border flex gap-2 border-t pt-4"
-        >
-          <Input
-            value={message}
-            onChange={(event) => setMessage(event.target.value)}
-            placeholder="Reply to the customer..."
-            disabled={isSending}
-            className="flex-1"
-          />
-          <Button
-            type="submit"
-            size="icon"
-            disabled={!message.trim() || isSending}
-          >
-            {isSending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
-          </Button>
-        </form>
-      )}
-    </section>
+    <CaseChatPanel
+      messages={caseData.case_messages ?? []}
+      isMine={(caseMessage) => caseMessage.sender_id !== customerId}
+      peerLabel={customerName}
+      isLocked={isLocked}
+      lockedMessage={messagingLockedMessage(caseData)}
+      message={message}
+      onMessageChange={setMessage}
+      isSending={isSending}
+      error={error}
+      onSend={sendMessage}
+      headerAction={headerAction}
+    />
   )
 }

@@ -1,7 +1,9 @@
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
+import { ArrowRight } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { TableCell, TableRow } from "@/components/ui/table"
 import { caseStatusBadge } from "@/lib/admin/status-badge"
 import { caseReasonLabel } from "@/lib/profile/case-reasons"
 import type { AdminCaseListItem } from "@/lib/cases/types"
@@ -13,34 +15,61 @@ function orderLabel(squareOrderId: string | undefined): string {
     : `#${squareOrderId.slice(0, 8).toUpperCase()}`
 }
 
+function customerInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase()
+}
+
 /** One row of the admin cases table. */
 export function CaseTableRow({ caseItem }: { caseItem: AdminCaseListItem }) {
   const badge = caseStatusBadge(caseItem.status)
+  const customerName = caseItem.profiles?.full_name ?? "Unknown"
+  const caseDetailHref = `/admin/cases/${caseItem.id}`
 
   return (
-    <tr className="hover:bg-muted/30 transition-colors">
-      <td className="px-5 py-3">
-        <Link href={`/admin/cases/${caseItem.id}`} className="block">
-          <span className="text-foreground font-medium">
-            {caseItem.profiles?.full_name ?? "Unknown"}
-          </span>
-          <span className="text-muted-foreground block text-xs">
-            {caseItem.profiles?.email ?? "—"}
-          </span>
+    <TableRow className="border-border/40 hover:bg-primary/5">
+      <TableCell className="px-5 py-4">
+        <Link href={caseDetailHref} className="flex items-center gap-3">
+          <div className="bg-primary/15 text-primary ring-primary/25 flex size-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ring-1">
+            {customerInitials(customerName)}
+          </div>
+          <div className="min-w-0">
+            <span className="text-foreground block font-medium">
+              {customerName}
+            </span>
+            <span className="text-muted-foreground block truncate text-xs">
+              {caseItem.profiles?.email ?? "—"}
+            </span>
+          </div>
         </Link>
-      </td>
-      <td className="px-5 py-3 font-medium">
+      </TableCell>
+      <TableCell className="px-5 py-4 font-medium">
         {orderLabel(caseItem.orders?.square_order_id)}
-      </td>
-      <td className="px-5 py-3">{caseReasonLabel(caseItem.reason)}</td>
-      <td className="px-5 py-3">
+      </TableCell>
+      <TableCell className="text-muted-foreground px-5 py-4">
+        {caseReasonLabel(caseItem.reason)}
+      </TableCell>
+      <TableCell className="px-5 py-4">
         <Badge variant={badge.variant}>{badge.label}</Badge>
-      </td>
-      <td className="text-muted-foreground px-5 py-3 whitespace-nowrap">
+      </TableCell>
+      <TableCell className="text-muted-foreground px-5 py-4 whitespace-nowrap">
         {formatDistanceToNow(new Date(caseItem.created_at), {
           addSuffix: true,
         })}
-      </td>
-    </tr>
+      </TableCell>
+      <TableCell className="px-5 py-4 text-right">
+        <Link
+          href={caseDetailHref}
+          className="text-primary hover:text-primary/80 inline-flex items-center gap-1 text-sm font-medium"
+        >
+          View
+          <ArrowRight className="size-3.5" />
+        </Link>
+      </TableCell>
+    </TableRow>
   )
 }

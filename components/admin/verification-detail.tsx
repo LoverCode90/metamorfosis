@@ -35,8 +35,8 @@ export function VerificationDetail({
     STATUS_LABELS[item.verification_status] ?? item.verification_status
 
   return (
-    <div className="border-border bg-background flex h-full flex-col rounded-xl border">
-      <div className="border-border border-b px-6 py-4">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="border-border/60 border-b px-5 py-4 sm:px-6">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-foreground font-semibold">{item.full_name}</p>

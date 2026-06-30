@@ -1,17 +1,25 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { isCaseMessagingLocked } from "@/lib/cases/messaging"
+import type { CaseStatus } from "@/lib/cases/types"
 import { z } from "zod"
 
 const messageSchema = z.object({
   message: z.string().min(1, "Message cannot be empty"),
 })
 
-export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
     const { id: caseId } = await params
     const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser()
 
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -31,7 +39,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const parsed = messageSchema.safeParse(json)
 
     if (!parsed.success) {
-      return NextResponse.json({ error: "Invalid data", details: parsed.error.issues }, { status: 400 })
+      return NextResponse.json(
+        { error: "Invalid data", details: parsed.error.issues },
+        { status: 400 },
+      )
     }
 
     const { message } = parsed.data
@@ -39,12 +50,24 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     const { data: caseData, error: caseError } = await supabaseAdmin
       .from("cases")
-      .select("id, status")
+      .select("id, status, chat_closed_at")
       .eq("id", caseId)
       .single()
 
     if (caseError || !caseData) {
       return NextResponse.json({ error: "Case not found" }, { status: 404 })
+    }
+
+    if (
+      isCaseMessagingLocked({
+        status: caseData.status as CaseStatus,
+        chat_closed_at: caseData.chat_closed_at,
+      })
+    ) {
+      return NextResponse.json(
+        { error: "Messaging is disabled for this case" },
+        { status: 403 },
+      )
     }
 
     // 1. Add message
@@ -57,7 +80,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       })
 
     if (insertError) {
-      return NextResponse.json({ error: "Failed to add message" }, { status: 500 })
+      return NextResponse.json(
+        { error: "Failed to add message" },
+        { status: 500 },
+      )
     }
 
     // 2. Change status to pending_review if it was open
@@ -71,6 +97,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error("[POST /api/admin/cases/[id]/messages]", error)
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 },
+    )
   }
 }

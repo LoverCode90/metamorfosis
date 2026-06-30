@@ -20,7 +20,7 @@ export function CaseMobileCard({ caseItem }: { caseItem: AdminCaseListItem }) {
   return (
     <Link
       href={`/admin/cases/${caseItem.id}`}
-      className="border-border bg-card hover:border-border-strong block rounded-2xl border p-4 transition-colors"
+      className="border-border/50 bg-card/90 hover:border-primary/30 block rounded-2xl border p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.03)] transition-colors"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">

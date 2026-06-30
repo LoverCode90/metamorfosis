@@ -1,4 +1,5 @@
 import { VerificationsDashboard } from "@/components/admin/verifications-list"
+import { AdminPageHeader } from "@/components/admin/ui/admin-page-header"
 
 export const metadata = {
   title: "Verifications — Admin · Metamorfosis Beauty",
@@ -6,16 +7,11 @@ export const metadata = {
 
 export default function VerificationsPage() {
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
-      <div>
-        <h1 className="text-foreground text-xl font-semibold tracking-tight">
-          Professional Verifications
-        </h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Review submitted license documents. Approved users unlock professional
-          pricing and restricted products.
-        </p>
-      </div>
+    <div className="flex min-h-0 flex-1 flex-col gap-6">
+      <AdminPageHeader
+        title="Professional Verifications"
+        description="Review submitted license documents. Approved users unlock professional pricing and restricted products."
+      />
 
       <div className="min-h-0 flex-1">
         <VerificationsDashboard />

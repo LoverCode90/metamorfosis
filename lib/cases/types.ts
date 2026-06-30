@@ -43,6 +43,8 @@ export interface DbCase {
   /** Set when the admin clicks "Request More Info". */
   more_info_requested_at: string | null
   resolved_at: string | null
+  /** Set when an admin closes the chat without resolving the case. */
+  chat_closed_at: string | null
   created_at: string
   updated_at: string
 }

@@ -1,5 +1,6 @@
 "use client"
 
+import { useIsMobile } from "@/hooks/use-mobile"
 import {
   Sheet,
   SheetContent,
@@ -16,20 +17,24 @@ interface VerificationDetailSheetProps {
   onReject: (id: string, reason: string) => Promise<void>
 }
 
-/** Full-height bottom sheet wrapping the verification detail on small screens. */
+/** Bottom sheet for verification detail on mobile only (avoids desktop overlay bug). */
 export function VerificationDetailSheet({
   item,
   onClose,
   onApprove,
   onReject,
 }: VerificationDetailSheetProps) {
+  const isMobile = useIsMobile()
+
+  if (!isMobile) return null
+
   return (
     <Sheet open={Boolean(item)} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="bottom"
-        className="h-[92dvh] rounded-t-2xl p-0 lg:hidden"
+        className="flex h-[92dvh] flex-col rounded-t-2xl p-0"
       >
-        <SheetHeader className="border-border border-b">
+        <SheetHeader className="border-border shrink-0 border-b px-4 py-3">
           <SheetTitle>Verification detail</SheetTitle>
         </SheetHeader>
         <div className="min-h-0 flex-1 overflow-y-auto">

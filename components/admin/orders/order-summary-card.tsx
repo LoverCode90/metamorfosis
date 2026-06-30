@@ -1,4 +1,6 @@
 import { formatUSD } from "@/lib/utils/format"
+import { ADMIN_SERVER_CARD_CLASS } from "@/lib/admin/card-styles"
+import { cn } from "@/lib/utils"
 
 interface OrderSummaryCardProps {
   subtotalCents: number
@@ -26,7 +28,7 @@ export function OrderSummaryCard({
   totalCents,
 }: OrderSummaryCardProps) {
   return (
-    <div className="border-border bg-card rounded-2xl border p-6 text-sm">
+    <div className={cn(ADMIN_SERVER_CARD_CLASS, "p-6 text-sm")}>
       <h2 className="text-foreground mb-4 text-base font-semibold">Summary</h2>
       <div className="space-y-2">
         <Row label="Subtotal" value={formatUSD(subtotalCents)} />

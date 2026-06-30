@@ -1,8 +1,5 @@
-import Link from "next/link"
-import { notFound } from "next/navigation"
-import { ArrowLeft, Clock } from "lucide-react"
-
 import { createAdminClient } from "@/lib/supabase/admin"
+import { notFound } from "next/navigation"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { AdminOrderActions } from "@/components/admin/orders/admin-order-actions"
 import { OrderItemsCard } from "@/components/admin/orders/order-items-card"
@@ -13,6 +10,7 @@ import {
   type AdminShippingAddress,
 } from "@/components/admin/orders/order-customer-card"
 import type { PackingSlipData } from "@/components/admin/orders/packing-slip-print"
+import { AdminPageHeader } from "@/components/admin/ui/admin-page-header"
 import { Badge } from "@/components/ui/badge"
 import { orderStatusBadge } from "@/lib/admin/status-badge"
 
@@ -85,36 +83,23 @@ export default async function AdminOrderDetailPage(props: {
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/admin/orders"
-        className="text-muted-foreground hover:text-foreground inline-flex items-center gap-2 text-sm font-medium transition-colors"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to Orders
-      </Link>
+      <AdminPageHeader
+        title={`Order #${order.id.slice(0, 8)}`}
+        description={`Placed ${new Date(order.created_at).toLocaleString()}`}
+        actions={
+          <div className="flex items-center gap-3">
+            <Badge variant={badge.variant}>{badge.label}</Badge>
+            {canCancel && <AdminOrderActions orderId={order.id} />}
+          </div>
+        }
+      />
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-foreground text-2xl font-semibold tracking-tight">
-            Order #{order.id.slice(0, 8)}
-          </h1>
-          <p className="text-muted-foreground mt-1 flex items-center gap-1.5 text-sm">
-            <Clock className="h-3.5 w-3.5" />
-            Placed {new Date(order.created_at).toLocaleString()}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Badge variant={badge.variant}>{badge.label}</Badge>
-          {canCancel && <AdminOrderActions orderId={order.id} />}
-        </div>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="space-y-6 md:col-span-2">
+      <div className="grid gap-6 xl:grid-cols-12">
+        <div className="space-y-6 xl:col-span-7">
           <OrderItemsCard items={order.order_items ?? []} />
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-6 xl:col-span-5">
           <OrderFulfillmentCard
             orderId={order.id}
             status={order.status}
