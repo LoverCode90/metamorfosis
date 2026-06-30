@@ -6,6 +6,8 @@ import {
   PICKUP_HOURS_NOTE,
   pickupHoursText,
 } from "@/lib/checkout/pickup"
+import { EMAIL_ADDRESSES } from "@/lib/email/addresses"
+import { APP_URL } from "./_layout"
 
 interface ConfirmationItem {
   name: string
@@ -185,8 +187,8 @@ export function buildOrderConfirmationHtml(
               ${fulfillmentBlock}
 
               <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.6;">
-                Questions? Reply to this email or visit
-                <a href="https://metamorfosis.beauty/contact" style="color:#111827;">metamorfosis.beauty/contact</a>.
+                Questions? Reply to this email or write us at
+                <a href="mailto:${EMAIL_ADDRESSES.customerSupport}" style="color:#111827;">${EMAIL_ADDRESSES.customerSupport}</a>.
               </p>
 
             </td>
@@ -257,7 +259,7 @@ export function buildOrderConfirmationText(
     ``,
     ...fulfillmentLines,
     ``,
-    `Questions? Contact us at metamorfosis.beauty/contact`,
+    `Questions? Email us at ${EMAIL_ADDRESSES.customerSupport} or visit ${APP_URL}`,
   ]
   return lines.filter((l) => l !== undefined).join("\n")
 }

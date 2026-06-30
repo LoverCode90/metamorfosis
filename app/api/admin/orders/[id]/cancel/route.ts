@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { refundOrder } from "@/lib/square/refund"
-import { Resend } from "resend"
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { sendOrderCanceled } from "@/lib/email/order-status-emails"
 
 export async function POST(
   request: NextRequest,
@@ -22,7 +20,6 @@ export async function POST(
 
   const admin = createAdminClient()
 
-  // Verify admin
   const { data: profile } = await admin
     .from("profiles")
     .select("role")
@@ -33,16 +30,12 @@ export async function POST(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
-  // Parse body
   let reason = "Admin cancelled order"
   try {
     const body = await request.json()
-    if (body.reason) {
-      reason = body.reason
-    }
+    if (body.reason) reason = body.reason
   } catch {}
 
-  // 1. Fetch order
   const { data: order, error } = await admin
     .from("orders")
     .select("*")
@@ -53,7 +46,6 @@ export async function POST(
     return NextResponse.json({ error: "Order not found" }, { status: 404 })
   }
 
-  // 2. Validate status
   if (
     order.status === "shipped" ||
     order.status === "delivered" ||
@@ -67,20 +59,16 @@ export async function POST(
   }
 
   try {
-    // 3. Call Square Refund API. Legacy "test-" orders were never charged in
-    // Square, so skip the refund call for them (real orders always refund).
     const isLegacyTestOrder = order.square_order_id?.startsWith("test-")
     if (order.square_order_id && !isLegacyTestOrder) {
       await refundOrder(order.square_order_id, order.total_cents, reason)
     }
 
-    // 4. Update status to canceled (DB enum value — single L)
     await admin
       .from("orders")
       .update({ status: "canceled" })
       .eq("id", resolvedParams.id)
 
-    // 5. Log to audit_logs
     await admin.from("audit_logs").insert({
       admin_id: user.id,
       action: "admin_cancel_order",
@@ -90,22 +78,21 @@ export async function POST(
       notes: reason,
     })
 
-    // 6. Send email
-    if (process.env.RESEND_API_KEY) {
-      const customerEmail = order.shipping_address?.email
-      if (customerEmail) {
-        await resend.emails.send({
-          from: "Metamorfosis <no-reply@metamorfosisllc.com>",
-          replyTo: "hello@metamorfosisllc.com",
-          to: customerEmail,
-          subject: `Your Order ${order.square_order_id} has been cancelled`,
-          html: `
-            <p>Your order ${order.square_order_id} has been cancelled.</p>
-            ${reason && reason !== "Admin cancelled order" ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}
-            <p>You will receive a full refund to your payment method within 3-5 business days. If you have questions contact us at hello@metamorfosisllc.com</p>
-          `,
-        })
-      }
+    const customerEmail = order.shipping_address?.email as string | undefined
+    const customerName =
+      (order.shipping_address?.fullName as string | undefined) ?? "there"
+    const normalizedReason =
+      reason !== "Admin cancelled order" ? reason : undefined
+
+    if (customerEmail) {
+      await sendOrderCanceled({
+        to: customerEmail,
+        customerName,
+        orderNumber: order.square_order_id,
+        reason: normalizedReason,
+      }).catch((err) =>
+        console.error("[admin-cancel-order] email failed:", err),
+      )
     }
 
     return NextResponse.json({ ok: true })

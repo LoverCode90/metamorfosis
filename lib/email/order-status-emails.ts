@@ -1,6 +1,7 @@
 import "server-only"
 
 import { FROM, getResend, REPLY_TO } from "./resend"
+import { EMAIL_ADDRESSES } from "./addresses"
 import { emailIntro, emailShell } from "./templates/_layout"
 import {
   buildOrderShippedHtml,
@@ -71,6 +72,8 @@ export async function sendOrderCanceled(
   const reasonHtml = data.reason
     ? `<p style="margin:0 0 8px;font-size:13px;color:#6b7280;">Reason: ${data.reason}</p>`
     : ""
+  const supportLine = `\n\nQuestions? Email us at ${EMAIL_ADDRESSES.customerSupport}`
+  const supportHtml = `<p style="margin:16px 0 0;font-size:13px;color:#8b8b9a;">Questions? Email us at <a href="mailto:${EMAIL_ADDRESSES.customerSupport}" style="color:#f5f5f7;">${EMAIL_ADDRESSES.customerSupport}</a></p>`
   await dispatch({
     to: data.to,
     subject: `Your order has been canceled — ${data.orderNumber}`,
@@ -79,11 +82,11 @@ export async function sendOrderCanceled(
       `${emailIntro(
         "Your order has been canceled",
         `Hi ${data.customerName}, your order ${data.orderNumber} has been canceled and a full refund has been issued to your original payment method (3–5 business days).`,
-      )}${reasonHtml}`,
+      )}${reasonHtml}${supportHtml}`,
     ),
     text: `Hi ${data.customerName},
 
-Your order ${data.orderNumber} has been canceled and fully refunded to your original payment method (3–5 business days).${reasonLine}
+Your order ${data.orderNumber} has been canceled and fully refunded to your original payment method (3–5 business days).${reasonLine}${supportLine}
 
 — Metamorfosis Beauty Supply`,
   })

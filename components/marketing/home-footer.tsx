@@ -1,6 +1,8 @@
 import Link from "next/link"
 import { Home, Info, MapPin, ShoppingBag } from "lucide-react"
 
+import { EMAIL_ADDRESSES } from "@/lib/email/addresses"
+
 const STORE_ADDRESS = "211 W B St, Ontario, CA 91762"
 const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 const GOOGLE_MAPS_EMBED_URL = MAPS_API_KEY
@@ -103,10 +105,10 @@ export function HomeFooter() {
               </p>
               <div className="text-muted-foreground mt-3 flex flex-col gap-1.5 text-sm">
                 <a
-                  href="mailto:hello@metamorfosisllc.com"
+                  href={`mailto:${EMAIL_ADDRESSES.customerSupport}`}
                   className="hover:text-foreground transition-colors"
                 >
-                  hello@metamorfosisllc.com
+                  {EMAIL_ADDRESSES.customerSupport}
                 </a>
                 <span>211 W B St, Ontario, CA 91762</span>
                 <a

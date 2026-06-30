@@ -1,8 +1,11 @@
 import "server-only"
 
+import { EMAIL_ADDRESSES, EMAIL_SHIP_FROM_DEFAULT } from "@/lib/email/addresses"
+
 /** Shippo address_from shape — seller / warehouse origin. */
 export interface ShipFromAddress {
   name: string
+  company: string
   street1: string
   city: string
   state: string
@@ -21,22 +24,23 @@ function parseEmailFromEnv(): string {
   if (angleMatch?.[1]) return angleMatch[1].trim()
   if (emailFrom.includes("@")) return emailFrom.trim()
 
-  return "support@metamorfosis.com"
+  return EMAIL_SHIP_FROM_DEFAULT
 }
 
 /**
  * Canonical ship-from address for all Shippo shipments (checkout + admin labels).
- * USPS requires seller phone + email at label purchase time.
+ * Defaults: Metamorfosis LLC — Ontario, CA store.
  */
 export function getShipFromAddress(): ShipFromAddress {
   return {
-    name: "Metamorfosis Beauty Supply",
+    name: process.env.SHIPPO_FROM_NAME?.trim() || "Alexandra Alvarez",
+    company: process.env.SHIPPO_FROM_COMPANY?.trim() || "Metamorfosis LLC",
     street1: process.env.SHIPPO_FROM_STREET1?.trim() || "211 W B St",
     city: "Ontario",
     state: "CA",
     zip: "91762",
     country: "US",
-    phone: process.env.SHIPPO_FROM_PHONE?.trim() ?? "",
+    phone: process.env.SHIPPO_FROM_PHONE?.trim() || "+19092780535",
     email: parseEmailFromEnv(),
   }
 }
@@ -57,5 +61,12 @@ export function shipFromConfigErrorMessage(missing: string[]): string {
   return (
     `Seller ship-from address is incomplete. Set in Vercel: ${missing.join(", ")}. ` +
     "USPS requires seller phone and email to purchase shipping labels."
+  )
+}
+
+/** Email used for admin pickup confirmations (store owner). */
+export function getStoreOwnerNotificationEmail(): string {
+  return (
+    process.env.ADMIN_PICKUP_NOTIFY_EMAIL?.trim() || EMAIL_ADDRESSES.adminOps
   )
 }

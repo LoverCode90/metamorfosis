@@ -6,6 +6,7 @@ import {
   ShieldCheck,
   ShoppingBag,
   Store,
+  Truck,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
@@ -63,6 +64,14 @@ export const ADMIN_PANEL_NAV_ITEMS: AdminPanelNavItem[] = [
     label: "Cases",
     href: "/admin/cases?status=open",
     icon: ClipboardList,
+    exactMatch: false,
+    badgeKey: null,
+    enabled: true,
+  },
+  {
+    label: "Schedule pickups",
+    href: "/admin/shipping/pickups",
+    icon: Truck,
     exactMatch: false,
     badgeKey: null,
     enabled: true,

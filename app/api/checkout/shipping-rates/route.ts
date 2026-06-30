@@ -29,7 +29,7 @@ interface ShippingRatesResponse {
  *
  * Builds real parcels from the cart (weight + package_class resolved from the
  * DB — never trusted from the client), asks Shippo for live rates, and returns
- * the cheapest rate per carrier (USPS, UPS, FedEx, DHL), price ascending.
+ * the cheapest USPS economy and DHL Express rates, price ascending.
  */
 export async function POST(request: NextRequest) {
   const body = (await request.json()) as ShippingRatesBody

@@ -47,8 +47,10 @@ export function getResend(): Resend {
   return _resend
 }
 
-export const FROM = "Metamorfosis <no-reply@metamorfosisllc.com>"
-export const REPLY_TO = "hello@metamorfosisllc.com"
+import { EMAIL_FROM, EMAIL_REPLY_TO } from "./addresses"
+
+export const FROM = EMAIL_FROM
+export const REPLY_TO = EMAIL_REPLY_TO
 
 export async function sendVerificationCode(
   data: VerifyCodeData,

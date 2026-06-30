@@ -4,19 +4,14 @@ import { createShippoClient } from "./client"
 import { getShipFromAddress } from "./ship-from"
 import type { ShippoParcel } from "@/lib/shipping/build-parcels"
 import type { CheckoutAddress, LiveShippingRate } from "@/lib/checkout/types"
+import {
+  CHECKOUT_CARRIER_LABELS,
+  resolveCheckoutCarrierTier,
+  type CheckoutCarrierTier,
+} from "@/lib/shippo/checkout-carriers"
 
 /** @deprecated Use getShipFromAddress() from ./ship-from */
 export const SHIP_FROM_ADDRESS = getShipFromAddress()
-
-/** Normalizes a Shippo provider string to one of our supported carriers. */
-function canonicalCarrier(provider: string): string | null {
-  const upper = provider.toUpperCase()
-  if (upper.includes("USPS")) return "USPS"
-  if (upper.includes("FEDEX")) return "FedEx"
-  if (upper.includes("DHL")) return "DHL"
-  if (upper.includes("UPS")) return "UPS"
-  return null
-}
 
 function toSdkParcel(parcel: ShippoParcel) {
   return {
@@ -35,9 +30,26 @@ function amountToCents(amount: string): number | null {
   return Math.round(dollars * 100)
 }
 
+function buildCheckoutRate(
+  tier: CheckoutCarrierTier,
+  amountCents: number,
+  serviceName: string,
+  estimatedDays: number | null,
+  shippoRateId: string,
+): LiveShippingRate {
+  const labels = CHECKOUT_CARRIER_LABELS[tier]
+  return {
+    carrier: labels.title,
+    service_name: serviceName,
+    amount_cents: amountCents,
+    estimated_days: estimatedDays,
+    shippo_rate_id: shippoRateId,
+  }
+}
+
 /**
- * Creates a Shippo shipment for the given parcels and returns the cheapest
- * rate per supported carrier (USPS, UPS, FedEx, DHL), sorted by price asc.
+ * Returns the cheapest USPS economy and DHL Express rates for checkout.
+ * UPS and FedEx are excluded (no carrier pickup support in our workflow).
  */
 export async function fetchLiveRates(
   address: CheckoutAddress,
@@ -60,27 +72,37 @@ export async function fetchLiveRates(
     async: false,
   })
 
-  const cheapestByCarrier = new Map<string, LiveShippingRate>()
+  const cheapestByTier = new Map<CheckoutCarrierTier, LiveShippingRate>()
+
   for (const rate of shipment.rates ?? []) {
-    const carrier = canonicalCarrier(rate.provider)
-    if (!carrier) continue
+    const tier = resolveCheckoutCarrierTier({
+      provider: rate.provider ?? "",
+      serviceName: rate.servicelevel?.name ?? "",
+      serviceToken: rate.servicelevel?.token ?? "",
+    })
+    if (!tier) continue
+
     const amountCents = amountToCents(rate.amount)
-    if (amountCents === null) continue
-    const existing = cheapestByCarrier.get(carrier)
+    if (amountCents === null || !rate.objectId) continue
+
+    const candidate = buildCheckoutRate(
+      tier,
+      amountCents,
+      rate.servicelevel?.name ?? CHECKOUT_CARRIER_LABELS[tier].title,
+      rate.estimatedDays ?? null,
+      rate.objectId,
+    )
+
+    const existing = cheapestByTier.get(tier)
     if (!existing || amountCents < existing.amount_cents) {
-      cheapestByCarrier.set(carrier, {
-        carrier,
-        service_name: rate.servicelevel?.name ?? carrier,
-        amount_cents: amountCents,
-        estimated_days: rate.estimatedDays ?? null,
-        shippo_rate_id: rate.objectId,
-      })
+      cheapestByTier.set(tier, candidate)
     }
   }
 
-  return [...cheapestByCarrier.values()].sort(
-    (left, right) => left.amount_cents - right.amount_cents,
-  )
+  const orderedTiers: CheckoutCarrierTier[] = ["usps_economy", "dhl_express"]
+  return orderedTiers
+    .map((tier) => cheapestByTier.get(tier))
+    .filter((rate): rate is LiveShippingRate => rate !== undefined)
 }
 
 export interface RetrievedRate {
@@ -102,9 +124,18 @@ export async function retrieveRate(
   const rate = await shippo.rates.get(rateId)
   const amountCents = amountToCents(rate.amount)
   if (amountCents === null) return null
+
+  const tier = resolveCheckoutCarrierTier({
+    provider: rate.provider ?? "",
+    serviceName: rate.servicelevel?.name ?? "",
+    serviceToken: rate.servicelevel?.token ?? "",
+  })
+
   return {
     amountCents,
-    carrier: canonicalCarrier(rate.provider) ?? rate.provider,
+    carrier: tier
+      ? CHECKOUT_CARRIER_LABELS[tier].title
+      : (rate.provider ?? "Carrier"),
     serviceName: rate.servicelevel?.name ?? "",
     estimatedDays: rate.estimatedDays ?? null,
     shipmentId: rate.shipment,

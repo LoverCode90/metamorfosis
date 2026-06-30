@@ -5,6 +5,7 @@ import { Check } from "lucide-react"
 
 import type { LiveShippingRate } from "@/lib/checkout/types"
 import { PICKUP_HOURS } from "@/lib/checkout/pickup"
+import { CHECKOUT_CARRIER_LABELS } from "@/lib/shippo/checkout-carriers"
 import { formatUSD } from "@/lib/utils/format"
 import { cn } from "@/lib/utils"
 
@@ -13,6 +14,14 @@ interface ShippingRateOptionProps {
   selected: boolean
   freeShipping: boolean
   onSelect: (rate: LiveShippingRate) => void
+}
+
+function checkoutSubtitle(rate: LiveShippingRate): string | null {
+  if (rate.carrier === "pickup") return null
+  const tier = Object.entries(CHECKOUT_CARRIER_LABELS).find(
+    ([, labels]) => labels.title === rate.carrier,
+  )
+  return tier?.[1].subtitle ?? null
 }
 
 /** Selectable live-rate row (memoized — rendered in a list). */
@@ -24,6 +33,7 @@ export const ShippingRateOption = memo(function ShippingRateOption({
 }: ShippingRateOptionProps) {
   const isPickup = rate.carrier === "pickup"
   const estimatedDays = rate.estimated_days
+  const subtitle = checkoutSubtitle(rate)
   const etaLabel =
     estimatedDays != null
       ? `${estimatedDays} business day${estimatedDays === 1 ? "" : "s"}`
@@ -71,7 +81,9 @@ export const ShippingRateOption = memo(function ShippingRateOption({
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground text-xs">{etaLabel}</p>
+            <p className="text-muted-foreground text-xs">
+              {subtitle ?? etaLabel}
+            </p>
           )}
         </div>
       </div>

@@ -9,6 +9,8 @@ const ADMIN_ROUTE_LABELS: Record<string, string> = {
   orders: "Orders",
   cases: "Cases",
   settings: "Settings",
+  shipping: "Shipping",
+  pickups: "Schedule pickups",
   "packing-slip": "Packing slip",
 }
 

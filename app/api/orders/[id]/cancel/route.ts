@@ -3,9 +3,7 @@ import { revalidatePath } from "next/cache"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { refundOrder } from "@/lib/square/refund"
-import { Resend } from "resend"
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { sendOrderCanceled } from "@/lib/email/order-status-emails"
 
 export async function POST(
   request: NextRequest,
@@ -23,7 +21,6 @@ export async function POST(
 
   const admin = createAdminClient()
 
-  // 1. Fetch order
   const { data: order, error } = await admin
     .from("orders")
     .select("*, cases(id)")
@@ -35,7 +32,6 @@ export async function POST(
     return NextResponse.json({ error: "Order not found" }, { status: 404 })
   }
 
-  // 2. Validate 2-hour window
   const orderTime = new Date(order.created_at).getTime()
   if (Date.now() - orderTime > 2 * 60 * 60 * 1000) {
     return NextResponse.json(
@@ -44,7 +40,6 @@ export async function POST(
     )
   }
 
-  // 3. Validate status
   if (order.status !== "pending" && order.status !== "confirmed") {
     return NextResponse.json(
       { error: "Order cannot be cancelled at this stage" },
@@ -52,7 +47,6 @@ export async function POST(
     )
   }
 
-  // 4. Validate no cases
   if (order.cases && order.cases.length > 0) {
     return NextResponse.json(
       { error: "Order has an open case" },
@@ -61,8 +55,6 @@ export async function POST(
   }
 
   try {
-    // 5. Call Square Refund API. Legacy "test-" orders were never charged in
-    // Square, so skip the refund call for them (real orders always refund).
     const isLegacyTestOrder = order.square_order_id?.startsWith("test-")
     if (order.square_order_id && !isLegacyTestOrder) {
       await refundOrder(
@@ -72,7 +64,6 @@ export async function POST(
       )
     }
 
-    // 6. Update status to canceled (order_status enum value — single L)
     const { error: updateError } = await admin
       .from("orders")
       .update({ status: "canceled" })
@@ -81,7 +72,6 @@ export async function POST(
     if (updateError)
       throw new Error(`Cannot update order status: ${updateError.message}`)
 
-    // 7. Log to audit_logs
     const { error: logError } = await admin.from("audit_logs").insert({
       admin_id: user.id,
       action: "cancel_order",
@@ -92,24 +82,24 @@ export async function POST(
     })
     if (logError) console.error("[cancel-order] audit log failed:", logError)
 
-    // 8. Send email
-    if (process.env.RESEND_API_KEY) {
-      const customerEmail = order.shipping_address?.email || user.email
-      await resend.emails.send({
-        from: "Metamorfosis <no-reply@metamorfosisllc.com>",
-        replyTo: "hello@metamorfosisllc.com",
+    const customerEmail =
+      (order.shipping_address?.email as string | undefined) || user.email
+    const customerName =
+      (order.shipping_address?.fullName as string | undefined) ?? "there"
+
+    if (customerEmail) {
+      await sendOrderCanceled({
         to: customerEmail,
-        subject: `Order Cancelled - ${order.square_order_id}`,
-        html: `<p>Your order ${order.square_order_id} has been cancelled and refunded successfully.</p>`,
-      })
+        customerName,
+        orderNumber: order.square_order_id,
+        reason: "Customer cancelled within 2 hours",
+      }).catch((err) => console.error("[cancel-order] email failed:", err))
     }
 
     revalidatePath("/orders")
     return NextResponse.json({ ok: true })
   } catch (err: unknown) {
     console.error("[cancel-order]", err)
-
-    // Attempt to extract Square ApiError details or fallback to error message
     const e = err as { errors?: { detail?: string }[]; message?: string }
     const errorMsg =
       e?.errors?.[0]?.detail || e?.message || "Failed to cancel order"

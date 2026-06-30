@@ -3,6 +3,8 @@
 import type { ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
+
+import { EMAIL_ADDRESSES } from "@/lib/email/addresses"
 import { Button } from "@/components/ui/button"
 
 const LAST_UPDATED = "June 2026"
@@ -158,7 +160,7 @@ export function PoliciesContent() {
           </li>
           <li>
             To request deletion of your data, email us at
-            hello@metamorfosisllc.com.
+            {` ${EMAIL_ADDRESSES.customerSupport}.`}
           </li>
         </ul>
       </PolicySection>
@@ -169,10 +171,10 @@ export function PoliciesContent() {
           <li>
             Email:{" "}
             <a
-              href="mailto:hello@metamorfosisllc.com"
+              href={`mailto:${EMAIL_ADDRESSES.customerSupport}`}
               className="text-foreground underline hover:opacity-80"
             >
-              hello@metamorfosisllc.com
+              {EMAIL_ADDRESSES.customerSupport}
             </a>
           </li>
           <li>Address: 211 W B St, Ontario, CA 91762</li>
