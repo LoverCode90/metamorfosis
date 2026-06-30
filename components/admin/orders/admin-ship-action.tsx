@@ -10,18 +10,22 @@ import { Button, buttonVariants } from "@/components/ui/button"
 interface AdminShipActionProps {
   orderId: string
   shippingMethod?: string | null
+  carrier?: string | null
 }
 
 /** Generates a Shippo shipping label for an order, or provides a packing slip link for pickups. */
 export function AdminShipAction({
   orderId,
   shippingMethod,
+  carrier,
 }: AdminShipActionProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const isPickup = shippingMethod?.toLowerCase().includes("pickup")
+  const isPickup =
+    shippingMethod?.toLowerCase().includes("pickup") ||
+    carrier?.toLowerCase().includes("pickup")
 
   if (isPickup) {
     return (

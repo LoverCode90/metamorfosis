@@ -43,7 +43,11 @@ export function OrderFulfillmentCard({
             {carrier ? ` · ${carrier}` : ""}
           </a>
         ) : (
-          <AdminShipAction orderId={orderId} shippingMethod={shippingMethod} />
+          <AdminShipAction
+            orderId={orderId}
+            shippingMethod={shippingMethod}
+            carrier={carrier}
+          />
         )}
       </div>
     </div>
