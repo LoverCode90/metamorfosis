@@ -13,7 +13,7 @@ export function CaseEvidenceCard({ caseId, className }: CaseEvidenceCardProps) {
     <section
       className={cn(
         ADMIN_SERVER_CARD_CLASS,
-        "flex min-h-[min(520px,70dvh)] flex-col p-5 sm:p-6",
+        "flex h-[min(520px,70dvh)] flex-col p-5 sm:p-6",
         className,
       )}
     >

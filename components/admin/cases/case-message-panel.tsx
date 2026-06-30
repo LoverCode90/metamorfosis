@@ -23,7 +23,13 @@ import {
 import type { AdminCaseDetail } from "@/lib/cases/types"
 
 /** Admin case thread with optional close-chat action. */
-export function CaseMessagePanel({ caseData }: { caseData: AdminCaseDetail }) {
+export function CaseMessagePanel({
+  caseData,
+  panelClassName,
+}: {
+  caseData: AdminCaseDetail
+  panelClassName?: string
+}) {
   const { message, setMessage, isSending, error, sendMessage } =
     useAdminCaseMessages(caseData.id)
   const {
@@ -99,6 +105,7 @@ export function CaseMessagePanel({ caseData }: { caseData: AdminCaseDetail }) {
       error={error}
       onSend={sendMessage}
       headerAction={headerAction}
+      className={panelClassName}
     />
   )
 }

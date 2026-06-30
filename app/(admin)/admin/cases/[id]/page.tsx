@@ -9,9 +9,9 @@ import { CaseEvidenceCard } from "@/components/admin/cases/case-evidence-card"
 import { CaseIssueDetails } from "@/components/admin/cases/case-issue-details"
 import { CaseMessagePanel } from "@/components/admin/cases/case-message-panel"
 import { CaseOrderContextCard } from "@/components/admin/cases/case-order-context-card"
-import { CaseResolutionActionsCard } from "@/components/admin/cases/case-resolution-actions-card"
 import { AdminPageHeader } from "@/components/admin/ui/admin-page-header"
 import {
+  CASE_DETAIL_PANEL_HEIGHT_CLASS,
   CASE_DETAIL_PRIMARY_GRID_CLASS,
   CASE_DETAIL_SPLIT_GRID_CLASS,
 } from "@/lib/admin/case-detail-grid"
@@ -48,7 +48,6 @@ export default async function AdminCaseDetailPage(props: {
 
   const badge = caseStatusBadge(caseData.status)
   const caseNumber = caseData.id.slice(0, 8).toUpperCase()
-  const customerEmail = caseData.profiles?.email ?? ""
 
   return (
     <div className="space-y-6 pb-12">
@@ -72,25 +71,24 @@ export default async function AdminCaseDetailPage(props: {
       </div>
 
       <div className={CASE_DETAIL_PRIMARY_GRID_CLASS}>
-        <CaseResolutionActionsCard
-          caseId={caseData.id}
-          caseNumber={caseNumber}
-          customerEmail={customerEmail}
-          status={caseData.status}
-        />
-        <CaseOrderContextCard caseData={caseData} className="h-fit" />
-      </div>
-
-      <div className={CASE_DETAIL_PRIMARY_GRID_CLASS}>
         <CaseIssueDetails caseData={caseData} />
-        <CaseCustomerInfoCard caseData={caseData} className="h-fit" />
+        <div className="flex flex-col gap-6">
+          <CaseCustomerInfoCard caseData={caseData} />
+          <CaseOrderContextCard caseData={caseData} />
+        </div>
       </div>
 
       <div className={CASE_DETAIL_SPLIT_GRID_CLASS}>
         <div id="case-conversation" className="min-h-0">
-          <CaseMessagePanel caseData={caseData} />
+          <CaseMessagePanel
+            caseData={caseData}
+            panelClassName={CASE_DETAIL_PANEL_HEIGHT_CLASS}
+          />
         </div>
-        <CaseEvidenceCard caseId={caseData.id} />
+        <CaseEvidenceCard
+          caseId={caseData.id}
+          className={CASE_DETAIL_PANEL_HEIGHT_CLASS}
+        />
       </div>
     </div>
   )

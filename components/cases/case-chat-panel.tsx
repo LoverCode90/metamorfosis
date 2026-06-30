@@ -67,7 +67,7 @@ export function CaseChatPanel({
   return (
     <section
       className={cn(
-        "border-border bg-card flex min-h-[min(520px,70dvh)] flex-col overflow-hidden rounded-2xl border",
+        "border-border bg-card flex h-[min(520px,70dvh)] flex-col overflow-hidden rounded-2xl border",
         className,
       )}
     >
