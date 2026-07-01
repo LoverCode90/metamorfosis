@@ -2,16 +2,11 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
 import { CaseDetailsSection } from "@/components/profile/case-details-section"
-import { CaseMessagesSection } from "@/components/profile/case-messages-section"
 import { CaseTimeline } from "@/components/profile/case-timeline"
-import type { CaseWithMessages } from "@/lib/cases/types"
+import type { DbCase } from "@/lib/cases/types"
 
-/**
- * Customer view of a support case: details, message thread, and a status
- * timeline. Composes self-contained sections; messaging state lives in
- * {@link CaseMessagesSection} / {@link useCaseMessages}.
- */
-export function CaseTrackingView({ caseData }: { caseData: CaseWithMessages }) {
+/** Customer view of a support case: details and status timeline. */
+export function CaseTrackingView({ caseData }: { caseData: DbCase }) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-12">
       <Link
@@ -34,7 +29,6 @@ export function CaseTrackingView({ caseData }: { caseData: CaseWithMessages }) {
       <div className="mt-8 grid gap-8 md:grid-cols-3">
         <div className="space-y-6 md:col-span-2">
           <CaseDetailsSection caseData={caseData} />
-          <CaseMessagesSection caseData={caseData} />
         </div>
         <div className="space-y-6">
           <CaseTimeline

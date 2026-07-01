@@ -29,3 +29,5 @@ export const ORDER_STATUS_CONFIG: Record<string, StatusEntry> = {
 
 export const CANCEL_WINDOW_MS = 2 * 60 * 60 * 1000
 export const RETURN_WINDOW_MS = 14 * 24 * 60 * 60 * 1000
+export const PICKUP_WINDOW_DAYS = 5
+export const PICKUP_WINDOW_MS = PICKUP_WINDOW_DAYS * 24 * 60 * 60 * 1000

@@ -15,14 +15,14 @@ export function HomeBrandLines() {
       <h2 className="text-foreground mt-2 text-2xl font-semibold tracking-tight">
         Professional lines we carry
       </h2>
-      <BentoGrid className="mt-8 auto-rows-[14rem] md:auto-rows-[11rem]">
+      <BentoGrid className="mt-8 auto-rows-[14rem] md:auto-rows-[12rem]">
         {BRAND_LINES.map((line) => (
           <Link
             key={line.slug}
             href={`/lines/${line.slug}`}
             className={cn(
-              "group relative flex min-h-[16rem] flex-col justify-end overflow-hidden rounded-xl",
-              "border border-white/10 shadow-lg transition-transform duration-300 hover:scale-[1.01]",
+              "group relative flex h-full min-h-0 flex-col justify-end overflow-hidden rounded-xl",
+              "border border-white/10 shadow-lg transition-opacity duration-300 hover:opacity-95",
               line.className,
             )}
           >

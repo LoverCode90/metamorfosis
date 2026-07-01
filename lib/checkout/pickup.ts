@@ -7,8 +7,11 @@ export interface PickupHoursLine {
 }
 
 export const PICKUP_HOURS: readonly PickupHoursLine[] = [
-  { days: "Mon–Wed", hours: "4:00 PM – 8:00 PM" },
-  { days: "Thu–Fri", hours: "9:00 AM – 8:00 PM" },
+  { days: "Monday", hours: "4:00 PM – 8:00 PM" },
+  { days: "Tuesday", hours: "4:00 PM – 8:00 PM" },
+  { days: "Wednesday", hours: "4:00 PM – 8:00 PM" },
+  { days: "Thursday", hours: "9:00 AM – 8:00 PM" },
+  { days: "Friday", hours: "9:00 AM – 8:00 PM" },
   { days: "Saturday", hours: "9:00 AM – 5:00 PM" },
   { days: "Sunday", hours: "Closed" },
 ]

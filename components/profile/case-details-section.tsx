@@ -2,7 +2,7 @@ import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { formatCaseStatus } from "@/lib/utils/format"
-import type { CaseWithMessages } from "@/lib/cases/types"
+import type { DbCase } from "@/lib/cases/types"
 import { cn } from "@/lib/utils"
 
 /** A label / value row in the case details grid. */
@@ -24,11 +24,7 @@ function DetailRow({
 }
 
 /** Case metadata (status, reason, explanation) and the return label download. */
-export function CaseDetailsSection({
-  caseData,
-}: {
-  caseData: CaseWithMessages
-}) {
+export function CaseDetailsSection({ caseData }: { caseData: DbCase }) {
   return (
     <section className="border-border bg-card rounded-2xl border p-6">
       <h2 className="text-foreground mb-4 text-lg font-semibold">

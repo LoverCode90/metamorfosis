@@ -6,6 +6,7 @@ import {
   PICKUP_HOURS_NOTE,
   pickupHoursText,
 } from "@/lib/checkout/pickup"
+import { PICKUP_WINDOW_DAYS } from "@/lib/orders/order-status-config"
 import { EMAIL_ADDRESSES } from "@/lib/email/addresses"
 import { APP_URL } from "./_layout"
 
@@ -38,9 +39,9 @@ function fmtDollars(cents: number): string {
 }
 
 const SHIPPING_LABELS: Record<ShippingMethod, string> = {
-  standard: "Standard Shipping (5–7 business days)",
-  express: "Express Shipping (2–3 business days)",
-  overnight: "Overnight",
+  standard: "USPS Standard",
+  express: "DHL Express",
+  overnight: "DHL Express",
   pickup: "Pick Up in Store",
 }
 
@@ -61,6 +62,10 @@ export function buildOrderConfirmationHtml(
         <p style="margin:0 0 12px;font-size:13px;color:#374151;line-height:1.6;">${PICKUP_ADDRESS}</p>
         <table width="100%" cellpadding="0" cellspacing="0">${pickupHoursRows}</table>
         <p style="margin:8px 0 0;font-size:11px;color:#9ca3af;">${PICKUP_HOURS_NOTE}</p>
+        <p style="margin:12px 0 0;font-size:12px;color:#374151;line-height:1.5;">
+          Pick up within <strong>${PICKUP_WINDOW_DAYS} calendar days</strong> of placing your order.
+          Uncollected orders are automatically canceled and refunded.
+        </p>
       </div>`
     : `<div style="background:#f9fafb;border-radius:8px;padding:16px;margin-bottom:24px;">
         <p style="margin:0 0 8px;font-size:12px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;">Shipping to</p>
@@ -74,7 +79,7 @@ export function buildOrderConfirmationHtml(
       </div>`
 
   const introCopy = isPickup
-    ? "Thank you for your order! We'll have it ready for pickup at our Ontario store. Bring your order number when you come by."
+    ? `Thank you for your order! We'll have it ready for pickup at our Ontario store. You have ${PICKUP_WINDOW_DAYS} calendar days to collect it during our posted hours.`
     : "Thank you for your order! We're preparing it now and will send tracking information as soon as your package ships."
 
   const itemRows = items
@@ -223,6 +228,7 @@ export function buildOrderConfirmationText(
         PICKUP_ADDRESS,
         ...pickupHoursText(),
         PICKUP_HOURS_NOTE,
+        `Pick up within ${PICKUP_WINDOW_DAYS} calendar days or the order is auto-canceled and refunded.`,
       ]
     : [
         `SHIPPING TO`,
@@ -239,7 +245,7 @@ export function buildOrderConfirmationText(
     ``,
     `Hi ${address.fullName.split(" ")[0]},`,
     isPickup
-      ? `Thank you for your order! We'll have it ready for pickup at our Ontario store.`
+      ? `Thank you for your order! Pick up within ${PICKUP_WINDOW_DAYS} calendar days at our Ontario store.`
       : `Thank you for your order! We're preparing it now.`,
     ``,
     `ITEMS`,

@@ -69,9 +69,9 @@ export function PoliciesContent() {
         </p>
         <ul>
           <li>
-            Shipping rates are calculated in real time by our carrier partners
-            (USPS, UPS, FedEx) at checkout based on your address and order
-            weight.
+            Delivery options at checkout are <strong>USPS Standard</strong> and{" "}
+            <strong>DHL Express</strong>, with rates calculated in real time
+            based on your address and order weight.
           </li>
           <li>Free standard shipping is available on orders over $70.00.</li>
           <li>
@@ -79,7 +79,15 @@ export function PoliciesContent() {
             delays.
           </li>
           <li>
-            Store pickup is available at our Ontario, CA location at no charge.
+            <strong>Store pickup</strong> is available at our Ontario, CA
+            location ({`211 W B St, Ontario, CA 91762`}) at no charge during
+            posted store hours.
+          </li>
+          <li>
+            Pickup orders must be collected within{" "}
+            <strong>5 calendar days</strong> of placement. Orders not picked up
+            within that window are automatically canceled and refunded to your
+            original payment method.
           </li>
         </ul>
       </PolicySection>
@@ -113,7 +121,8 @@ export function PoliciesContent() {
       <PolicySection title="Cancellation Policy">
         <p>
           Orders may be cancelled within 2 hours of placement. After 2 hours,
-          orders enter processing and cancellation is no longer available.
+          orders enter processing and self-service cancellation is no longer
+          available.
         </p>
         <ul>
           <li>
@@ -123,6 +132,13 @@ export function PoliciesContent() {
           <li>
             Refunds for cancelled orders are processed within 3–5 business days
             to your original payment method.
+          </li>
+          <li>
+            <strong>Store pickup orders</strong> follow a separate deadline: you
+            have 5 calendar days from placement to collect your order.
+            Uncollected pickup orders are automatically canceled and refunded —
+            this is in addition to the 2-hour voluntary cancellation window at
+            checkout.
           </li>
         </ul>
       </PolicySection>

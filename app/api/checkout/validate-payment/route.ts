@@ -162,5 +162,6 @@ export async function POST(
     orderId,
     orderNumber,
     totalCents: priceSheet.totalCents,
+    isPickup: shipping.carrier === "pickup",
   })
 }

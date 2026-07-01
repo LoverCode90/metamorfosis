@@ -3,7 +3,6 @@
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { AdminBreadcrumbs } from "@/components/admin/sidebar/admin-breadcrumbs"
-import { AdminNotificationBell } from "@/components/admin/sidebar/admin-notification-bell"
 
 /** Top bar inside the admin content area — toggle + breadcrumbs. */
 export function AdminHeader() {
@@ -18,7 +17,6 @@ export function AdminHeader() {
         <div className="min-w-0 flex-1 overflow-hidden">
           <AdminBreadcrumbs />
         </div>
-        <AdminNotificationBell />
       </div>
     </header>
   )

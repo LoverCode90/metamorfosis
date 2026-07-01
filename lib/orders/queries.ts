@@ -9,7 +9,8 @@ const ORDER_SELECT = `
   id, square_order_id, status, shipping_method,
   subtotal_cents, discount_cents, shipping_cents, tax_cents, total_cents,
   shipping_address, tracking_number, carrier, tracking_url,
-  estimated_delivery_date, delivered_at, created_at, updated_at,
+  estimated_delivery_date, delivered_at, pickup_deadline_at, picked_up_at,
+  created_at, updated_at,
   cases(id, status),
   order_items (
     id, variation_id, quantity, unit_price_cents, discount_cents,

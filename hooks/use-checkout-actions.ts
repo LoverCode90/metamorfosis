@@ -121,7 +121,7 @@ export function useCheckoutActions(deps: CheckoutActionsDeps) {
         sessionStorage.removeItem(CHECKOUT_STEP_KEY)
         sessionStorage.removeItem(ADDRESS_KEY)
         navigate(
-          `/confirmation?orderId=${data.orderId}&orderNumber=${data.orderNumber}`,
+          `/confirmation?orderId=${data.orderId}&orderNumber=${data.orderNumber}${data.isPickup ? "&pickup=1" : ""}`,
         )
       }
       return data

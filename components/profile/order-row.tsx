@@ -12,7 +12,10 @@ import {
   ORDER_STATUS_CONFIG,
   CANCEL_WINDOW_MS,
   RETURN_WINDOW_MS,
+  PICKUP_WINDOW_DAYS,
 } from "@/lib/orders/order-status-config"
+import { isPickupShipment } from "@/lib/admin/is-pickup-shipment"
+import { PICKUP_ADDRESS } from "@/lib/checkout/pickup"
 import type { DbOrder } from "@/lib/orders/types"
 
 interface OrderRowProps {
@@ -31,6 +34,15 @@ export const OrderRow = memo(function OrderRow({ order, now }: OrderRowProps) {
 
   const isCancelled =
     order.status === "cancelled" || order.status === "refunded"
+
+  const isPickup = isPickupShipment(order.shipping_method, order.carrier)
+
+  const pickupDeadline = order.pickup_deadline_at
+    ? new Date(order.pickup_deadline_at)
+    : new Date(
+        new Date(order.created_at).getTime() +
+          PICKUP_WINDOW_DAYS * 24 * 60 * 60 * 1000,
+      )
 
   const isCancellable =
     (order.status === "pending" || order.status === "confirmed") &&
@@ -79,9 +91,16 @@ export const OrderRow = memo(function OrderRow({ order, now }: OrderRowProps) {
               ` + ${order.order_items.length - 1} more`}
           </p>
           <p className="text-muted-foreground text-xs">
-            {itemCount} {itemCount === 1 ? "item" : "items"} · Shipped to{" "}
-            {shippingAddress.city}, {shippingAddress.state}
+            {itemCount} {itemCount === 1 ? "item" : "items"} ·{" "}
+            {isPickup
+              ? `Pickup at ${PICKUP_ADDRESS.split(",")[0]}`
+              : `Shipped to ${shippingAddress.city}, ${shippingAddress.state}`}
           </p>
+          {isPickup && !isCancelled && (
+            <p className="text-muted-foreground mt-0.5 text-xs">
+              Pick up by {formatDate(pickupDeadline.toISOString())}
+            </p>
+          )}
         </div>
         <p className="text-foreground shrink-0 text-sm font-semibold tabular-nums">
           {formatUSD(order.total_cents)}
@@ -89,7 +108,7 @@ export const OrderRow = memo(function OrderRow({ order, now }: OrderRowProps) {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        {order.tracking_number && !isCancelled && (
+        {order.tracking_number && !isCancelled && !isPickup && (
           <div>
             <p className="text-muted-foreground text-xs">Tracking</p>
             {order.tracking_url ? (
@@ -127,7 +146,7 @@ export const OrderRow = memo(function OrderRow({ order, now }: OrderRowProps) {
               nativeButton={false}
               render={<Link href={`/tracking?orderId=${order.id}`} />}
             >
-              Track order
+              {isPickup ? "View pickup" : "Track order"}
             </Button>
           )}
         </div>

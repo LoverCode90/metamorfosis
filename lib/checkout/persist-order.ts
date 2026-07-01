@@ -2,6 +2,7 @@ import "server-only"
 import type { createAdminClient } from "@/lib/supabase/admin"
 import type { CheckoutAddress, CheckoutPayload, PriceSheet } from "./types"
 import type { CheckoutVariationMap } from "./validate-payload"
+import { PICKUP_WINDOW_MS } from "@/lib/orders/order-status-config"
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
@@ -56,6 +57,11 @@ export async function persistOrder(
     varMap,
   } = params
 
+  const isPickup = carrier.toLowerCase() === "pickup"
+  const pickupDeadlineAt = isPickup
+    ? new Date(Date.now() + PICKUP_WINDOW_MS).toISOString()
+    : null
+
   const { data: order, error: orderError } = await admin
     .from("orders")
     .insert({
@@ -64,8 +70,7 @@ export async function persistOrder(
       guest_email: guestEmail,
       // New orders start as "pending" until payment/fulfillment is confirmed.
       status: "pending",
-      // shipping_method is a NOT NULL enum; the real provider lives in `carrier`.
-      shipping_method: "standard",
+      shipping_method: isPickup ? "pickup" : "standard",
       subtotal_cents: priceSheet.subtotalCents,
       discount_cents: priceSheet.discountCents,
       shipping_cents: priceSheet.shippingCents,
@@ -77,6 +82,7 @@ export async function persistOrder(
       estimated_delivery_date: estimatedDeliveryDate,
       shippo_shipment_id: shippoShipmentId,
       shippo_rate_id: shippoRateId,
+      pickup_deadline_at: pickupDeadlineAt,
       terms_accepted: termsAccepted,
       surcharge_consented_at: consentTimestamp,
       surcharge_consented_ip: consentIp,

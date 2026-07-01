@@ -41,6 +41,8 @@ export interface DbOrder {
   tracking_url: string | null
   estimated_delivery_date: string | null
   delivered_at: string | null
+  pickup_deadline_at: string | null
+  picked_up_at: string | null
   created_at: string
   updated_at: string
   order_items: DbOrderItem[]
@@ -65,5 +67,28 @@ export function orderStatusToStageIndex(status: string): number {
       return 0
     default:
       return 0
+  }
+}
+
+/**
+ * Maps pickup order status to tracking stage index.
+ * Stages: 0=placed, 1=processing, 2=ready, 3=picked up
+ */
+export function pickupOrderStatusToStageIndex(status: string): number {
+  switch (status) {
+    case "pending":
+      return 0
+    case "processing":
+      return 1
+    case "confirmed":
+      return 2
+    case "delivered":
+      return 3
+    case "cancelled":
+    case "canceled":
+    case "refunded":
+      return 0
+    default:
+      return 1
   }
 }

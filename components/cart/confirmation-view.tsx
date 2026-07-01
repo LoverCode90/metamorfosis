@@ -4,6 +4,8 @@ import { useEffect } from "react"
 import { Check, ShoppingBag, Info } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
+import { PICKUP_ADDRESS, PICKUP_HOURS } from "@/lib/checkout/pickup"
+import { PICKUP_WINDOW_DAYS } from "@/lib/orders/order-status-config"
 import { CopyRow } from "./copy-row"
 import { HomeFooter } from "@/components/marketing/home-footer"
 
@@ -26,6 +28,7 @@ export function ConfirmationView() {
   }, [router])
   const orderNumber = params.get("orderNumber")
   const orderId = params.get("orderId")
+  const isPickup = params.get("pickup") === "1"
 
   if (!orderNumber) {
     return (
@@ -53,8 +56,9 @@ export function ConfirmationView() {
             Order Confirmed!
           </h1>
           <p className="text-muted-foreground mt-3 max-w-sm text-sm leading-relaxed">
-            Thanks for your order. We{"'"}ll email you a tracking number once
-            your package ships.
+            {isPickup
+              ? `Thanks for your order. Pick it up at our Ontario store within ${PICKUP_WINDOW_DAYS} calendar days during posted hours.`
+              : "Thanks for your order. We'll email you a tracking number once your package ships."}
           </p>
         </div>
 
@@ -70,6 +74,29 @@ export function ConfirmationView() {
             </p>
           </div>
         </div>
+
+        {isPickup && (
+          <div className="border-border mx-auto mt-8 max-w-lg rounded-xl border p-5 text-left">
+            <h3 className="text-foreground text-sm font-semibold">
+              Store pickup
+            </h3>
+            <p className="text-muted-foreground mt-2 text-sm">
+              {PICKUP_ADDRESS}
+            </p>
+            <ul className="text-muted-foreground mt-3 space-y-1 text-sm">
+              {PICKUP_HOURS.map((line) => (
+                <li key={line.days} className="flex justify-between gap-4">
+                  <span>{line.days}</span>
+                  <span className="text-foreground">{line.hours}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
+              Pick up within {PICKUP_WINDOW_DAYS} calendar days. Uncollected
+              orders are automatically canceled and refunded.
+            </p>
+          </div>
+        )}
 
         <div className="border-border mt-10 rounded-xl border p-6">
           <h2 className="text-foreground mb-4 text-sm font-semibold tracking-wide uppercase">

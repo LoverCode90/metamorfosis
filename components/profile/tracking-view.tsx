@@ -3,7 +3,11 @@
 import { ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import type { DbOrder } from "@/lib/orders/types"
+import { isPickupShipment } from "@/lib/admin/is-pickup-shipment"
 import { useReturnEligibility } from "@/hooks/use-return-eligibility"
+import { PickupOrderHeader } from "./pickup-order-header"
+import { PickupOrderInfo } from "./pickup-order-info"
+import { PickupTrackingStages } from "./pickup-tracking-stages"
 import { TrackingEmptyState } from "./tracking-empty-state"
 import { TrackingOrderHeader } from "./tracking-order-header"
 import { TrackingStages } from "./tracking-stages"
@@ -16,6 +20,9 @@ interface TrackingViewProps {
 export function TrackingView({ order }: TrackingViewProps) {
   const router = useRouter()
   const canReportProblem = useReturnEligibility(order)
+  const isPickup = order
+    ? isPickupShipment(order.shipping_method, order.carrier)
+    : false
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:py-12">
@@ -33,12 +40,19 @@ export function TrackingView({ order }: TrackingViewProps) {
           My Account
         </p>
         <h1 className="text-foreground text-2xl font-semibold tracking-tight sm:text-3xl">
-          Order Tracking
+          {isPickup ? "Pickup details" : "Order Tracking"}
         </h1>
       </div>
 
       {!order ? (
         <TrackingEmptyState />
+      ) : isPickup ? (
+        <>
+          <PickupOrderHeader order={order} />
+          <PickupTrackingStages order={order} />
+          <PickupOrderInfo order={order} />
+          <TrackingItems order={order} canReportProblem={canReportProblem} />
+        </>
       ) : (
         <>
           <TrackingOrderHeader order={order} />

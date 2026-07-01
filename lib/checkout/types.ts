@@ -75,6 +75,7 @@ export interface PlaceOrderResult {
   orderId: string
   orderNumber: string
   totalCents: number
+  isPickup?: boolean
 }
 
 export interface PlaceOrderError {
