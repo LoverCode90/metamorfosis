@@ -46,14 +46,9 @@ export async function POST(
     return NextResponse.json({ error: "Order not found" }, { status: 404 })
   }
 
-  if (
-    order.status === "shipped" ||
-    order.status === "delivered" ||
-    order.status === "canceled" ||
-    order.status === "refunded"
-  ) {
+  if (order.status !== "pending") {
     return NextResponse.json(
-      { error: "Order cannot be cancelled at this stage" },
+      { error: "Only pending orders can be canceled by the store" },
       { status: 400 },
     )
   }
@@ -90,6 +85,7 @@ export async function POST(
         customerName,
         orderNumber: order.square_order_id,
         reason: normalizedReason,
+        canceledByStore: true,
       }).catch((err) =>
         console.error("[admin-cancel-order] email failed:", err),
       )

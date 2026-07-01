@@ -63,6 +63,8 @@ export interface OrderCanceledData {
   customerName: string
   orderNumber: string
   reason?: string
+  /** When true, email explains the store canceled the order (admin action). */
+  canceledByStore?: boolean
 }
 
 export async function sendOrderCanceled(
@@ -72,21 +74,25 @@ export async function sendOrderCanceled(
   const reasonHtml = data.reason
     ? `<p style="margin:0 0 8px;font-size:13px;color:#6b7280;">Reason: ${data.reason}</p>`
     : ""
-  const supportLine = `\n\nQuestions? Email us at ${EMAIL_ADDRESSES.customerSupport}`
-  const supportHtml = `<p style="margin:16px 0 0;font-size:13px;color:#8b8b9a;">Questions? Email us at <a href="mailto:${EMAIL_ADDRESSES.customerSupport}" style="color:#f5f5f7;">${EMAIL_ADDRESSES.customerSupport}</a></p>`
+
+  const contact = EMAIL_ADDRESSES.customerSupport
+  const introLead = data.canceledByStore
+    ? `Hi ${data.customerName}, your order ${data.orderNumber} was canceled by our store. A full refund has been issued to your original payment method (3–5 business days). If you believe this was a mistake, please contact us at ${contact}.`
+    : `Hi ${data.customerName}, your order ${data.orderNumber} has been canceled and a full refund has been issued to your original payment method (3–5 business days).`
+
+  const supportLine = `\n\nQuestions? Email us at ${contact}`
+  const supportHtml = `<p style="margin:16px 0 0;font-size:13px;color:#8b8b9a;">Questions? Email us at <a href="mailto:${contact}" style="color:#f5f5f7;">${contact}</a></p>`
+
   await dispatch({
     to: data.to,
     subject: `Your order has been canceled — ${data.orderNumber}`,
     html: emailShell(
       "Your order has been canceled",
-      `${emailIntro(
-        "Your order has been canceled",
-        `Hi ${data.customerName}, your order ${data.orderNumber} has been canceled and a full refund has been issued to your original payment method (3–5 business days).`,
-      )}${reasonHtml}${supportHtml}`,
+      `${emailIntro("Your order has been canceled", introLead)}${reasonHtml}${supportHtml}`,
     ),
     text: `Hi ${data.customerName},
 
-Your order ${data.orderNumber} has been canceled and fully refunded to your original payment method (3–5 business days).${reasonLine}${supportLine}
+${data.canceledByStore ? `Your order ${data.orderNumber} was canceled by our store. A full refund has been issued to your original payment method (3–5 business days). If you believe this was a mistake, please contact us at ${contact}.` : `Your order ${data.orderNumber} has been canceled and fully refunded to your original payment method (3–5 business days).`}${reasonLine}${supportLine}
 
 — Metamorfosis Beauty Supply`,
   })

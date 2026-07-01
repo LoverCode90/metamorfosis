@@ -12,8 +12,8 @@ import {
 } from "@/lib/shippo/ship-from"
 
 /**
- * Re-quotes a fresh Shippo rate, purchases the label, stores tracking, and
- * marks the order shipped.
+ * Re-quotes a fresh Shippo rate, purchases the label, and stores tracking.
+ * Order stays `confirmed` until the carrier scans after pickup scheduling.
  */
 export async function POST(
   _req: Request,

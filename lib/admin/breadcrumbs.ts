@@ -33,10 +33,19 @@ export function buildAdminBreadcrumbSegments(
 
   const sectionKey = pathSegments[1]
   const sectionLabel = ADMIN_ROUTE_LABELS[sectionKey] ?? sectionKey
-  const sectionHref = `/admin/${sectionKey}`
+  const sectionHref =
+    sectionKey === "shipping"
+      ? "/admin/shipping/pickups"
+      : `/admin/${sectionKey}`
 
   if (pathSegments.length === 2) {
     breadcrumbSegments.push({ label: sectionLabel, href: null })
+    return breadcrumbSegments
+  }
+
+  if (sectionKey === "shipping" && pathSegments[2] === "pickups") {
+    breadcrumbSegments.push({ label: sectionLabel, href: sectionHref })
+    breadcrumbSegments.push({ label: "Schedule pickups", href: null })
     return breadcrumbSegments
   }
 

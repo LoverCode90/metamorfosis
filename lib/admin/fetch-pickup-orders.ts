@@ -96,7 +96,7 @@ export async function fetchPickupReadyOrders(
   const { data, error } = await admin
     .from("orders")
     .select(PICKUP_ORDER_SELECT)
-    .eq("status", "confirmed")
+    .in("status", ["confirmed", "shipped"])
     .eq("pickup_status", "unscheduled")
     .not("shippo_transaction_id", "is", null)
     .order("label_purchased_at", { ascending: false, nullsFirst: false })
@@ -240,9 +240,8 @@ export async function fetchOrdersForScheduling(
   }[] = []
 
   for (const row of data ?? []) {
-    if (row.status !== "confirmed" || row.pickup_status !== "unscheduled") {
-      continue
-    }
+    if (row.status !== "confirmed" && row.status !== "shipped") continue
+    if (row.pickup_status !== "unscheduled") continue
     if (!row.shippo_transaction_id) continue
     const pickupCarrier = resolvePickupCarrierKind(row.carrier)
     if (!pickupCarrier) continue

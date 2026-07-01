@@ -41,8 +41,8 @@ export function OrderFulfillmentCard({
         </p>
         <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
         <p className="text-muted-foreground text-xs">
-          Updated automatically via Shippo when the label is printed and when
-          the carrier scans the package.
+          Label printed → Confirmed. After you schedule pickup, the carrier scan
+          moves the order to Shipped automatically.
         </p>
       </div>
       <div className="space-y-2">

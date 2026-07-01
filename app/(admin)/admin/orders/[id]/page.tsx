@@ -42,7 +42,7 @@ export default async function AdminOrderDetailPage(props: {
 
   const addr = order.shipping_address as AdminShippingAddress | null
   const badge = orderStatusBadge(order.status)
-  const canCancel = ["pending", "confirmed"].includes(order.status)
+  const canCancel = order.status === "pending"
 
   const packingSlip: PackingSlipData = mapOrderToPackingSlipData(order)
 
