@@ -86,6 +86,14 @@ export async function POST(request: NextRequest) {
             updateError,
           )
         }
+
+        if (newOrderStatus === "shipped") {
+          await admin
+            .from("orders")
+            .update({ pickup_status: "completed" })
+            .eq("tracking_number", trackingNumber)
+            .eq("pickup_status", "scheduled")
+        }
       } catch (dbException) {
         console.error(
           "[shippo-webhook] track_updated DB exception:",

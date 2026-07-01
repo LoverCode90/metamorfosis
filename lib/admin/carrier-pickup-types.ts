@@ -1,31 +1,56 @@
 import type { CarrierPickupSlotKey } from "@/lib/admin/pickup-slots"
+import type { PickupCarrierKind } from "@/lib/admin/pickup-carrier"
 
-export interface EligiblePickupOrder {
+export type PickupOrderStatus = "unscheduled" | "scheduled" | "completed"
+export type PickupPageTab = "ready" | "scheduled" | "history"
+
+export interface PickupOrderRow {
   id: string
-  squareOrderId: string
-  carrier: string
-  pickupCarrier: "usps" | "dhl_express"
-  createdAt: string
+  recipientName: string
+  labelPurchasedAt: string | null
+  pickupCarrier: PickupCarrierKind
+  carrierDisplay: string
+  serviceName: string | null
+  trackingNumber: string | null
+  labelCostCents: number | null
+  pickupStatus: PickupOrderStatus
+  pickupWindow: PickupWindowInfo | null
 }
 
-export interface CarrierPickupRecord {
-  id: string
-  slotKey: CarrierPickupSlotKey
+export interface PickupWindowInfo {
   pickupDate: string
-  requestedStartTime: string
-  requestedEndTime: string
+  slotKey: CarrierPickupSlotKey
+  slotLabel: string
+  confirmationCode: string | null
+}
+
+export interface PickupTabResponse {
+  tab: PickupPageTab
+  rows: PickupOrderRow[]
+  total: number
+  offset: number
+  limit: number
+  hasMore: boolean
+}
+
+export interface ScheduledPickupMeta {
+  pickupDate: string
+  slotKey: CarrierPickupSlotKey
+  slotLabel: string
+  confirmationCode: string | null
   confirmedStartTime: string | null
   confirmedEndTime: string | null
-  status: string
-  confirmationCode: string | null
-  carrierInstructions: string | null
-  carrierAccount: string | null
-  orderCount: number
-  createdAt: string
+}
+
+export interface PickupScheduledTabResponse {
+  tab: "scheduled"
+  usps: PickupOrderRow[]
+  dhlExpress: PickupOrderRow[]
+  pickupMeta: ScheduledPickupMeta | null
 }
 
 export interface ScheduledPickupResult {
-  pickupCarrier: "usps" | "dhl_express"
+  pickupCarrier: PickupCarrierKind
   carrierLabel: string
   status: string
   confirmationCode: string | null
@@ -33,6 +58,7 @@ export interface ScheduledPickupResult {
   confirmedEndTime: string | null
   orderCount: number
   shippoPickupId: string | null
+  carrierPickupId: string
   messages: string[]
 }
 
@@ -41,22 +67,4 @@ export interface SchedulePickupsResponse {
   pickupDate: string
   slotKey: CarrierPickupSlotKey
   results: ScheduledPickupResult[]
-}
-
-export interface PickupScheduleShipFrom {
-  name: string
-  company: string
-  street1: string
-  city: string
-  state: string
-  zip: string
-  phone: string
-}
-
-export interface PickupScheduleData {
-  eligibleOrders: EligiblePickupOrder[]
-  eligibleCounts: { usps: number; dhl_express: number }
-  eligibleTotal: number
-  history: CarrierPickupRecord[]
-  shipFrom: PickupScheduleShipFrom
 }

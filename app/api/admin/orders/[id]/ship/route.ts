@@ -77,16 +77,22 @@ export async function POST(
       )
     }
 
+    const labelPurchasedAt = new Date().toISOString()
+
     const { error: updateError } = await admin
       .from("orders")
       .update({
         status: "confirmed",
+        pickup_status: "unscheduled",
         shippo_rate_id: quote.rateId,
         shippo_shipment_id: quote.shipmentId,
         shippo_transaction_id: label.transactionId,
         tracking_number: label.trackingNumber,
         tracking_url: label.trackingUrl,
         carrier: quote.carrier,
+        shipping_service: quote.serviceName,
+        label_cost_cents: quote.amountCents,
+        label_purchased_at: labelPurchasedAt,
       })
       .eq("id", orderId)
 

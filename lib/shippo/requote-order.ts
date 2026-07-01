@@ -17,6 +17,7 @@ export interface RequotedRate {
   shipmentId: string
   carrier: string
   serviceName: string
+  amountCents: number
 }
 
 function normalizeCarrier(value: string | null | undefined): string {
@@ -130,5 +131,6 @@ export async function requoteOrderForLabel(
     shipmentId: retrieved.shipmentId,
     carrier: matched.carrier,
     serviceName: matched.service_name,
+    amountCents: retrieved.amountCents,
   }
 }
