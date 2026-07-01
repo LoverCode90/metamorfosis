@@ -13,16 +13,17 @@ import { AdminNavMain } from "@/components/admin/sidebar/admin-nav-main"
 import { AdminNavQuickLinks } from "@/components/admin/sidebar/admin-nav-quick-links"
 import { AdminNavUser } from "@/components/admin/sidebar/admin-nav-user"
 import { AdminSidebarBrand } from "@/components/admin/sidebar/admin-sidebar-brand"
+import type { AdminNavBadgeCounts } from "@/lib/admin/nav-config"
 import type { AdminSidebarUser } from "@/lib/admin/sidebar-user"
 
 interface AdminAppSidebarProps extends ComponentProps<typeof Sidebar> {
-  pendingVerificationCount: number
+  navBadgeCounts: AdminNavBadgeCounts
   adminUser: AdminSidebarUser
 }
 
 /** Collapsible admin sidebar based on shadcn sidebar-07. */
 export function AdminAppSidebar({
-  pendingVerificationCount,
+  navBadgeCounts,
   adminUser,
   ...sidebarProps
 }: AdminAppSidebarProps) {
@@ -32,7 +33,7 @@ export function AdminAppSidebar({
         <AdminSidebarBrand />
       </SidebarHeader>
       <SidebarContent>
-        <AdminNavMain pendingVerificationCount={pendingVerificationCount} />
+        <AdminNavMain navBadgeCounts={navBadgeCounts} />
         <AdminNavQuickLinks />
       </SidebarContent>
       <SidebarFooter>

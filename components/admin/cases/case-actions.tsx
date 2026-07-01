@@ -29,8 +29,8 @@ export function CaseActions({
 
   if (RESOLVED_STATUSES.includes(status)) {
     return (
-      <p className="text-muted-foreground text-sm">
-        This case has been resolved. No further actions are available.
+      <p className="text-muted-foreground text-base leading-relaxed">
+        This case is finished. No further action is needed.
       </p>
     )
   }
@@ -56,49 +56,59 @@ export function CaseActions({
         </div>
       )}
 
-      <div className="flex flex-wrap gap-3">
+      <p className="text-foreground text-sm font-semibold">
+        What would you like to do?
+      </p>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <Button
+          size="lg"
           onClick={() => setDialog("approve")}
           disabled={!!actions.isProcessing}
+          className="h-auto min-h-11 flex-1 py-3 text-base"
         >
           <Check className="mr-2 h-4 w-4" />
-          Approve
+          Approve case
         </Button>
 
         <Button
           variant="destructive"
+          size="lg"
           onClick={() => setDialog("reject")}
           disabled={!!actions.isProcessing}
+          className="h-auto min-h-11 flex-1 py-3 text-base"
         >
           <X className="mr-2 h-4 w-4" />
-          Reject
+          Reject case
         </Button>
 
         <Button
           variant="outline"
+          size="lg"
           onClick={actions.requestMoreInfo}
           disabled={!!actions.isProcessing}
+          className="h-auto min-h-11 flex-1 py-3 text-base"
         >
           {actions.isProcessing === "request-info" ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <Mail className="mr-2 h-4 w-4" />
           )}
-          Request More Info
+          Ask customer for more info
         </Button>
       </div>
 
       <CaseResolutionDialog
         open={dialog !== null}
         onOpenChange={(open) => !open && setDialog(null)}
-        title={isApprove ? "Approve case" : "Reject case"}
+        title={isApprove ? "Approve this case?" : "Reject this case?"}
         description={
           isApprove
-            ? "Approve this case and notify the customer. You may add an optional note."
-            : "Reject this case. A resolution message is required and will be emailed to the customer."
+            ? "The customer will be emailed that their case was approved. You can add an optional note."
+            : "The customer will be emailed that their case was rejected. Please explain why."
         }
         required={!isApprove}
-        confirmLabel={isApprove ? "Approve case" : "Reject case"}
+        confirmLabel={isApprove ? "Yes, approve case" : "Yes, reject case"}
         confirmVariant={isApprove ? "default" : "destructive"}
         value={resolution}
         onChange={setResolution}

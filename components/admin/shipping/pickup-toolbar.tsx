@@ -34,10 +34,11 @@ export function PickupToolbar({
           type="button"
           disabled={selectedCount === 0}
           onClick={onScheduleClick}
-          className="h-10 gap-2 bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50"
+          size="lg"
+          className="h-auto min-h-11 gap-2 bg-violet-600 py-3 text-base text-white hover:bg-violet-700 disabled:opacity-50"
         >
           <Plus className="size-4" />
-          Schedule Pickup
+          Schedule carrier pickup
           {selectedCount > 0 ? ` (${selectedCount})` : ""}
         </Button>
       )}

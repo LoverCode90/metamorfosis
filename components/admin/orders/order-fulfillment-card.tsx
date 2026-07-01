@@ -31,23 +31,27 @@ export function OrderFulfillmentCard({
     shippingMethod?.toLowerCase().includes("pickup") ||
     carrier?.toLowerCase().includes("pickup")
   const statusBadge = orderStatusBadge(status)
+  const needsLabel = !trackingNumber && status === "pending"
 
   return (
-    <div className={cn(ADMIN_SERVER_CARD_CLASS, "space-y-4 p-6 text-sm")}>
-      <h2 className="text-foreground text-base font-semibold">Fulfillment</h2>
+    <div className={cn(ADMIN_SERVER_CARD_CLASS, "space-y-5 p-6")}>
+      <h2 className="text-foreground text-lg font-semibold">Shipping</h2>
       <div className="space-y-2">
-        <p className="text-muted-foreground text-xs tracking-wide uppercase">
-          Status
+        <p className="text-muted-foreground text-sm font-medium">
+          Current step
         </p>
-        <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>
-        <p className="text-muted-foreground text-xs">
-          Label printed → Confirmed. After you schedule pickup, the carrier scan
-          moves the order to Shipped automatically.
+        <Badge variant={statusBadge.variant} className="text-sm">
+          {statusBadge.label}
+        </Badge>
+        <p className="text-muted-foreground text-sm leading-relaxed">
+          {needsLabel
+            ? "Print a shipping label, attach it to the box, then schedule carrier pickup from the menu."
+            : "After the label is printed, schedule carrier pickup so USPS or DHL can collect the package."}
         </p>
       </div>
-      <div className="space-y-2">
-        <p className="text-muted-foreground text-xs tracking-wide uppercase">
-          Tracking
+      <div className="space-y-3">
+        <p className="text-muted-foreground text-sm font-medium">
+          {trackingNumber ? "Tracking number" : "Shipping label"}
         </p>
         {trackingNumber ? (
           <div className="space-y-3">
@@ -55,7 +59,7 @@ export function OrderFulfillmentCard({
               href={trackingUrl ?? "#"}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-foreground block font-medium break-all hover:underline"
+              className="text-foreground block text-base font-medium break-all hover:underline"
             >
               {trackingNumber}
               {carrier ? ` · ${carrier}` : ""}

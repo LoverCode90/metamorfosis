@@ -16,7 +16,12 @@ export {
   isAdminChromelessRoute,
 } from "@/lib/admin/breadcrumbs"
 
-export type AdminNavBadgeKey = "verifications"
+export type AdminNavBadgeKey = "verifications" | "storePickups"
+
+export interface AdminNavBadgeCounts {
+  verifications: number
+  storePickups: number
+}
 
 export interface AdminPanelNavItem {
   label: string
@@ -61,6 +66,14 @@ export const ADMIN_PANEL_NAV_ITEMS: AdminPanelNavItem[] = [
     enabled: true,
   },
   {
+    label: "Customer pickups",
+    href: "/admin/store-pickups?tab=pending",
+    icon: Store,
+    exactMatch: false,
+    badgeKey: "storePickups",
+    enabled: true,
+  },
+  {
     label: "Cases",
     href: "/admin/cases?status=open",
     icon: ClipboardList,
@@ -69,7 +82,7 @@ export const ADMIN_PANEL_NAV_ITEMS: AdminPanelNavItem[] = [
     enabled: true,
   },
   {
-    label: "Schedule pickups",
+    label: "Carrier pickup",
     href: "/admin/shipping/pickups",
     icon: Truck,
     exactMatch: false,

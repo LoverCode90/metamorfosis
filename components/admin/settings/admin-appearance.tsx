@@ -59,8 +59,8 @@ export function AdminAppearance({ embedded = false }: { embedded?: boolean }) {
               <Type className="h-4 w-4" strokeWidth={1.75} />
               Text size
             </p>
-            <p className="text-muted-foreground text-xs">
-              Adjust the base font size for the admin section.
+            <p className="text-muted-foreground text-sm">
+              Make everything easier to read. Large is recommended.
             </p>
           </div>
           <span className="text-foreground text-sm font-semibold">

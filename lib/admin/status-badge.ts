@@ -1,4 +1,7 @@
-import { formatCaseStatus } from "@/lib/utils/format"
+import {
+  caseStatusLabel,
+  orderStatusLabel,
+} from "@/lib/admin/admin-status-labels"
 
 /** Badge variants used for status indicators across the admin panel. */
 export type StatusBadgeVariant =
@@ -38,7 +41,7 @@ const CASE_STATUS_VARIANTS: Record<string, StatusBadgeVariant> = {
 export function orderStatusBadge(status: string): StatusBadge {
   return {
     variant: ORDER_STATUS_VARIANTS[status] ?? "secondary",
-    label: formatCaseStatus(status),
+    label: orderStatusLabel(status),
   }
 }
 
@@ -46,6 +49,6 @@ export function orderStatusBadge(status: string): StatusBadge {
 export function caseStatusBadge(status: string): StatusBadge {
   return {
     variant: CASE_STATUS_VARIANTS[status] ?? "secondary",
-    label: formatCaseStatus(status),
+    label: caseStatusLabel(status),
   }
 }

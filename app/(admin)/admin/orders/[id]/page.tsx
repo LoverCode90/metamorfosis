@@ -1,8 +1,7 @@
+import { redirect, notFound } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { notFound } from "next/navigation"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { AdminOrderActions } from "@/components/admin/orders/admin-order-actions"
-import { MarkPickedUpButton } from "@/components/admin/orders/mark-picked-up-button"
 import { OrderFulfillmentCard } from "@/components/admin/orders/order-fulfillment-card"
 import { OrderItemsSummaryCard } from "@/components/admin/orders/order-items-summary-card"
 import {
@@ -42,15 +41,14 @@ export default async function AdminOrderDetailPage(props: {
 
   if (!order) return notFound()
 
+  const isPickup = isPickupShipment(order.shipping_method, order.carrier)
+  if (isPickup) {
+    redirect("/admin/store-pickups?tab=pending")
+  }
+
   const addr = order.shipping_address as AdminShippingAddress | null
   const badge = orderStatusBadge(order.status)
   const canCancel = order.status === "pending"
-  const isPickup = isPickupShipment(order.shipping_method, order.carrier)
-  const canMarkPickedUp =
-    isPickup &&
-    order.status !== "delivered" &&
-    order.status !== "canceled" &&
-    order.status !== "refunded"
 
   const packingSlip: PackingSlipData = mapOrderToPackingSlipData(order)
 
@@ -62,7 +60,6 @@ export default async function AdminOrderDetailPage(props: {
         actions={
           <div className="flex items-center gap-3">
             <Badge variant={badge.variant}>{badge.label}</Badge>
-            {canMarkPickedUp && <MarkPickedUpButton orderId={order.id} />}
             {canCancel && <AdminOrderActions orderId={order.id} />}
           </div>
         }

@@ -2,6 +2,8 @@ import { redirect } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { AdminStatusFilter } from "@/components/admin/admin-status-filter"
+import { OrdersHelpCard } from "@/components/admin/help/orders-help-card"
+import { orderStatusLabel } from "@/lib/admin/admin-status-labels"
 import { AdminPagination } from "@/components/admin/admin-pagination"
 import { OrderTableRow } from "@/components/admin/orders/order-table-row"
 import { OrderMobileCard } from "@/components/admin/orders/order-mobile-card"
@@ -64,6 +66,8 @@ export default async function AdminOrdersPage(props: {
     .order("created_at", { ascending: false })
     .range(from, from + ORDERS_PER_PAGE - 1)
 
+  query = query.neq("carrier", "pickup")
+
   if (status !== "all") query = query.eq("status", status)
 
   const { data, count } = await query
@@ -73,21 +77,30 @@ export default async function AdminOrdersPage(props: {
   return (
     <div className="space-y-6">
       <AdminPageHeader
-        title="Orders"
-        description="Manage customer web orders, fulfillment, and tracking."
+        title="Ship orders"
+        description="Print labels and ship packages by mail. For customers picking up in the store, use Customer pickups."
       />
+
+      <OrdersHelpCard />
 
       <AdminStatusFilter
         basePath="/admin/orders"
         active={status}
         options={ORDER_STATUS_FILTERS}
+        labelFor={orderStatusLabel}
       />
 
       {orders.length === 0 ? (
         <div
-          className={`${ADMIN_TABLE_SHELL_CLASS} text-muted-foreground px-5 py-16 text-center text-sm`}
+          className={`${ADMIN_TABLE_SHELL_CLASS} text-muted-foreground px-5 py-16 text-center text-base leading-relaxed`}
         >
-          No orders found.
+          No orders in this list.
+          {status === "pending" && (
+            <>
+              {" "}
+              New mail orders will appear here when they need a shipping label.
+            </>
+          )}
         </div>
       ) : (
         <>

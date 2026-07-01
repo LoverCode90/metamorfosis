@@ -37,22 +37,22 @@ export function OrderMobileCard({ order }: { order: AdminOrderListItem }) {
         {itemsSummary(order.order_items)}
       </p>
 
-      <div className="text-muted-foreground mt-3 flex items-center justify-between text-xs">
+      <div className="text-muted-foreground mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
         <span>{orderLabel(order.square_order_id)}</span>
         <span className="text-foreground font-medium">
           {formatUSD(order.total_cents)}
         </span>
       </div>
 
-      <div className="text-muted-foreground mt-2 flex items-center justify-between text-xs">
+      <div className="text-muted-foreground mt-2 flex items-center justify-between text-sm">
         <span>{new Date(order.created_at).toLocaleDateString()}</span>
         {order.tracking_number ? (
           <span className="text-accent-emerald inline-flex items-center gap-1 font-medium">
-            <Check className="h-3.5 w-3.5" /> Tracked
+            <Check className="h-3.5 w-3.5" /> Label printed
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1">
-            <Minus className="h-3.5 w-3.5" /> No tracking
+          <span className="text-accent-amber inline-flex items-center gap-1 font-medium">
+            <Minus className="h-3.5 w-3.5" /> Needs label
           </span>
         )}
       </div>

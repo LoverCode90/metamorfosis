@@ -1,6 +1,8 @@
 import Script from "next/script"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { countPendingStorePickups } from "@/lib/admin/count-pending-store-pickups"
+import type { AdminNavBadgeCounts } from "@/lib/admin/nav-config"
 import { AdminShell } from "@/components/admin/admin-shell"
 import { AdminChrome } from "@/components/admin/sidebar/admin-chrome"
 import type { AdminSidebarUser } from "@/lib/admin/sidebar-user"
@@ -16,18 +18,27 @@ export default async function AdminLayout({
 
   const adminClient = createAdminClient()
 
-  const [{ count: pendingVerificationCount }, { data: adminProfile }] =
-    await Promise.all([
-      adminClient
-        .from("profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("verification_status", "pending_review"),
-      adminClient
-        .from("profiles")
-        .select("full_name")
-        .eq("id", authenticatedUser.id)
-        .single(),
-    ])
+  const [
+    { count: pendingVerificationCount },
+    pendingStorePickupsCount,
+    { data: adminProfile },
+  ] = await Promise.all([
+    adminClient
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("verification_status", "pending_review"),
+    countPendingStorePickups(),
+    adminClient
+      .from("profiles")
+      .select("full_name")
+      .eq("id", authenticatedUser.id)
+      .single(),
+  ])
+
+  const navBadgeCounts: AdminNavBadgeCounts = {
+    verifications: pendingVerificationCount ?? 0,
+    storePickups: pendingStorePickupsCount,
+  }
 
   const adminSidebarUser: AdminSidebarUser = {
     displayName:
@@ -49,7 +60,7 @@ export default async function AdminLayout({
       />
       <AdminShell>
         <AdminChrome
-          pendingVerificationCount={pendingVerificationCount ?? 0}
+          navBadgeCounts={navBadgeCounts}
           adminUser={adminSidebarUser}
         >
           {children}

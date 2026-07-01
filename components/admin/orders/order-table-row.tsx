@@ -60,11 +60,11 @@ export const OrderTableRow = memo(function OrderTableRow({
       <TableCell className="px-5 py-4">
         {order.tracking_number ? (
           <span className="text-accent-emerald inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-medium ring-1 ring-emerald-500/20">
-            <Check className="h-3.5 w-3.5" /> Yes
+            <Check className="h-3.5 w-3.5" /> Label printed
           </span>
         ) : (
-          <span className="text-muted-foreground bg-muted/50 ring-border/50 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ring-1">
-            <Minus className="h-3.5 w-3.5" /> No
+          <span className="text-accent-amber inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium ring-1 ring-amber-500/20">
+            <Minus className="h-3.5 w-3.5" /> Needs label
           </span>
         )}
       </TableCell>
@@ -74,9 +74,9 @@ export const OrderTableRow = memo(function OrderTableRow({
       <TableCell className="px-5 py-4 text-right">
         <Link
           href={orderDetailHref}
-          className="text-primary hover:bg-primary/10 inline-flex items-center justify-center rounded-lg p-2 transition-colors"
-          aria-label="View order"
+          className="text-primary hover:bg-primary/10 inline-flex items-center gap-1 rounded-lg px-2 py-2 text-sm font-medium transition-colors"
         >
+          Open
           <ArrowRight className="h-4 w-4" />
         </Link>
       </TableCell>

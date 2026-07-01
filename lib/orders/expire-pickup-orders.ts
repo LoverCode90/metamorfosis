@@ -1,10 +1,7 @@
 import "server-only"
 
 import { createAdminClient } from "@/lib/supabase/admin"
-import { refundOrder } from "@/lib/square/refund"
-import { sendOrderCanceled } from "@/lib/email/order-status-emails"
-
-const EXPIRABLE_STATUSES = ["pending", "confirmed", "processing"] as const
+import { cancelPickupOrder } from "@/lib/orders/cancel-pickup-order"
 
 export interface ExpirePickupOrdersResult {
   processed: number
@@ -23,7 +20,7 @@ export async function expirePickupOrders(): Promise<ExpirePickupOrdersResult> {
       order_items ( variation_id, quantity )`,
     )
     .eq("carrier", "pickup")
-    .in("status", [...EXPIRABLE_STATUSES])
+    .in("status", ["pending", "confirmed", "processing"])
     .lt("pickup_deadline_at", now)
 
   if (error) {
@@ -35,64 +32,12 @@ export async function expirePickupOrders(): Promise<ExpirePickupOrdersResult> {
 
   for (const order of orders ?? []) {
     try {
-      const isLegacyTestOrder = order.square_order_id?.startsWith("test-")
-      if (order.square_order_id && !isLegacyTestOrder) {
-        await refundOrder(
-          order.square_order_id,
-          order.total_cents,
-          "Pickup deadline expired — automatic refund",
-        )
-      }
-
-      await admin
-        .from("orders")
-        .update({ status: "canceled" })
-        .eq("id", order.id)
-        .in("status", [...EXPIRABLE_STATUSES])
-
-      for (const item of order.order_items ?? []) {
-        const { data: variation } = await admin
-          .from("product_variations")
-          .select("inventory_count")
-          .eq("id", item.variation_id)
-          .single()
-
-        if (variation) {
-          await admin
-            .from("product_variations")
-            .update({
-              inventory_count: variation.inventory_count + item.quantity,
-            })
-            .eq("id", item.variation_id)
-        }
-      }
-
-      await admin.from("audit_logs").insert({
-        action: "pickup_deadline_expired",
-        target_table: "orders",
-        target_id: order.id,
-        new_value: { status: "canceled" },
-        notes: "Automatic cancel + refund after 5-day pickup window",
+      await cancelPickupOrder(admin, order, {
+        reason: "Pickup deadline expired — automatic refund",
+        auditAction: "pickup_deadline_expired",
+        emailReason:
+          "Your pickup order was not collected within 5 days and has been automatically canceled and refunded.",
       })
-
-      const addr = order.shipping_address as {
-        email?: string
-        fullName?: string
-      } | null
-      const customerEmail = addr?.email
-      if (customerEmail) {
-        await sendOrderCanceled({
-          to: customerEmail,
-          customerName: addr?.fullName ?? "there",
-          orderNumber: order.square_order_id,
-          reason:
-            "Your pickup order was not collected within 5 days and has been automatically canceled and refunded.",
-          canceledByStore: true,
-        }).catch((err) =>
-          console.error("[expire-pickup-orders] email failed:", err),
-        )
-      }
-
       processed += 1
     } catch (err) {
       failed += 1

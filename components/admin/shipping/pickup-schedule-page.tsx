@@ -3,6 +3,7 @@
 import { AlertCircle, Loader2 } from "lucide-react"
 
 import { PickupConfirmDialog } from "@/components/admin/shipping/pickup-confirm-dialog"
+import { CarrierPickupHelpCard } from "@/components/admin/help/carrier-pickup-help-card"
 import { PickupOrdersTable } from "@/components/admin/shipping/pickup-orders-table"
 import { PickupPageTabs } from "@/components/admin/shipping/pickup-page-tabs"
 import { PickupScheduleDialog } from "@/components/admin/shipping/pickup-schedule-dialog"
@@ -34,14 +35,16 @@ export function PickupSchedulePage({
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <AdminPageHeader
-          title="Schedule Pickup"
-          description="Select labeled packages, schedule a carrier window, and track pickups."
+          title="Carrier pickup"
+          description="Schedule USPS or DHL to collect labeled packages from the store."
         />
         <PickupPageTabs
           activeTab={page.activeTab}
           onTabChange={page.handleTabChange}
         />
       </div>
+
+      <CarrierPickupHelpCard />
 
       {page.activeTab === "ready" && (
         <PickupToolbar
@@ -73,7 +76,7 @@ export function PickupSchedulePage({
           selectedIds={page.selectedIds}
           onToggleSelect={page.toggleSelect}
           onToggleAll={page.toggleAll}
-          emptyMessage="No confirmed packages waiting for pickup. Print labels from Orders first."
+          emptyMessage="No labeled packages yet. Print shipping labels from Orders first — they will show up here when ready."
         />
       )}
 

@@ -4,11 +4,14 @@ import { ArrowLeft } from "lucide-react"
 
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/auth/helpers"
+import { CaseActions } from "@/components/admin/cases/case-actions"
 import { CaseCustomerInfoCard } from "@/components/admin/cases/case-customer-info-card"
 import { CaseEvidenceCard } from "@/components/admin/cases/case-evidence-card"
 import { CaseIssueDetails } from "@/components/admin/cases/case-issue-details"
 import { CaseOrderContextCard } from "@/components/admin/cases/case-order-context-card"
+import { CasesHelpCard } from "@/components/admin/help/cases-help-card"
 import { AdminPageHeader } from "@/components/admin/ui/admin-page-header"
+import { AdminSurfaceCard } from "@/components/admin/ui/admin-surface-card"
 import { CASE_DETAIL_PRIMARY_GRID_CLASS } from "@/lib/admin/case-detail-grid"
 import { Badge } from "@/components/ui/badge"
 import { caseStatusBadge } from "@/lib/admin/status-badge"
@@ -42,6 +45,7 @@ export default async function AdminCaseDetailPage(props: {
 
   const badge = caseStatusBadge(caseData.status)
   const caseNumber = caseData.id.slice(0, 8).toUpperCase()
+  const customerEmail = caseData.profiles?.email ?? ""
 
   return (
     <div className="space-y-6 pb-12">
@@ -55,14 +59,16 @@ export default async function AdminCaseDetailPage(props: {
           </Link>
           <AdminPageHeader
             title={`Case #${caseNumber}`}
-            description="Review the issue and customer evidence."
+            description="Read the issue below, then choose an action at the bottom."
             className="gap-2"
           />
         </div>
-        <Badge variant={badge.variant} className="w-fit shrink-0">
+        <Badge variant={badge.variant} className="w-fit shrink-0 text-sm">
           {badge.label}
         </Badge>
       </div>
+
+      <CasesHelpCard />
 
       <div className={CASE_DETAIL_PRIMARY_GRID_CLASS}>
         <CaseIssueDetails caseData={caseData} />
@@ -73,6 +79,15 @@ export default async function AdminCaseDetailPage(props: {
       </div>
 
       <CaseEvidenceCard caseId={caseData.id} />
+
+      <AdminSurfaceCard title="Your decision">
+        <CaseActions
+          caseId={caseData.id}
+          caseNumber={caseNumber}
+          customerEmail={customerEmail}
+          status={caseData.status}
+        />
+      </AdminSurfaceCard>
     </div>
   )
 }

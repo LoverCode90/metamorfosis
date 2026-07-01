@@ -63,15 +63,15 @@ export function AdminSettings() {
 
         <AdminSurfaceCard
           title="Appearance"
-          description="Theme and text size — admin section only."
+          description="Make text larger or switch light/dark mode for easier reading."
           icon={Palette}
         >
           <AdminAppearance embedded />
         </AdminSurfaceCard>
 
         <AdminSurfaceCard
-          title="Catalog"
-          description="Manually synchronize the product catalog with Square."
+          title="Products"
+          description="Refresh the website catalog from Square when needed."
           icon={RefreshCw}
         >
           <SyncCatalogButton />

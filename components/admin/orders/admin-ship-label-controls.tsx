@@ -39,29 +39,32 @@ export function AdminShipLabelControls({
         <Button
           type="button"
           variant="outline"
+          size="lg"
           onClick={onReprintLabel}
           disabled={isLoading}
+          className="h-auto min-h-11 w-full py-3 text-base sm:w-auto"
         >
           {isLoading ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <Printer className="mr-2 h-4 w-4" />
           )}
-          Reprint Label
+          Reprint label
         </Button>
       ) : (
         <Button
           type="button"
+          size="lg"
           onClick={onGenerateLabel}
           disabled={isLoading}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_-4px_var(--primary)]"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground h-auto min-h-11 w-full py-3 text-base shadow-[0_0_20px_-4px_var(--primary)] sm:w-auto"
         >
           {isLoading ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           ) : (
             <Truck className="mr-2 h-4 w-4" />
           )}
-          Generate Shipping Label
+          Print shipping label
         </Button>
       )}
 

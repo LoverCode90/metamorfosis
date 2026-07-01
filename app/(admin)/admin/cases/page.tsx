@@ -2,6 +2,8 @@ import { redirect } from "next/navigation"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { AdminStatusFilter } from "@/components/admin/admin-status-filter"
+import { CasesHelpCard } from "@/components/admin/help/cases-help-card"
+import { caseStatusLabel } from "@/lib/admin/admin-status-labels"
 import { CaseTableRow } from "@/components/admin/cases/case-table-row"
 import { CaseMobileCard } from "@/components/admin/cases/case-mobile-card"
 import { AdminPageHeader } from "@/components/admin/ui/admin-page-header"
@@ -57,21 +59,27 @@ export default async function AdminCasesPage(props: {
   return (
     <div className="space-y-6">
       <AdminPageHeader
-        title="Cases & Returns"
-        description="Manage support tickets, return requests, and customer conversations."
+        title="Support cases"
+        description="Returns, damaged items, and other customer issues."
       />
+
+      <CasesHelpCard />
 
       <AdminStatusFilter
         basePath="/admin/cases"
         active={status}
         options={CASE_STATUS_FILTERS}
+        labelFor={caseStatusLabel}
       />
 
       {cases.length === 0 ? (
         <div
-          className={`${ADMIN_TABLE_SHELL_CLASS} text-muted-foreground px-5 py-12 text-center text-sm`}
+          className={`${ADMIN_TABLE_SHELL_CLASS} text-muted-foreground px-5 py-12 text-center text-base leading-relaxed`}
         >
-          No cases found.
+          No cases in this list.
+          {status === "open" && (
+            <> Open support requests will appear here when they need you.</>
+          )}
         </div>
       ) : (
         <>

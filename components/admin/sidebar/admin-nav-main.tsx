@@ -7,6 +7,7 @@ import { useMemo } from "react"
 import {
   ADMIN_PANEL_NAV_ITEMS,
   isAdminNavItemActive,
+  type AdminNavBadgeCounts,
   type AdminNavBadgeKey,
 } from "@/lib/admin/nav-config"
 import { cn } from "@/lib/utils"
@@ -19,19 +20,19 @@ import {
 } from "@/components/ui/sidebar"
 
 interface AdminNavMainProps {
-  pendingVerificationCount: number
+  navBadgeCounts: AdminNavBadgeCounts
 }
 
 function resolveNavBadgeCount(
   badgeKey: AdminNavBadgeKey | null,
-  pendingVerificationCount: number,
+  navBadgeCounts: AdminNavBadgeCounts,
 ): number {
-  if (badgeKey === "verifications") return pendingVerificationCount
-  return 0
+  if (!badgeKey) return 0
+  return navBadgeCounts[badgeKey]
 }
 
 /** Primary flat navigation links for the admin sidebar. */
-export function AdminNavMain({ pendingVerificationCount }: AdminNavMainProps) {
+export function AdminNavMain({ navBadgeCounts }: AdminNavMainProps) {
   const currentPathname = usePathname()
 
   const navigationItems = useMemo(() => ADMIN_PANEL_NAV_ITEMS, [])
@@ -45,7 +46,7 @@ export function AdminNavMain({ pendingVerificationCount }: AdminNavMainProps) {
           const isActive = isAdminNavItemActive(navigationItem, currentPathname)
           const badgeCount = resolveNavBadgeCount(
             navigationItem.badgeKey,
-            pendingVerificationCount,
+            navBadgeCounts,
           )
 
           if (!navigationItem.enabled) {

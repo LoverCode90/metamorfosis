@@ -5,21 +5,15 @@ import {
   PICKUP_HOURS,
   PICKUP_HOURS_NOTE,
 } from "@/lib/checkout/pickup"
+import { resolvePickupDeadline } from "@/lib/admin/resolve-pickup-deadline"
 import { PICKUP_WINDOW_DAYS } from "@/lib/orders/order-status-config"
 import type { DbOrder } from "@/lib/orders/types"
 
-function resolvePickupDeadline(order: DbOrder): Date {
-  if (order.pickup_deadline_at) {
-    return new Date(order.pickup_deadline_at)
-  }
-  return new Date(
-    new Date(order.created_at).getTime() +
-      PICKUP_WINDOW_DAYS * 24 * 60 * 60 * 1000,
-  )
-}
-
 export function PickupOrderInfo({ order }: { order: DbOrder }) {
-  const deadline = resolvePickupDeadline(order)
+  const deadline = resolvePickupDeadline(
+    order.created_at,
+    order.pickup_deadline_at,
+  )
 
   return (
     <section className="border-border bg-card mt-6 rounded-2xl border p-6">

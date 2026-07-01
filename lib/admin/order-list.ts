@@ -8,14 +8,8 @@ export interface AdminOrderItemSummary {
   } | null
 }
 
-export interface AdminOrderListItem {
-  id: string
-  square_order_id: string
-  status: string
-  total_cents: number
-  created_at: string
+export interface AdminOrderCustomerFields {
   guest_email: string | null
-  tracking_number: string | null
   shipping_address: {
     first_name?: string
     last_name?: string
@@ -27,6 +21,15 @@ export interface AdminOrderListItem {
     last_name: string | null
     full_name: string | null
   } | null
+}
+
+export interface AdminOrderListItem extends AdminOrderCustomerFields {
+  id: string
+  square_order_id: string
+  status: string
+  total_cents: number
+  created_at: string
+  tracking_number: string | null
   order_items: AdminOrderItemSummary[]
 }
 
@@ -44,7 +47,7 @@ export function orderLabel(squareOrderId: string): string {
  * Best-known customer name: profile name first, then the shipping address,
  * then the guest email, then "Guest".
  */
-export function customerName(order: AdminOrderListItem): string {
+export function customerName(order: AdminOrderCustomerFields): string {
   const profile = order.profiles
   if (profile?.first_name || profile?.last_name) {
     return `${profile.first_name ?? ""} ${profile.last_name ?? ""}`.trim()
@@ -61,7 +64,7 @@ export function customerName(order: AdminOrderListItem): string {
 }
 
 /** Best-known email for the order (address email, then guest email). */
-export function customerEmail(order: AdminOrderListItem): string {
+export function customerEmail(order: AdminOrderCustomerFields): string {
   return order.shipping_address?.email ?? order.guest_email ?? "—"
 }
 

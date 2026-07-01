@@ -26,8 +26,8 @@ export function MetricCard({
     <Link href={href}>
       <div className="border-border bg-card hover:border-border-strong rounded-2xl border p-5 transition-colors">
         <div className="mb-4 flex items-start justify-between">
-          <p className="text-muted-foreground text-sm">{label}</p>
-          <span className="bg-muted text-muted-foreground flex h-8 w-8 items-center justify-center rounded-lg">
+          <p className="text-muted-foreground text-sm font-medium">{label}</p>
+          <span className="bg-muted text-muted-foreground flex h-9 w-9 items-center justify-center rounded-lg">
             <Icon className="h-4 w-4" strokeWidth={1.75} />
           </span>
         </div>
@@ -39,9 +39,9 @@ export function MetricCard({
         >
           {value}
         </p>
-        {sub && <p className="text-muted-foreground mt-1 text-xs">{sub}</p>}
-        <p className="text-muted-foreground mt-4 flex items-center gap-1 text-xs font-medium">
-          View all <ArrowRight className="h-3 w-3" />
+        {sub && <p className="text-muted-foreground mt-1 text-sm">{sub}</p>}
+        <p className="text-muted-foreground mt-4 flex items-center gap-1 text-sm font-medium">
+          Open <ArrowRight className="h-3.5 w-3.5" />
         </p>
       </div>
     </Link>
@@ -65,12 +65,12 @@ export function QuickLink({
   return (
     <Link href={href} className="group/quick block">
       <div className="border-border bg-card hover:border-border-strong hover:bg-muted/30 flex items-center gap-4 rounded-2xl border p-4 transition-colors">
-        <span className="bg-accent-violet/10 text-accent-violet flex h-10 w-10 shrink-0 items-center justify-center rounded-xl">
+        <span className="bg-accent-violet/10 text-accent-violet flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
           <Icon className="h-5 w-5" strokeWidth={1.75} />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-foreground text-sm font-medium">{label}</p>
-          <p className="text-muted-foreground mt-0.5 truncate text-xs">
+          <p className="text-foreground text-base font-medium">{label}</p>
+          <p className="text-muted-foreground mt-0.5 text-sm leading-snug">
             {description}
           </p>
         </div>

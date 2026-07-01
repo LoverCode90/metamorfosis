@@ -1,6 +1,7 @@
 import "server-only"
 
 import { createAdminClient } from "@/lib/supabase/admin"
+import { countPendingStorePickups } from "@/lib/admin/count-pending-store-pickups"
 import { buildDailyRevenue, type DailyRevenue } from "@/lib/admin/daily-revenue"
 
 export interface PeriodStats {
@@ -12,6 +13,7 @@ export interface DashboardStats {
   ordersToday: PeriodStats
   ordersThisWeek: PeriodStats
   pendingShipments: number
+  pendingStorePickups: number
   openCases: number
   pendingVerifications: number
   dailyRevenue: DailyRevenue[]
@@ -62,6 +64,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     ordersThisWeek,
     weekRows,
     shipmentsResult,
+    storePickupsResult,
     casesResult,
     verificationsResult,
     auditResult,
@@ -77,7 +80,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       .from("orders")
       .select("id", { count: "exact", head: true })
       .is("tracking_number", null)
+      .neq("carrier", "pickup")
       .in("status", ["pending", "confirmed", "processing"]),
+    countPendingStorePickups(),
     admin
       .from("cases")
       .select("id", { count: "exact", head: true })
@@ -97,6 +102,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     ordersToday,
     ordersThisWeek,
     pendingShipments: shipmentsResult.count ?? 0,
+    pendingStorePickups: storePickupsResult,
     openCases: casesResult.count ?? 0,
     pendingVerifications: verificationsResult.count ?? 0,
     dailyRevenue: buildDailyRevenue(weekRows.data ?? [], new Date(now)),

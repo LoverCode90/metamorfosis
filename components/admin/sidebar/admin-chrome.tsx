@@ -3,7 +3,10 @@
 import type { ReactNode } from "react"
 import { usePathname } from "next/navigation"
 
-import { isAdminChromelessRoute } from "@/lib/admin/nav-config"
+import {
+  isAdminChromelessRoute,
+  type AdminNavBadgeCounts,
+} from "@/lib/admin/nav-config"
 import { AdminAppSidebar } from "@/components/admin/sidebar/admin-app-sidebar"
 import { AdminHeader } from "@/components/admin/sidebar/admin-header"
 import type { AdminSidebarUser } from "@/lib/admin/sidebar-user"
@@ -13,7 +16,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 interface AdminChromeProps {
   children: ReactNode
-  pendingVerificationCount: number
+  navBadgeCounts: AdminNavBadgeCounts
   adminUser: AdminSidebarUser
 }
 
@@ -23,7 +26,7 @@ interface AdminChromeProps {
  */
 export function AdminChrome({
   children,
-  pendingVerificationCount,
+  navBadgeCounts,
   adminUser,
 }: AdminChromeProps) {
   const currentPathname = usePathname()
@@ -37,7 +40,7 @@ export function AdminChrome({
     <TooltipProvider delay={0}>
       <SidebarProvider>
         <AdminAppSidebar
-          pendingVerificationCount={pendingVerificationCount}
+          navBadgeCounts={navBadgeCounts}
           adminUser={adminUser}
         />
         <SidebarInset className="flex min-h-svh flex-col">

@@ -1,7 +1,6 @@
 import Link from "next/link"
 
 import { cn } from "@/lib/utils"
-import { formatCaseStatus } from "@/lib/utils/format"
 
 interface AdminStatusFilterProps {
   /** Route the filter links point at, e.g. "/admin/orders". */
@@ -10,6 +9,8 @@ interface AdminStatusFilterProps {
   active?: string
   /** Selectable status values. */
   options: readonly string[]
+  /** Maps a status value to a plain-English chip label. */
+  labelFor: (value: string) => string
 }
 
 function chipHref(basePath: string, value: string): string {
@@ -21,10 +22,11 @@ export function AdminStatusFilter({
   basePath,
   active,
   options,
+  labelFor,
 }: AdminStatusFilterProps) {
   const chips: { value: string; label: string }[] = [
     { value: "all", label: "All" },
-    ...options.map((value) => ({ value, label: formatCaseStatus(value) })),
+    ...options.map((value) => ({ value, label: labelFor(value) })),
   ]
 
   return (
@@ -36,7 +38,7 @@ export function AdminStatusFilter({
             key={chip.label}
             href={chipHref(basePath, chip.value)}
             className={cn(
-              "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+              "inline-flex min-h-10 items-center rounded-full border px-4 py-2 text-sm font-medium transition-colors",
               isActive
                 ? "border-foreground bg-foreground text-background"
                 : "border-border text-muted-foreground hover:bg-muted",

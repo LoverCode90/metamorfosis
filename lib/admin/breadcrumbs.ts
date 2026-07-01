@@ -7,10 +7,11 @@ const ADMIN_ROUTE_LABELS: Record<string, string> = {
   admin: "Dashboard",
   verifications: "Verifications",
   orders: "Orders",
+  "store-pickups": "Customer pickups",
   cases: "Cases",
   settings: "Settings",
   shipping: "Shipping",
-  pickups: "Schedule pickups",
+  pickups: "Carrier pickup",
   "packing-slip": "Packing slip",
 }
 
@@ -45,7 +46,7 @@ export function buildAdminBreadcrumbSegments(
 
   if (sectionKey === "shipping" && pathSegments[2] === "pickups") {
     breadcrumbSegments.push({ label: sectionLabel, href: sectionHref })
-    breadcrumbSegments.push({ label: "Schedule pickups", href: null })
+    breadcrumbSegments.push({ label: "Carrier pickup", href: null })
     return breadcrumbSegments
   }
 

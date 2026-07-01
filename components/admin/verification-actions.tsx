@@ -40,26 +40,28 @@ export function VerificationActions({
 
   return (
     <>
-      <div className="border-border flex gap-3 border-t px-6 py-4">
+      <div className="border-border flex flex-col gap-3 border-t px-6 py-4 sm:flex-row">
         <Button
           variant="outline"
+          size="lg"
           onClick={() => setShowRejectDialog(true)}
-          className="h-10 flex-1"
+          className="h-auto min-h-11 flex-1 py-3 text-base"
         >
           <XCircle className="h-4 w-4 text-rose-400" strokeWidth={1.75} />
-          Reject
+          Reject license
         </Button>
         <Button
+          size="lg"
           onClick={() => void handleApprove()}
           disabled={isApproving}
-          className="h-10 flex-1"
+          className="h-auto min-h-11 flex-1 py-3 text-base"
         >
           {isApproving ? (
             <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2} />
           ) : (
             <BadgeCheck className="h-4 w-4" strokeWidth={2} />
           )}
-          {isApproving ? "Approving…" : "Approve"}
+          {isApproving ? "Approving…" : "Approve license"}
         </Button>
       </div>
 
