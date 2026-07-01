@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils"
 export function CartLineItem({ item }: { item: CartItem }) {
   const { increment, decrement, removeItem, moveToWishlist } = useCart()
   const [saveAnimating, setSaveAnimating] = useState(false)
+  const [deleteAnimating, setDeleteAnimating] = useState(false)
   const itemKey = item.variationId ?? item.id
   const lineTotal = item.unitPrice * item.quantity
   const lowStock = item.stock <= LOW_STOCK_THRESHOLD
@@ -28,6 +29,15 @@ export function CartLineItem({ item }: { item: CartItem }) {
     window.setTimeout(() => {
       moveToWishlist(itemKey)
       setSaveAnimating(false)
+    }, 320)
+  }
+
+  function handleRemove() {
+    if (deleteAnimating) return
+    setDeleteAnimating(true)
+    window.setTimeout(() => {
+      removeItem(itemKey)
+      setDeleteAnimating(false)
     }, 320)
   }
 
@@ -116,11 +126,18 @@ export function CartLineItem({ item }: { item: CartItem }) {
               />
               <button
                 type="button"
-                onClick={() => removeItem(itemKey)}
+                onClick={handleRemove}
+                disabled={deleteAnimating}
                 aria-label={`Remove ${item.name}`}
                 className="border-border text-muted-foreground hover:border-destructive/40 hover:text-destructive flex h-8 w-8 items-center justify-center rounded-md border transition-colors sm:h-9 sm:w-9"
               >
-                <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+                <Trash2
+                  className={cn(
+                    "h-4 w-4 transition-all duration-300",
+                    deleteAnimating && "scale-110 text-red-500",
+                  )}
+                  strokeWidth={1.75}
+                />
               </button>
             </div>
           </div>

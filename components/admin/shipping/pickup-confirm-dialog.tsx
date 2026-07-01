@@ -5,10 +5,13 @@ import { Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
+  PICKUP_CONFIRM_DIALOG_CONTENT_CLASS,
+  PICKUP_DIALOG_FOOTER_CLASS,
+} from "@/components/admin/shipping/pickup-dialog-styles"
+import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -44,21 +47,24 @@ export function PickupConfirmDialog({
   const carrierLabels = [...new Set(carriers.map(pickupCarrierLabel))]
 
   async function handleConfirm() {
-    const ok = await onConfirm()
-    if (ok) onOpenChange(false)
+    try {
+      await onConfirm()
+    } finally {
+      onOpenChange(false)
+    }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="dark bg-card text-foreground flex max-h-[min(92dvh,520px)] w-full max-w-[calc(100%-1.5rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
-        <DialogHeader className="shrink-0 px-5 pt-5 pb-0">
+      <DialogContent className={PICKUP_CONFIRM_DIALOG_CONTENT_CLASS}>
+        <DialogHeader className="shrink-0 px-5 pt-5 pb-2">
           <DialogTitle>Confirm pickup</DialogTitle>
           <DialogDescription>
             Are you sure you want to schedule this pickup?
           </DialogDescription>
         </DialogHeader>
 
-        <ul className="text-muted-foreground min-h-0 flex-1 space-y-2 overflow-y-auto px-5 py-4 text-sm">
+        <ul className="text-muted-foreground min-h-0 flex-1 space-y-2 overflow-y-auto px-5 py-2 text-sm">
           <li>
             <span className="text-foreground font-medium">Packages:</span>{" "}
             {selectedCount}
@@ -81,7 +87,7 @@ export function PickupConfirmDialog({
           )}
         </ul>
 
-        <DialogFooter className="border-border bg-card shrink-0 gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">
+        <div className={PICKUP_DIALOG_FOOTER_CLASS}>
           <Button
             type="button"
             variant="outline"
@@ -105,7 +111,7 @@ export function PickupConfirmDialog({
               "Confirm pickup"
             )}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   )

@@ -8,10 +8,13 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import {
+  PICKUP_DIALOG_CONTENT_CLASS,
+  PICKUP_DIALOG_FOOTER_CLASS,
+} from "@/components/admin/shipping/pickup-dialog-styles"
+import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -53,8 +56,8 @@ export function PickupScheduleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="dark bg-card text-foreground flex max-h-[min(92dvh,720px)] w-full max-w-[calc(100%-1.5rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl lg:max-w-3xl">
-        <DialogHeader className="shrink-0 px-5 pt-5 pb-0">
+      <DialogContent className={PICKUP_DIALOG_CONTENT_CLASS}>
+        <DialogHeader className="shrink-0 px-5 pt-5 pb-2">
           <DialogTitle>Schedule pickup</DialogTitle>
           <DialogDescription>
             {selectedCount} package{selectedCount === 1 ? "" : "s"} selected.
@@ -62,7 +65,7 @@ export function PickupScheduleDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-2">
           <div className="border-border bg-muted/30 flex justify-center rounded-xl border p-2">
             <Calendar
               mode="single"
@@ -102,7 +105,7 @@ export function PickupScheduleDialog({
             ))}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 pb-2">
             <Label htmlFor="pickup-modal-instructions">
               Instructions for carrier (optional)
             </Label>
@@ -117,7 +120,7 @@ export function PickupScheduleDialog({
           </div>
         </div>
 
-        <DialogFooter className="border-border bg-card shrink-0 gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">
+        <div className={PICKUP_DIALOG_FOOTER_CLASS}>
           <Button
             type="button"
             variant="outline"
@@ -141,7 +144,7 @@ export function PickupScheduleDialog({
               "Continue"
             )}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   )

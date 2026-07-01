@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
-import { memo } from "react"
+import { memo, useState } from "react"
 import Link from "next/link"
 import { LayoutGrid, List, ShoppingBag, Trash2 } from "lucide-react"
 import { formatUSD } from "@/lib/utils/format"
@@ -16,6 +16,23 @@ export type WishItem = Product & {
   isProfessional?: boolean
 }
 
+const REMOVE_ANIMATION_MS = 320
+
+function useRemoveAnimation(onRemove: () => void) {
+  const [removeAnimating, setRemoveAnimating] = useState(false)
+
+  function handleRemove() {
+    if (removeAnimating) return
+    setRemoveAnimating(true)
+    window.setTimeout(() => {
+      onRemove()
+      setRemoveAnimating(false)
+    }, REMOVE_ANIMATION_MS)
+  }
+
+  return { removeAnimating, handleRemove }
+}
+
 /** Wishlist grid card (memoized — rendered in a grid). */
 export const WishlistCard = memo(function WishlistCard({
   item,
@@ -26,6 +43,7 @@ export const WishlistCard = memo(function WishlistCard({
   onRemove: () => void
   onAdd: () => void
 }) {
+  const { removeAnimating, handleRemove } = useRemoveAnimation(onRemove)
   const finalPrice = item.unitPrice - item.discountPerItem
   const hasDiscount = item.discountPerItem > 0
   const outOfStock = item.stock <= 0
@@ -44,12 +62,19 @@ export const WishlistCard = memo(function WishlistCard({
           type="button"
           onClick={(e) => {
             e.stopPropagation()
-            onRemove()
+            handleRemove()
           }}
+          disabled={removeAnimating}
           aria-label={`Remove ${item.name} from wishlist`}
           className="absolute top-2 right-2 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur transition-colors hover:bg-black/80"
         >
-          <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+          <Trash2
+            className={cn(
+              "h-4 w-4 transition-all duration-300",
+              removeAnimating && "scale-110 text-red-400",
+            )}
+            strokeWidth={1.75}
+          />
         </button>
         <Link
           href={href}
@@ -95,6 +120,7 @@ export const WishlistRow = memo(function WishlistRow({
   onRemove: () => void
   onAdd: () => void
 }) {
+  const { removeAnimating, handleRemove } = useRemoveAnimation(onRemove)
   const finalPrice = item.unitPrice - item.discountPerItem
   const hasDiscount = item.discountPerItem > 0
   const href = `/products/${item.id}`
@@ -157,12 +183,19 @@ export const WishlistRow = memo(function WishlistRow({
         type="button"
         onClick={(e) => {
           e.stopPropagation()
-          onRemove()
+          handleRemove()
         }}
+        disabled={removeAnimating}
         aria-label={`Remove ${item.name}`}
         className="border-border text-muted-foreground hover:border-destructive hover:text-destructive flex h-9 w-9 items-center justify-center rounded-md border transition-colors"
       >
-        <Trash2 className="h-4 w-4" strokeWidth={1.75} />
+        <Trash2
+          className={cn(
+            "h-4 w-4 transition-all duration-300",
+            removeAnimating && "scale-110 text-red-500",
+          )}
+          strokeWidth={1.75}
+        />
       </button>
     </li>
   )

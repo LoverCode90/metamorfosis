@@ -150,8 +150,16 @@ export function usePickupSchedulePage({
     setConfirmOpen(true)
   }, [])
 
+  const closeScheduleModals = useCallback(() => {
+    setScheduleOpen(false)
+    setConfirmOpen(false)
+  }, [])
+
   const confirmSchedule = useCallback(async (): Promise<boolean> => {
-    if (!pickupDate || !slotKey || selectedIds.size === 0) return false
+    if (!pickupDate || !slotKey || selectedIds.size === 0) {
+      closeScheduleModals()
+      return false
+    }
     setIsScheduling(true)
     setError(null)
     try {
@@ -169,8 +177,6 @@ export function usePickupSchedulePage({
       if (!res.ok) throw new Error(payload.error ?? "Schedule failed")
 
       void (payload as SchedulePickupsResponse)
-      setScheduleOpen(false)
-      setConfirmOpen(false)
       setSelectedIds(new Set())
       setInstructions("")
       setActiveTab("scheduled")
@@ -181,8 +187,16 @@ export function usePickupSchedulePage({
       return false
     } finally {
       setIsScheduling(false)
+      closeScheduleModals()
     }
-  }, [instructions, loadTab, pickupDate, selectedIds, slotKey])
+  }, [
+    closeScheduleModals,
+    instructions,
+    loadTab,
+    pickupDate,
+    selectedIds,
+    slotKey,
+  ])
 
   const loadMoreHistory = useCallback(() => {
     const nextOffset = historyOffset + 10

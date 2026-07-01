@@ -107,20 +107,48 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
     }
   }
 
-  // ── 6. Soft-delete items marked is_deleted by Square ─────────────────────
-  const deletedIds = allObjects
-    .filter((o) => o.type === "ITEM" && o.isDeleted && o.id)
-    .map((o) => o.id!)
+  // ── 6. Deactivate products/variations no longer in Square ───────────────
+  const activeProductIds = new Set(
+    maps.items.filter((o) => !o.isDeleted && o.id).map((o) => o.id!),
+  )
+
+  const activeVariationIds = new Set<string>()
+  for (const vars of maps.variationMap.values()) {
+    for (const v of vars) {
+      if (!v.isDeleted && v.id) activeVariationIds.add(v.id)
+    }
+  }
+
+  const orphanProductIds = [...existingMap.keys()].filter(
+    (id) => !activeProductIds.has(id),
+  )
 
   let deactivated = 0
-  if (deletedIds.length > 0) {
+  if (orphanProductIds.length > 0) {
     const { data: deactivatedRows } = await supabase
       .from("product_translations")
       .update({ is_active: false })
-      .in("square_product_id", deletedIds)
+      .in("square_product_id", orphanProductIds)
+      .eq("is_active", true)
       .select("square_product_id")
 
     deactivated = deactivatedRows?.length ?? 0
+  }
+
+  const { data: activeDbVariations } = await supabase
+    .from("product_variations")
+    .select("square_variation_id")
+    .eq("is_active", true)
+
+  const orphanVariationIds = (activeDbVariations ?? [])
+    .map((row) => row.square_variation_id)
+    .filter((id) => !activeVariationIds.has(id))
+
+  if (orphanVariationIds.length > 0) {
+    await supabase
+      .from("product_variations")
+      .update({ is_active: false })
+      .in("square_variation_id", orphanVariationIds)
   }
 
   return { items: itemCount, variations: variationCount, deactivated }
