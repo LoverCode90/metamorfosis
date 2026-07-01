@@ -10,7 +10,6 @@ import {
 
 import { cn } from "@/lib/utils"
 
-export type AdminTheme = "dark" | "light"
 export type AdminFontSize = "normal" | "large" | "larger"
 
 export const FONT_SIZE_ORDER: AdminFontSize[] = ["normal", "large", "larger"]
@@ -20,13 +19,10 @@ export const FONT_SIZE_LABELS: Record<AdminFontSize, string> = {
   larger: "Larger",
 }
 
-const THEME_KEY = "admin-theme"
 const FONT_KEY = "admin-font-size"
 
 interface AdminPrefs {
-  theme: AdminTheme
   fontSize: AdminFontSize
-  setTheme: (t: AdminTheme) => void
   setFontSize: (f: AdminFontSize) => void
 }
 
@@ -38,12 +34,6 @@ export function useAdminPrefs(): AdminPrefs {
   return context
 }
 
-function readTheme(): AdminTheme {
-  if (typeof window === "undefined") return "dark"
-  const stored = localStorage.getItem(THEME_KEY)
-  return stored === "light" || stored === "dark" ? stored : "dark"
-}
-
 function readFontSize(): AdminFontSize {
   if (typeof window === "undefined") return "normal"
   const stored = localStorage.getItem(FONT_KEY)
@@ -52,29 +42,19 @@ function readFontSize(): AdminFontSize {
     : "normal"
 }
 
-/**
- * Wraps the admin section. Theme and font size persist in localStorage across
- * refresh and sign-out.
- */
+/** Admin section wrapper — always dark mode; font size persists in localStorage. */
 export function AdminShell({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<AdminTheme>("dark")
   const [fontSize, setFontSizeState] = useState<AdminFontSize>("normal")
 
   useEffect(() => {
-    const storedTheme = readTheme()
     const storedFontSize = readFontSize()
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setThemeState(storedTheme)
     setFontSizeState(storedFontSize)
-    document.documentElement.dataset.adminTheme = storedTheme
+    document.documentElement.dataset.adminTheme = "dark"
     document.documentElement.dataset.adminFontSize = storedFontSize
+    localStorage.setItem("admin-theme", "dark")
+    localStorage.removeItem("admin-theme-light")
   }, [])
-
-  function setTheme(nextTheme: AdminTheme) {
-    setThemeState(nextTheme)
-    localStorage.setItem(THEME_KEY, nextTheme)
-    document.documentElement.dataset.adminTheme = nextTheme
-  }
 
   function setFontSize(nextFontSize: AdminFontSize) {
     setFontSizeState(nextFontSize)
@@ -83,17 +63,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AdminPrefsContext.Provider
-      value={{ theme, fontSize, setTheme, setFontSize }}
-    >
+    <AdminPrefsContext.Provider value={{ fontSize, setFontSize }}>
       <div
         suppressHydrationWarning
-        data-admin-theme={theme}
+        data-admin-theme="dark"
         data-font-size={fontSize}
-        className={cn(
-          "bg-background text-foreground min-h-screen",
-          theme === "dark" && "dark",
-        )}
+        className={cn("dark bg-background text-foreground min-h-screen")}
       >
         {children}
       </div>

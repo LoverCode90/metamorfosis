@@ -150,8 +150,8 @@ export function usePickupSchedulePage({
     setConfirmOpen(true)
   }, [])
 
-  const confirmSchedule = useCallback(async () => {
-    if (!pickupDate || !slotKey || selectedIds.size === 0) return
+  const confirmSchedule = useCallback(async (): Promise<boolean> => {
+    if (!pickupDate || !slotKey || selectedIds.size === 0) return false
     setIsScheduling(true)
     setError(null)
     try {
@@ -175,8 +175,10 @@ export function usePickupSchedulePage({
       setInstructions("")
       setActiveTab("scheduled")
       await loadTab("scheduled", 0)
+      return true
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Schedule failed")
+      return false
     } finally {
       setIsScheduling(false)
     }

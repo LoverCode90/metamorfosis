@@ -27,7 +27,7 @@ export const PROFILE_NAV_ROWS: ProfileNavRowDef[] = [
     href: "/profile/personal",
     icon: User,
     title: "Personal Info",
-    description: "Name, phone, email",
+    description: "Name and email",
   },
   {
     href: "/profile/addresses",

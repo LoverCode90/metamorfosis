@@ -6,7 +6,7 @@ export function cardToProduct(card: CatalogCard): Product {
   return {
     id: card.squareProductId,
     name: card.nameEn,
-    variant: card.categoriesHierarchy,
+    variant: "",
     image: card.imageUrl ?? "",
     unitPrice: card.minPriceCents,
     discountPerItem: 0,

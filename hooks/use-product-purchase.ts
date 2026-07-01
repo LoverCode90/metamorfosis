@@ -6,6 +6,7 @@ import {
   type CatalogProduct,
   type CatalogVariation,
 } from "@/lib/catalog"
+import { catalogVariationLabel } from "@/lib/catalog/variation-label"
 import { useCart } from "@/hooks/use-cart"
 
 export interface ProductPurchase {
@@ -90,11 +91,7 @@ export function useProductPurchase(product: CatalogProduct): ProductPurchase {
       {
         id: product.squareProductId,
         name: product.nameEn,
-        variant:
-          selectedVariation?.shadeNumber ??
-          selectedVariation?.sizeLabel ??
-          selectedVariation?.nameEn ??
-          "",
+        variant: catalogVariationLabel(selectedVariation),
         image: rawImageUrl ?? "",
         unitPrice: priceCents,
         discountPerItem: 0,
@@ -113,7 +110,7 @@ export function useProductPurchase(product: CatalogProduct): ProductPurchase {
     toggleWishlist({
       id: product.squareProductId,
       name: product.nameEn,
-      variant: selectedVariation?.nameEn ?? "",
+      variant: catalogVariationLabel(selectedVariation),
       image: rawImageUrl ?? "",
       unitPrice: priceCents,
       discountPerItem: 0,

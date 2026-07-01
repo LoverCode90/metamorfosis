@@ -26,7 +26,7 @@ interface PickupConfirmDialogProps {
   slotKey: CarrierPickupSlotKey | null
   selectedCount: number
   carriers: PickupCarrierKind[]
-  onConfirm: () => void
+  onConfirm: () => Promise<boolean>
   isSubmitting?: boolean
 }
 
@@ -43,10 +43,15 @@ export function PickupConfirmDialog({
   const slot = slotKey ? CARRIER_PICKUP_SLOTS[slotKey] : null
   const carrierLabels = [...new Set(carriers.map(pickupCarrierLabel))]
 
+  async function handleConfirm() {
+    const ok = await onConfirm()
+    if (ok) onOpenChange(false)
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
-        <DialogHeader className="px-5 pt-5 pb-0">
+      <DialogContent className="dark bg-card text-foreground flex max-h-[min(92dvh,520px)] w-full max-w-[calc(100%-1.5rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
+        <DialogHeader className="shrink-0 px-5 pt-5 pb-0">
           <DialogTitle>Confirm pickup</DialogTitle>
           <DialogDescription>
             Are you sure you want to schedule this pickup?
@@ -76,7 +81,7 @@ export function PickupConfirmDialog({
           )}
         </ul>
 
-        <DialogFooter className="gap-2 sm:gap-2">
+        <DialogFooter className="border-border bg-card shrink-0 gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">
           <Button
             type="button"
             variant="outline"
@@ -87,7 +92,7 @@ export function PickupConfirmDialog({
           </Button>
           <Button
             type="button"
-            onClick={onConfirm}
+            onClick={() => void handleConfirm()}
             disabled={isSubmitting}
             className="bg-violet-600 text-white hover:bg-violet-700"
           >

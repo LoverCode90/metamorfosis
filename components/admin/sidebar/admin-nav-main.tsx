@@ -71,14 +71,17 @@ export function AdminNavMain({ navBadgeCounts }: AdminNavMainProps) {
                 tooltip={navigationItem.label}
                 render={<Link href={navigationItem.href} />}
                 className={cn(
+                  "group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:shadow-none",
                   isActive &&
-                    "data-active:bg-primary/15 data-active:text-primary border-primary/20 [&_svg]:text-primary border shadow-[inset_0_0_0_1px_color-mix(in_oklch,var(--primary)_35%,transparent)]",
+                    "data-active:bg-primary/15 data-active:text-primary border-primary/20 [&_svg]:text-primary group-data-[collapsible=icon]:data-active:bg-primary/20 border shadow-[inset_0_0_0_1px_color-mix(in_oklch,var(--primary)_35%,transparent)]",
                 )}
               >
                 <IconComponent strokeWidth={1.75} />
-                <span>{navigationItem.label}</span>
+                <span className="group-data-[collapsible=icon]:hidden">
+                  {navigationItem.label}
+                </span>
                 {badgeCount > 0 && (
-                  <span className="bg-primary text-primary-foreground ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-semibold">
+                  <span className="bg-primary text-primary-foreground ml-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[10px] font-semibold group-data-[collapsible=icon]:hidden">
                     {badgeCount > 99 ? "99+" : badgeCount}
                   </span>
                 )}

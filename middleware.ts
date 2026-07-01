@@ -85,6 +85,13 @@ export async function middleware(request: NextRequest) {
     return redirectWithCookies(homeUrl)
   }
 
+  if (user && pathname.startsWith("/auth/callback")) {
+    const homeUrl = request.nextUrl.clone()
+    homeUrl.pathname = "/profile"
+    homeUrl.search = ""
+    return redirectWithCookies(homeUrl)
+  }
+
   // ── Admins never see the shopping interface ───────────────────────────────
   // Bounce admins off the home page and all customer-facing routes (profile,
   // catalog, cart, checkout, wishlist, search) to /admin so they can't land on

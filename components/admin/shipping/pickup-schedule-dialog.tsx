@@ -53,8 +53,8 @@ export function PickupScheduleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl lg:max-w-3xl">
-        <DialogHeader className="px-5 pt-5 pb-0">
+      <DialogContent className="dark bg-card text-foreground flex max-h-[min(92dvh,720px)] w-full max-w-[calc(100%-1.5rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl lg:max-w-3xl">
+        <DialogHeader className="shrink-0 px-5 pt-5 pb-0">
           <DialogTitle>Schedule pickup</DialogTitle>
           <DialogDescription>
             {selectedCount} package{selectedCount === 1 ? "" : "s"} selected.
@@ -63,17 +63,18 @@ export function PickupScheduleDialog({
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
-          <div className="border-border flex justify-center rounded-xl border p-2">
+          <div className="border-border bg-muted/30 flex justify-center rounded-xl border p-2">
             <Calendar
               mode="single"
               selected={pickupDate}
               onSelect={onDateChange}
               disabled={{ before: new Date() }}
+              className="rounded-md"
             />
           </div>
 
           {pickupDate && (
-            <p className="text-muted-foreground text-center text-xs">
+            <p className="text-muted-foreground text-center text-sm">
               {format(pickupDate, "EEEE, MMMM d, yyyy")}
             </p>
           )}
@@ -87,8 +88,8 @@ export function PickupScheduleDialog({
                 className={cn(
                   "rounded-xl border p-3 text-left transition-colors",
                   slotKey === slot.slotKey
-                    ? "border-violet-500 bg-violet-500/10"
-                    : "border-border hover:border-violet-500/40",
+                    ? "border-violet-500 bg-violet-500/15"
+                    : "border-border bg-card hover:border-violet-500/40",
                 )}
               >
                 <p className="text-foreground text-sm font-semibold">
@@ -116,7 +117,7 @@ export function PickupScheduleDialog({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-2">
+        <DialogFooter className="border-border bg-card shrink-0 gap-2 border-t px-5 py-4 sm:flex-row sm:justify-end">
           <Button
             type="button"
             variant="outline"

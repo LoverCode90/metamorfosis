@@ -1,6 +1,5 @@
 "use client"
 
-import { useAdminPrefs } from "@/components/admin/admin-shell"
 import { LabelPrintActions } from "@/components/admin/orders/label-print-actions"
 import { LabelPrintTestModeBanner } from "@/components/admin/orders/label-print-test-mode-banner"
 import {
@@ -12,7 +11,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useLabelPrintAction } from "@/hooks/use-label-print-action"
-import { cn } from "@/lib/utils"
 
 interface LabelPrintDialogProps {
   orderId: string
@@ -32,7 +30,6 @@ export function LabelPrintDialog({
   carrier,
   shippoTestMode = false,
 }: LabelPrintDialogProps) {
-  const { theme } = useAdminPrefs()
   const {
     iframeRef,
     pdfUrl,
@@ -51,12 +48,7 @@ export function LabelPrintDialog({
         onOpenChange(nextOpen)
       }}
     >
-      <DialogContent
-        className={cn(
-          "bg-background text-foreground flex max-h-[90dvh] min-h-0 flex-col gap-4 overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-w-2xl sm:p-6",
-          theme === "dark" && "dark",
-        )}
-      >
+      <DialogContent className="dark bg-background text-foreground flex max-h-[90dvh] min-h-0 flex-col gap-4 overflow-y-auto p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:max-w-2xl sm:p-6">
         <DialogHeader>
           <DialogTitle>Shipping Label</DialogTitle>
           <DialogDescription>

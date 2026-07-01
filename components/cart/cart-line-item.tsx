@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 
+import { useState } from "react"
 import { AlertCircle, Heart, RotateCcw, Trash2, Truck } from "lucide-react"
 import Link from "next/link"
 import { formatUSD } from "@/lib/utils/format"
@@ -9,14 +10,26 @@ import type { CartItem } from "@/lib/types"
 import { QtyStepper } from "@/components/shared/qty-stepper"
 import { useCart } from "@/hooks/use-cart"
 import { LOW_STOCK_THRESHOLD } from "@/lib/constants"
+import { productVariantSubtitle } from "@/lib/catalog/variation-label"
+import { cn } from "@/lib/utils"
 
 export function CartLineItem({ item }: { item: CartItem }) {
   const { increment, decrement, removeItem, moveToWishlist } = useCart()
-  // Cart is keyed by variationId when present; fall back to squareProductId.
+  const [saveAnimating, setSaveAnimating] = useState(false)
   const itemKey = item.variationId ?? item.id
   const lineTotal = item.unitPrice * item.quantity
   const lowStock = item.stock <= LOW_STOCK_THRESHOLD
   const hasDiscount = item.discountPerItem > 0
+  const variantLabel = productVariantSubtitle(item.variant)
+
+  function handleSaveToWishlist() {
+    if (saveAnimating) return
+    setSaveAnimating(true)
+    window.setTimeout(() => {
+      moveToWishlist(itemKey)
+      setSaveAnimating(false)
+    }, 320)
+  }
 
   return (
     <article className="border-border bg-card rounded-xl border p-3 sm:p-5">
@@ -38,23 +51,32 @@ export function CartLineItem({ item }: { item: CartItem }) {
               >
                 {item.name}
               </Link>
-              <p className="text-muted-foreground mt-0.5 truncate text-xs">
-                {item.variant}
-              </p>
+              {variantLabel && (
+                <p className="text-muted-foreground mt-0.5 truncate text-xs">
+                  {variantLabel}
+                </p>
+              )}
             </div>
 
             <button
               type="button"
-              onClick={() => moveToWishlist(itemKey)}
+              onClick={handleSaveToWishlist}
+              disabled={saveAnimating}
               className="text-muted-foreground hover:text-foreground flex shrink-0 items-center gap-1 text-xs font-medium transition-colors sm:gap-1.5"
             >
-              <Heart className="h-4 w-4" strokeWidth={1.75} />
+              <Heart
+                className={cn(
+                  "h-4 w-4 transition-all duration-300",
+                  saveAnimating && "scale-110 fill-red-500 text-red-500",
+                )}
+                strokeWidth={1.75}
+              />
               <span className="hidden sm:inline">Save</span>
             </button>
           </div>
 
           {lowStock && (
-            <p className="bg-destructive/10 text-destructive mt-2 flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium sm:mt-2.5 sm:px-2.5 sm:py-1.5">
+            <p className="mt-2 flex w-fit items-center gap-1 rounded-md bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-600 sm:mt-2.5 sm:px-2.5 sm:py-1.5 dark:text-amber-300">
               <AlertCircle className="h-3.5 w-3.5" strokeWidth={2} />
               Only {item.stock} left
             </p>

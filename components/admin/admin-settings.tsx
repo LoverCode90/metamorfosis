@@ -63,7 +63,7 @@ export function AdminSettings() {
 
         <AdminSurfaceCard
           title="Appearance"
-          description="Make text larger or switch light/dark mode for easier reading."
+          description="Make text larger for easier reading."
           icon={Palette}
         >
           <AdminAppearance embedded />

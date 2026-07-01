@@ -16,9 +16,12 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get("type") as string
   const next = searchParams.get("next") ?? "/profile"
 
-  const redirectUrl = next.startsWith("/")
-    ? `${origin}${next}`
-    : `${origin}/profile`
+  const safeNext =
+    next.startsWith("/") && !next.startsWith("//") ? next : "/profile"
+  const completeUrl = new URL(`${origin}/auth/complete`)
+  completeUrl.searchParams.set("next", safeNext)
+
+  const redirectUrl = completeUrl.toString()
 
   const response = NextResponse.redirect(redirectUrl)
   const cookieStore = await cookies()

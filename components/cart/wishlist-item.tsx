@@ -8,6 +8,7 @@ import { formatUSD } from "@/lib/utils/format"
 import type { Product } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { AddToCartButton } from "@/components/catalog/add-to-cart-button"
+import { productVariantSubtitle } from "@/lib/catalog/variation-label"
 
 export type WishItem = Product & {
   category?: string
@@ -29,6 +30,7 @@ export const WishlistCard = memo(function WishlistCard({
   const hasDiscount = item.discountPerItem > 0
   const outOfStock = item.stock <= 0
   const href = `/products/${item.id}`
+  const variantLabel = productVariantSubtitle(item.variant)
 
   return (
     <article className="group relative flex flex-col">
@@ -72,6 +74,9 @@ export const WishlistCard = memo(function WishlistCard({
         <span className="text-foreground line-clamp-2 text-sm leading-snug font-medium">
           {item.name}
         </span>
+        {variantLabel && (
+          <span className="text-muted-foreground text-xs">{variantLabel}</span>
+        )}
         <span className="text-muted-foreground text-sm">
           {outOfStock ? "Out of stock" : formatUSD(finalPrice)}
         </span>
@@ -117,11 +122,11 @@ export const WishlistRow = memo(function WishlistRow({
           >
             {item.name}
           </Link>
-          {item.variant && (
+          {item.variant && productVariantSubtitle(item.variant) && (
             <>
               <span className="text-muted-foreground mx-1.5 text-xs">·</span>
               <span className="text-muted-foreground shrink-0 text-sm">
-                {item.variant}
+                {productVariantSubtitle(item.variant)}
               </span>
             </>
           )}

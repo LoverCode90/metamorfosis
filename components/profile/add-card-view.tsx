@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import { ChevronLeft, Lock } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
+import { SQUARE_CARD_FORM_STYLES } from "@/lib/square/card-form-styles"
 
 export function AddCardView() {
   const router = useRouter()
@@ -33,20 +34,7 @@ export function AddCardView() {
       try {
         const payments = window.Square.payments(appId, locationId)
         const card = await payments.card({
-          style: {
-            input: {
-              color: "#f4f5f8",
-              backgroundColor: "#070709",
-              fontSize: "16px",
-            },
-            "input::placeholder": { color: "#68686f" },
-            ".input-container": {
-              borderColor: "#28292b",
-              borderRadius: "8px",
-            },
-            ".input-container.is-focus": { borderColor: "#4361ee" },
-            ".input-container.is-error": { borderColor: "#f9667a" },
-          },
+          style: SQUARE_CARD_FORM_STYLES,
         })
         await card.attach(cardContainerRef.current)
         cardRef.current = card
@@ -138,10 +126,14 @@ export function AddCardView() {
         )}
 
         {!sdkReady && !sdkError && (
-          <p className="text-muted-foreground text-xs">
+          <p className="text-muted-foreground text-sm">
             Loading secure payment form…
           </p>
         )}
+
+        <p className="text-muted-foreground text-sm">
+          Enter your card number, expiration date, and security code above.
+        </p>
 
         {error && (
           <p className="border-destructive/30 bg-destructive/5 text-destructive rounded-lg border px-4 py-3 text-sm">
