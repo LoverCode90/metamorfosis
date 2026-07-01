@@ -1,11 +1,7 @@
 import type { ReactNode } from "react"
-import { SiteHeader } from "@/components/layout/site-header"
+
+import { StorefrontShell } from "@/components/layout/storefront-shell"
 
 export default function CheckoutLayout({ children }: { children: ReactNode }) {
-  return (
-    <div className="dark">
-      <SiteHeader />
-      <main>{children}</main>
-    </div>
-  )
+  return <StorefrontShell>{children}</StorefrontShell>
 }

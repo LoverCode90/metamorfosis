@@ -68,14 +68,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
     setFontSizeState(storedFontSize)
     document.documentElement.dataset.adminTheme = storedTheme
     document.documentElement.dataset.adminFontSize = storedFontSize
-    document.documentElement.classList.toggle("dark", storedTheme === "dark")
   }, [])
 
   function setTheme(nextTheme: AdminTheme) {
     setThemeState(nextTheme)
     localStorage.setItem(THEME_KEY, nextTheme)
     document.documentElement.dataset.adminTheme = nextTheme
-    document.documentElement.classList.toggle("dark", nextTheme === "dark")
   }
 
   function setFontSize(nextFontSize: AdminFontSize) {

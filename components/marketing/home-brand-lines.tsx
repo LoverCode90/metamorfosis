@@ -1,39 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
 
-const BRAND_LINES = [
-  {
-    id: "nutrapel",
-    name: "Nutrapel",
-    tagline: "Bond-strengthening care system",
-    category: "Bond & Repair",
-    image: "/home/brand-nutrapel.png",
-  },
-  {
-    id: "bbcos",
-    name: "BBCos",
-    tagline: "Professional permanent color line",
-    category: "Color",
-    image: "/home/brand-bbcos.png",
-  },
-  {
-    id: "brazilian-nano",
-    name: "Brazilian Nano",
-    tagline: "Premium nanoplasty treatment range",
-    category: "Smoothing",
-    image: "/home/brand-nano.png",
-  },
-  {
-    id: "level3",
-    name: "Level 3",
-    tagline: "Technical styling gel & fiber system",
-    category: "Styling",
-    image: "/home/brand-level3.png",
-  },
-]
+import { BentoGrid } from "@/components/ui/bento-grid"
+import { BRAND_LINES } from "@/lib/marketing/brand-lines"
+import { cn } from "@/lib/utils"
 
-/** Home "Our Lines" section linking out to the four professional brands. */
+/** Home "Our Lines" section — Magic UI bento grid linking to each brand line. */
 export function HomeBrandLines() {
   return (
     <section className="mx-auto w-full max-w-6xl px-4 sm:px-6 xl:max-w-7xl">
@@ -41,40 +13,39 @@ export function HomeBrandLines() {
         Our Lines
       </p>
       <h2 className="text-foreground mt-2 text-2xl font-semibold tracking-tight">
-        Four pillars of professional care
+        Professional lines we carry
       </h2>
-      <div className="mt-8 flex flex-col gap-4">
-        {BRAND_LINES.map((brand) => (
+      <BentoGrid className="mt-8 auto-rows-[14rem] md:auto-rows-[11rem]">
+        {BRAND_LINES.map((line) => (
           <Link
-            key={brand.id}
-            href="/products"
-            className="group border-border bg-card hover:border-foreground/20 hover:bg-muted flex items-center gap-5 rounded-2xl border p-5 text-left transition-colors sm:gap-7"
+            key={line.slug}
+            href={`/lines/${line.slug}`}
+            className={cn(
+              "group relative flex min-h-[16rem] flex-col justify-end overflow-hidden rounded-xl",
+              "border border-white/10 shadow-lg transition-transform duration-300 hover:scale-[1.01]",
+              line.className,
+            )}
           >
-            <div className="border-border bg-background h-20 w-20 shrink-0 overflow-hidden rounded-xl border sm:h-24 sm:w-24">
-              <img
-                src={brand.image}
-                alt={brand.name}
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-muted-foreground text-[11px] font-semibold tracking-widest uppercase">
-                {brand.category}
-              </p>
-              <h3 className="text-foreground mt-0.5 text-lg font-semibold">
-                {brand.name}
-              </h3>
-              <p className="text-muted-foreground mt-0.5 text-sm">
-                {brand.tagline}
-              </p>
-            </div>
-            <ArrowRight
-              className="text-muted-foreground mr-1 h-5 w-5 shrink-0 transition-transform group-hover:translate-x-1"
-              strokeWidth={1.75}
+            <img
+              src={line.image}
+              alt={line.name}
+              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
+            <div
+              className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-black/10"
+              aria-hidden
+            />
+            <div className="relative z-10 p-6">
+              <h3 className="text-lg font-semibold text-white sm:text-xl">
+                {line.name}
+              </h3>
+              <p className="mt-1 max-w-md text-sm text-white/85">
+                {line.description}
+              </p>
+            </div>
           </Link>
         ))}
-      </div>
+      </BentoGrid>
     </section>
   )
 }

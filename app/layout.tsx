@@ -35,7 +35,14 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable}`}
     >
-      <body className="bg-bg-base text-fg-primary font-sans antialiased">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var p=window.location.pathname;if(!p.startsWith("/admin")){document.documentElement.classList.add("dark");document.documentElement.dataset.storefront="true";}}catch(e){}})();`,
+          }}
+        />
+      </head>
+      <body className="bg-background text-foreground font-sans antialiased">
         {children}
         {process.env.NODE_ENV === "production" && <Analytics />}
       </body>

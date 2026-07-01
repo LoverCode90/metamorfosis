@@ -6,9 +6,8 @@ import { EMAIL_ADDRESSES } from "@/lib/email/addresses"
 const STORE_ADDRESS = "211 W B St, Ontario, CA 91762"
 const MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
 const GOOGLE_MAPS_EMBED_URL = MAPS_API_KEY
-  ? `https://www.google.com/maps/embed/v1/place?key=${MAPS_API_KEY}&q=211+W+B+St,+Ontario,+CA+91762&zoom=15`
+  ? `https://www.google.com/maps/embed/v1/place?key=${MAPS_API_KEY}&q=${encodeURIComponent(STORE_ADDRESS)}&zoom=15`
   : null
-const GOOGLE_MAPS_LINK = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(STORE_ADDRESS)}`
 
 const MENU_ITEMS = [
   { label: "Home", href: "/", icon: Home },
@@ -39,13 +38,7 @@ export function HomeFooter() {
     <footer className="border-border bg-background border-t pb-20">
       <div className="mx-auto max-w-6xl px-4 pt-16 sm:px-6 xl:max-w-7xl">
         <div className="grid gap-12 lg:grid-cols-2">
-          <a
-            href={GOOGLE_MAPS_LINK}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Open store in Google Maps"
-            className="relative block min-h-[360px] w-full overflow-hidden rounded-3xl lg:min-h-[460px]"
-          >
+          <div className="relative block min-h-[360px] w-full overflow-hidden rounded-3xl lg:min-h-[460px]">
             {GOOGLE_MAPS_EMBED_URL ? (
               <iframe
                 src={GOOGLE_MAPS_EMBED_URL}
@@ -56,10 +49,10 @@ export function HomeFooter() {
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 title="Metamorfosis LLC location"
-                className="pointer-events-none h-full w-full"
+                className="h-full w-full"
               />
             ) : (
-              <div className="border-border bg-muted/20 hover:bg-muted/40 group flex h-full min-h-[360px] w-full flex-col items-center justify-center gap-3 rounded-3xl border transition-colors lg:min-h-[460px]">
+              <div className="border-border bg-muted/20 flex h-full min-h-[360px] w-full flex-col items-center justify-center gap-3 rounded-3xl border lg:min-h-[460px]">
                 <div className="bg-primary text-primary-foreground flex h-12 w-12 items-center justify-center rounded-full shadow-md">
                   <MapPin className="h-6 w-6" strokeWidth={2} />
                 </div>
@@ -70,13 +63,10 @@ export function HomeFooter() {
                   <p className="text-muted-foreground mt-0.5 text-xs">
                     {STORE_ADDRESS}
                   </p>
-                  <p className="text-primary mt-2 text-xs font-medium group-hover:underline">
-                    Get directions →
-                  </p>
                 </div>
               </div>
             )}
-          </a>
+          </div>
 
           <div className="flex flex-col gap-9">
             <div>

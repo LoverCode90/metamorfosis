@@ -1,13 +1,12 @@
 import type { ReactNode } from "react"
-import { SiteHeader } from "@/components/layout/site-header"
+
 import { NewMessageNotifier } from "@/components/account/new-message-notifier"
+import { StorefrontShell } from "@/components/layout/storefront-shell"
 
 export default function AccountLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="dark bg-background flex min-h-dvh flex-col">
-      <SiteHeader />
-      <main className="flex-1">{children}</main>
-      <NewMessageNotifier />
-    </div>
+    <StorefrontShell footer={<NewMessageNotifier />}>
+      {children}
+    </StorefrontShell>
   )
 }
