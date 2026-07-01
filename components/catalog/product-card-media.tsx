@@ -48,10 +48,7 @@ export function ProductCardMedia({
         </Badge>
       )}
       {lowStock && !outOfStock && (
-        <Badge
-          variant="warning"
-          className="pointer-events-none absolute bottom-2.5 left-2.5 z-10"
-        >
+        <Badge className="pointer-events-none absolute bottom-2.5 left-2.5 z-10 border-transparent bg-red-600 text-white shadow-sm">
           Low stock
         </Badge>
       )}

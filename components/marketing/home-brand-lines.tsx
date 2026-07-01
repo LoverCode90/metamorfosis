@@ -19,7 +19,7 @@ export function HomeBrandLines() {
         {BRAND_LINES.map((line) => (
           <Link
             key={line.slug}
-            href={`/lines/${line.slug}`}
+            href="/products"
             className={cn(
               "group relative flex h-full min-h-0 flex-col justify-end overflow-hidden rounded-xl",
               "border border-white/10 shadow-lg transition-opacity duration-300 hover:opacity-95",

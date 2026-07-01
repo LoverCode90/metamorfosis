@@ -20,18 +20,19 @@ export function AboutHero() {
 
       <div className="mt-10 grid auto-rows-[180px] grid-cols-2 gap-3 sm:auto-rows-[220px] sm:gap-4 lg:grid-cols-4">
         <BentoImage
-          src="/about/hero-salon-portrait.png"
-          alt="Master colorist in the studio"
+          src="/about/about-image-1.webp"
+          alt="Professional stylist at work in the salon"
           className="col-span-2 row-span-2"
+          sizes="(max-width: 1024px) 100vw, 50vw"
         />
         <BentoImage
-          src="/about/hero-team-working.png"
-          alt="The Metamorfosis team collaborating"
+          src="/about/about-image-2.webp"
+          alt="Color formulation and salon tools"
           className="col-span-2"
         />
         <BentoImage
-          src="/about/hero-detail-coloring.png"
-          alt="Mixing custom color with a tint brush"
+          src="/about/about-image-3.webp"
+          alt="Hair color application in the studio"
           className="col-span-2"
         />
       </div>

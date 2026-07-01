@@ -11,6 +11,5 @@ export function AboutPage() {
       <AboutComparison />
       <AboutFaqs />
     </div>
-    // Hello World
   )
 }

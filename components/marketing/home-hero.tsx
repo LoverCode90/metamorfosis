@@ -1,46 +1,56 @@
-/* eslint-disable @next/next/no-img-element */
 import { ArrowRight } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 
 export function HomeHero() {
   return (
     <section className="bg-foreground relative flex min-h-[88vh] items-end overflow-hidden">
-      <img
-        src="/home/hero-bg.png"
+      <Image
+        src="/home/banner-image.webp"
         alt=""
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover"
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-center"
+        aria-hidden
+      />
+
+      <div
+        className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/75 to-black/25"
+        aria-hidden
       />
       <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(to right, rgba(0,0,0,0.90) 0%, rgba(0,0,0,0.75) 36%, rgba(0,0,0,0.28) 68%, rgba(0,0,0,0.06) 100%)",
-        }}
+        className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent"
+        aria-hidden
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
 
       <div className="relative z-10 mx-auto w-full max-w-6xl px-4 pb-24 sm:px-6 xl:max-w-7xl">
-        <p className="text-sm font-semibold tracking-[0.35em] text-white/50 uppercase">
-          Professional Color Lab
-        </p>
-        <h1 className="mt-5 max-w-2xl text-5xl leading-[1.06] font-semibold tracking-tight text-balance text-white sm:text-6xl lg:text-7xl">
-          Salon-grade color,
-          <br />
-          perfected.
-        </h1>
-        <p className="mt-5 max-w-lg text-sm leading-relaxed text-pretty text-white/65 sm:text-base">
-          Permanent crème color, bond care, and professional tools — engineered
-          for colorists who refuse to compromise.
-        </p>
-        <div className="mt-8 flex flex-wrap items-center gap-4">
-          <Link
-            href="/products"
-            className="inline-flex h-11 items-center gap-2 rounded-md bg-white px-6 text-sm font-semibold text-neutral-900 transition-opacity hover:opacity-90"
-          >
-            Shop the catalog
-            <ArrowRight className="h-4 w-4" strokeWidth={2} />
-          </Link>
+        <div className="relative max-w-2xl rounded-2xl p-6 sm:p-8">
+          <div
+            className="absolute inset-0 rounded-2xl bg-black/45 backdrop-blur-md"
+            aria-hidden
+          />
+          <div className="relative">
+            <p className="text-sm font-semibold tracking-[0.35em] text-white/70 uppercase">
+              Professional Beauty Supply
+            </p>
+            <h1 className="mt-5 text-5xl leading-[1.06] font-semibold tracking-tight text-balance text-white sm:text-6xl lg:text-7xl">
+              Your next transformation starts here.
+            </h1>
+            <p className="mt-5 max-w-lg text-sm leading-relaxed text-pretty text-white/80 sm:text-base">
+              From permanent color to bond repair — everything a stylist trusts,
+              in one place.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-4">
+              <Link
+                href="/products"
+                className="inline-flex h-11 items-center gap-2 rounded-md bg-white px-6 text-sm font-semibold text-neutral-900 transition-opacity hover:opacity-90"
+              >
+                Shop the catalog
+                <ArrowRight className="h-4 w-4" strokeWidth={2} />
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </section>

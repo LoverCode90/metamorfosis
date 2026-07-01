@@ -1,6 +1,7 @@
 import { HomeBrandLines } from "@/components/marketing/home-brand-lines"
 import { HomeFooter } from "@/components/marketing/home-footer"
 import { HomeHero } from "@/components/marketing/home-hero"
+import { HomeKitsPromo } from "@/components/marketing/home-kits-promo"
 
 /** Marketing home page composed of self-contained sections. */
 export function HomePage() {
@@ -8,6 +9,7 @@ export function HomePage() {
     <div className="flex flex-col gap-y-24">
       <HomeHero />
       <HomeBrandLines />
+      <HomeKitsPromo />
       <HomeFooter />
     </div>
   )
