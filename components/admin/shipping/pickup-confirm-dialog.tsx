@@ -1,5 +1,6 @@
 "use client"
 
+import { format } from "date-fns"
 import { Loader2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -17,7 +18,6 @@ import {
 } from "@/lib/admin/pickup-slots"
 import { pickupCarrierLabel } from "@/lib/admin/pickup-carrier"
 import type { PickupCarrierKind } from "@/lib/admin/pickup-carrier"
-import { format } from "date-fns"
 
 interface PickupConfirmDialogProps {
   open: boolean
@@ -45,15 +45,15 @@ export function PickupConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
+        <DialogHeader className="px-5 pt-5 pb-0">
           <DialogTitle>Confirm pickup</DialogTitle>
           <DialogDescription>
             Are you sure you want to schedule this pickup?
           </DialogDescription>
         </DialogHeader>
 
-        <ul className="text-muted-foreground space-y-2 py-2 text-sm">
+        <ul className="text-muted-foreground min-h-0 flex-1 space-y-2 overflow-y-auto px-5 py-4 text-sm">
           <li>
             <span className="text-foreground font-medium">Packages:</span>{" "}
             {selectedCount}
@@ -76,7 +76,7 @@ export function PickupConfirmDialog({
           )}
         </ul>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2 sm:gap-2">
           <Button
             type="button"
             variant="outline"

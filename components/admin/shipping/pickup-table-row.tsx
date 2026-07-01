@@ -2,6 +2,7 @@ import { format } from "date-fns"
 import { memo } from "react"
 
 import { PickupCarrierIcon } from "@/components/admin/shipping/pickup-carrier-icon"
+import { CopyTrackingButton } from "@/components/admin/shipping/copy-tracking-button"
 import { PickupStatusBadge } from "@/components/admin/shipping/pickup-status-badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { TableCell, TableRow } from "@/components/ui/table"
@@ -61,9 +62,12 @@ export const PickupTableRow = memo(function PickupTableRow({
           {row.serviceName ?? row.carrierDisplay}
         </p>
         {row.trackingNumber && (
-          <p className="text-muted-foreground mt-0.5 font-mono text-xs">
-            {row.trackingNumber}
-          </p>
+          <div className="mt-0.5 flex items-center gap-1">
+            <p className="text-muted-foreground font-mono text-xs">
+              {row.trackingNumber}
+            </p>
+            <CopyTrackingButton trackingNumber={row.trackingNumber} />
+          </div>
         )}
       </TableCell>
       <TableCell className="text-foreground px-5 py-4 text-sm font-semibold tabular-nums">

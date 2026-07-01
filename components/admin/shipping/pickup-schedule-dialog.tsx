@@ -53,8 +53,8 @@ export function PickupScheduleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl lg:max-w-3xl">
+        <DialogHeader className="px-5 pt-5 pb-0">
           <DialogTitle>Schedule pickup</DialogTitle>
           <DialogDescription>
             {selectedCount} package{selectedCount === 1 ? "" : "s"} selected.
@@ -62,7 +62,7 @@ export function PickupScheduleDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5 py-2">
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-4">
           <div className="border-border flex justify-center rounded-xl border p-2">
             <Calendar
               mode="single"
@@ -116,7 +116,15 @@ export function PickupScheduleDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
           <Button
             type="button"
             disabled={!canContinue || isSubmitting}

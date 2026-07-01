@@ -55,7 +55,9 @@ function DialogContent({
         data-slot="dialog-content"
         className={cn(
           "fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4",
+          "max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain",
           "border-border bg-popover text-popover-foreground rounded-xl border p-5 text-sm shadow-lg",
+          "pb-[max(1.25rem,env(safe-area-inset-bottom))]",
           "sm:max-w-md",
           "duration-150 outline-none",
           "data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95",

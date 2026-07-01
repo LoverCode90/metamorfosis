@@ -169,6 +169,7 @@ export function usePickupSchedulePage({
       if (!res.ok) throw new Error(payload.error ?? "Schedule failed")
 
       void (payload as SchedulePickupsResponse)
+      setScheduleOpen(false)
       setConfirmOpen(false)
       setSelectedIds(new Set())
       setInstructions("")

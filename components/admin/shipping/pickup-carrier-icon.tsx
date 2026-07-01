@@ -1,6 +1,8 @@
-import { Package } from "lucide-react"
+import Image from "next/image"
 
 import type { PickupCarrierKind } from "@/lib/admin/pickup-carrier"
+import dhlExpressLogo from "@/assets/admin/dhl-express.svg"
+import uspsLogo from "@/assets/admin/usps.svg"
 import { cn } from "@/lib/utils"
 
 interface PickupCarrierIconProps {
@@ -8,36 +10,35 @@ interface PickupCarrierIconProps {
   className?: string
 }
 
-const CARRIER_STYLES: Record<
+const CARRIER_LOGOS: Record<
   PickupCarrierKind,
-  { label: string; bg: string; text: string }
+  { src: typeof uspsLogo; alt: string }
 > = {
-  usps: { label: "USPS", bg: "bg-blue-600", text: "text-white" },
-  dhl_express: { label: "DHL", bg: "bg-yellow-400", text: "text-black" },
+  usps: { src: uspsLogo, alt: "USPS" },
+  dhl_express: { src: dhlExpressLogo, alt: "DHL Express" },
 }
 
-/** Placeholder carrier badge until official SVG logos are added. */
 export function PickupCarrierIcon({
   carrier,
   className,
 }: PickupCarrierIconProps) {
-  const style = CARRIER_STYLES[carrier]
+  const logo = CARRIER_LOGOS[carrier]
+
   return (
     <div
       className={cn(
-        "flex size-9 items-center justify-center rounded-full text-[10px] font-bold",
-        style.bg,
-        style.text,
+        "bg-muted/40 flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full p-1.5",
         className,
       )}
-      title={style.label}
-      aria-label={style.label}
+      title={logo.alt}
     >
-      {carrier === "usps" ? (
-        style.label
-      ) : (
-        <Package className="size-4" strokeWidth={2} />
-      )}
+      <Image
+        src={logo.src}
+        alt={logo.alt}
+        width={28}
+        height={28}
+        className="size-full object-contain"
+      />
     </div>
   )
 }
