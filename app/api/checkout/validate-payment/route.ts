@@ -14,6 +14,11 @@ import { lockInventory } from "@/lib/checkout/lock-inventory"
 import { buildCheckoutPriceSheet } from "@/lib/checkout/build-checkout-price-sheet"
 import { resolvePaymentSource } from "@/lib/checkout/resolve-payment-source"
 import { finalizeOrder } from "@/lib/checkout/finalize-order"
+import {
+  decrementSquareInventory,
+  SquareInventoryInsufficientError,
+} from "@/lib/square/inventory-adjust"
+import { refundOrder } from "@/lib/square/refund"
 import type { CheckoutPayload, PlaceOrderResponse } from "@/lib/checkout/types"
 
 /**
@@ -21,7 +26,7 @@ import type { CheckoutPayload, PlaceOrderResponse } from "@/lib/checkout/types"
  *
  * Anti-tamper server-side checkout: validate request → resolve buyer → price
  * (server-fetched item prices + Shippo-fetched shipping) → lock inventory →
- * charge → persist → finalize. Each stage lives in lib/checkout/*.
+ * charge → Square inventory decrement → persist → finalize.
  */
 export async function POST(
   request: NextRequest,
@@ -117,10 +122,46 @@ export async function POST(
     return checkoutError(chargeResult.error, "PAYMENT_FAILED", 402)
   }
 
+  // ── Square inventory commit (authoritative cross-channel gate) ─────────────
+  // Residual race: between RPC lock release and this adjustment, POS can sell
+  // the last unit → charge succeeds here, Square rejects the adjustment → refund.
+  // No pre-charge Square re-fetch; RPC + post-charge adjust is sufficient at scale.
+  const squareLines = items.map((item) => ({
+    squareVariationId: varMap.get(item.variationId)!.square_variation_id,
+    quantity: item.quantity,
+  }))
+
+  try {
+    await decrementSquareInventory(
+      squareLines,
+      `checkout-inv-${chargeResult.paymentId}`,
+    )
+  } catch (err) {
+    if (err instanceof SquareInventoryInsufficientError) {
+      await refundOrder({
+        squarePaymentId: chargeResult.paymentId,
+        amountCents: priceSheet.totalCents,
+        reason: "Inventory no longer available",
+      }).catch((refundErr) =>
+        console.error(
+          "[validate-payment] refund after inventory failure:",
+          refundErr,
+        ),
+      )
+      return checkoutError(
+        "One or more items are no longer in stock",
+        "OUT_OF_STOCK",
+        409,
+      )
+    }
+    throw err
+  }
+
   // ── Persist order, then run post-charge side effects ───────────────────────
   const orderNumber = `MF-${Date.now().toString(36).toUpperCase()}`
   const orderId = await persistOrder(admin, {
     squareOrderId: chargeResult.squareOrderId || chargeResult.paymentId,
+    squarePaymentId: chargeResult.paymentId,
     userId: user?.id ?? null,
     guestEmail: user ? null : (guestEmail ?? address.email),
     priceSheet,
@@ -132,8 +173,6 @@ export async function POST(
     estimatedDeliveryDate: shipping.estimatedDeliveryDate,
     shippoShipmentId: shipping.shippoShipmentId,
     shippoRateId,
-    items,
-    varMap,
   })
 
   if (!orderId) {

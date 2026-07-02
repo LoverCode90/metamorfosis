@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server"
 import { validateSquareSignature } from "@/lib/square/webhook"
 import { runFullCatalogSync } from "@/lib/square/sync"
+import { handleInventoryCountUpdated } from "@/lib/square/inventory-webhook"
 
 /**
  * Square webhook receiver.
- * Square fires `catalog.version.updated` on any catalog change.
+ * Subscribed events:
+ * - `catalog.version.updated` — full catalog sync
+ * - `inventory.count.updated` — refresh Supabase stock counts
  *
  * Security: HMAC-SHA256 signature verified before any processing.
- * Returns 200 immediately and runs the sync asynchronously.
+ * Returns 200 immediately and runs handlers asynchronously.
  */
 export async function POST(request: NextRequest) {
   const rawBody = await request.text()
@@ -37,6 +40,14 @@ export async function POST(request: NextRequest) {
     // Run async — respond 200 immediately so Square doesn't retry
     runFullCatalogSync().catch((err: unknown) => {
       console.error("[Square webhook] Catalog sync failed:", err)
+    })
+  }
+
+  if (event.type === "inventory.count.updated") {
+    handleInventoryCountUpdated(
+      event as Parameters<typeof handleInventoryCountUpdated>[0],
+    ).catch((err: unknown) => {
+      console.error("[Square webhook] Inventory sync failed:", err)
     })
   }
 

@@ -1,13 +1,13 @@
 import "server-only"
 import type { createAdminClient } from "@/lib/supabase/admin"
-import type { CheckoutAddress, CheckoutPayload, PriceSheet } from "./types"
-import type { CheckoutVariationMap } from "./validate-payload"
+import type { CheckoutAddress, PriceSheet } from "./types"
 import { PICKUP_WINDOW_MS } from "@/lib/orders/order-status-config"
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
 export interface PersistOrderParams {
   squareOrderId: string
+  squarePaymentId: string
   userId: string | null
   guestEmail: string | null
   priceSheet: PriceSheet
@@ -21,14 +21,15 @@ export interface PersistOrderParams {
   shippoShipmentId: string | null
   /** Saved so the admin can buy the shipping label later (null for pickup). */
   shippoRateId: string | null
-  items: CheckoutPayload["items"]
-  varMap: CheckoutVariationMap
 }
 
 /**
- * Post-charge persistence: insert the order + order_items and decrement
- * inventory. Returns the new order id, or null if the order insert failed
- * (the caller turns that into a 500 — the card was already charged).
+ * Post-charge persistence: insert the order + order_items. Does not decrement
+ * product_variations.inventory_count — Supabase stock is refreshed by the
+ * Square inventory.count.updated webhook after the post-charge Square adjustment.
+ *
+ * Returns the new order id, or null if the order insert failed (the caller
+ * turns that into a 500 — the card was already charged).
  *
  * REQUIRES MIGRATION: docs/migrations/20260623_surcharge_and_consents.sql
  * must be run in Supabase before deploying — the surcharge_cents and
@@ -42,6 +43,7 @@ export async function persistOrder(
 ): Promise<string | null> {
   const {
     squareOrderId,
+    squarePaymentId,
     userId,
     guestEmail,
     priceSheet,
@@ -53,8 +55,6 @@ export async function persistOrder(
     estimatedDeliveryDate,
     shippoShipmentId,
     shippoRateId,
-    items,
-    varMap,
   } = params
 
   const isPickup = carrier.toLowerCase() === "pickup"
@@ -66,6 +66,7 @@ export async function persistOrder(
     .from("orders")
     .insert({
       square_order_id: squareOrderId,
+      square_payment_id: squarePaymentId,
       user_id: userId,
       guest_email: guestEmail,
       // New orders start as "pending" until payment/fulfillment is confirmed.
@@ -95,7 +96,6 @@ export async function persistOrder(
     return null
   }
 
-  // ── Create order_items ─────────────────────────────────────────────────────
   await admin.from("order_items").insert(
     priceSheet.items.map((item) => ({
       order_id: order.id,
@@ -105,17 +105,6 @@ export async function persistOrder(
       discount_cents: item.discountCents,
     })),
   )
-
-  // ── Decrement inventory ────────────────────────────────────────────────────
-  for (const item of items) {
-    const v = varMap.get(item.variationId)!
-    await admin
-      .from("product_variations")
-      .update({
-        inventory_count: Math.max(0, v.inventory_count - item.quantity),
-      })
-      .eq("id", item.variationId)
-  }
 
   return order.id
 }

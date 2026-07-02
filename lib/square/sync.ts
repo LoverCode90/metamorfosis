@@ -5,6 +5,7 @@ import { createSquareClient } from "./client"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { buildCatalogMaps } from "./sync-maps"
 import { upsertItemWithVariations, type UpsertContext } from "./sync-upsert"
+import { aggregateInventoryCounts } from "./inventory-sync"
 
 export interface SyncStats {
   items: number
@@ -54,21 +55,21 @@ export async function runFullCatalogSync(): Promise<SyncStats> {
   const inventoryCountMap = new Map<string, number>()
   if (allVariationSquareIds.length > 0) {
     const locationId = process.env.SQUARE_LOCATION_ID
+    const rawCounts: {
+      catalogObjectId?: string | null
+      state?: string | null
+      quantity?: string | null
+      locationId?: string | null
+    }[] = []
     for await (const count of await square.inventory.batchGetCounts({
       catalogObjectIds: allVariationSquareIds,
       locationIds: locationId ? [locationId] : undefined,
     })) {
-      if (
-        count.catalogObjectId &&
-        count.state === "IN_STOCK" &&
-        count.quantity
-      ) {
-        const current = inventoryCountMap.get(count.catalogObjectId) ?? 0
-        inventoryCountMap.set(
-          count.catalogObjectId,
-          current + Math.floor(parseFloat(count.quantity)),
-        )
-      }
+      rawCounts.push(count)
+    }
+    const aggregated = aggregateInventoryCounts(rawCounts, locationId)
+    for (const [id, qty] of aggregated) {
+      inventoryCountMap.set(id, qty)
     }
   }
 

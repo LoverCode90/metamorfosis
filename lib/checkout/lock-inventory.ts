@@ -7,8 +7,11 @@ import type { CheckoutPayload, PlaceOrderResponse } from "@/lib/checkout/types"
 type AdminClient = ReturnType<typeof createAdminClient>
 
 /**
- * Locks inventory rows (SELECT ... FOR UPDATE via RPC). Returns an error
- * response when stock is insufficient, or null when the lock succeeds.
+ * Checks Supabase inventory_count and briefly locks variation rows via RPC
+ * (SELECT … FOR UPDATE NOWAIT). The lock is released when the RPC returns —
+ * it does NOT span payment or POS sales. Authoritative cross-channel commit is
+ * the post-charge Square inventory adjustment; Supabase counts refresh via the
+ * inventory.count.updated webhook (not a local decrement at persist time).
  */
 export async function lockInventory(
   admin: AdminClient,

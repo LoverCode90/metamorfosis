@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 import { refundOrder } from "@/lib/square/refund"
 import { sendOrderCanceled } from "@/lib/email/order-status-emails"
+import { restoreOrderInventory } from "@/lib/inventory/restore-order-inventory"
 
 export async function POST(
   request: NextRequest,
@@ -38,7 +39,7 @@ export async function POST(
 
   const { data: order, error } = await admin
     .from("orders")
-    .select("*")
+    .select("*, order_items(variation_id, quantity)")
     .eq("id", resolvedParams.id)
     .single()
 
@@ -56,13 +57,24 @@ export async function POST(
   try {
     const isLegacyTestOrder = order.square_order_id?.startsWith("test-")
     if (order.square_order_id && !isLegacyTestOrder) {
-      await refundOrder(order.square_order_id, order.total_cents, reason)
+      await refundOrder({
+        squarePaymentId: order.square_payment_id,
+        squareOrderId: order.square_order_id,
+        amountCents: order.total_cents,
+        reason,
+      })
     }
 
     await admin
       .from("orders")
       .update({ status: "canceled" })
       .eq("id", resolvedParams.id)
+
+    await restoreOrderInventory(
+      admin,
+      resolvedParams.id,
+      `restore-${resolvedParams.id}-admin_cancel`,
+    )
 
     await admin.from("audit_logs").insert({
       admin_id: user.id,

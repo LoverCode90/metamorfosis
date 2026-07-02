@@ -16,7 +16,7 @@ export async function expirePickupOrders(): Promise<ExpirePickupOrdersResult> {
   const { data: orders, error } = await admin
     .from("orders")
     .select(
-      `id, square_order_id, status, total_cents, carrier, shipping_address,
+      `id, square_order_id, square_payment_id, status, total_cents, carrier, shipping_address,
       order_items ( variation_id, quantity )`,
     )
     .eq("carrier", "pickup")

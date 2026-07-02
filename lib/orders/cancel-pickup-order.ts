@@ -3,6 +3,7 @@ import "server-only"
 import type { createAdminClient } from "@/lib/supabase/admin"
 import { refundOrder } from "@/lib/square/refund"
 import { sendOrderCanceled } from "@/lib/email/order-status-emails"
+import { restoreOrderInventory } from "@/lib/inventory/restore-order-inventory"
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
@@ -22,10 +23,10 @@ interface CancelPickupOrderOptions {
 interface PickupOrderRow {
   id: string
   square_order_id: string
+  square_payment_id?: string | null
   status: string
   total_cents: number
   shipping_address: unknown
-  order_items: { variation_id: string; quantity: number }[] | null
 }
 
 /** Refund, cancel, restore inventory, and email for one pickup order. */
@@ -44,7 +45,12 @@ export async function cancelPickupOrder(
 
   const isLegacyTestOrder = order.square_order_id?.startsWith("test-")
   if (order.square_order_id && !isLegacyTestOrder) {
-    await refundOrder(order.square_order_id, order.total_cents, options.reason)
+    await refundOrder({
+      squarePaymentId: order.square_payment_id,
+      squareOrderId: order.square_order_id,
+      amountCents: order.total_cents,
+      reason: options.reason,
+    })
   }
 
   const { error: updateError } = await admin
@@ -57,22 +63,11 @@ export async function cancelPickupOrder(
     throw new Error(`Failed to update order status: ${updateError.message}`)
   }
 
-  for (const item of order.order_items ?? []) {
-    const { data: variation } = await admin
-      .from("product_variations")
-      .select("inventory_count")
-      .eq("id", item.variation_id)
-      .single()
-
-    if (variation) {
-      await admin
-        .from("product_variations")
-        .update({
-          inventory_count: variation.inventory_count + item.quantity,
-        })
-        .eq("id", item.variation_id)
-    }
-  }
+  await restoreOrderInventory(
+    admin,
+    order.id,
+    `restore-${order.id}-${options.auditAction}`,
+  )
 
   await admin.from("audit_logs").insert({
     admin_id: options.adminId ?? null,

@@ -42,7 +42,7 @@ export async function POST(
   const { data: order, error } = await admin
     .from("orders")
     .select(
-      `id, square_order_id, status, total_cents, carrier, shipping_method, shipping_address,
+      `id, square_order_id, square_payment_id, status, total_cents, carrier, shipping_method, shipping_address,
       order_items ( variation_id, quantity )`,
     )
     .eq("id", resolvedParams.id)

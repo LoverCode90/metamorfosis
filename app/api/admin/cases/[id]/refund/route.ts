@@ -81,7 +81,11 @@ export async function POST(
 
     // 2. Call Square refund
     try {
-      await refundOrder(squareOrderId, refundAmountCents, reason)
+      await refundOrder({
+        squareOrderId,
+        amountCents: refundAmountCents,
+        reason,
+      })
     } catch (refundError: unknown) {
       console.error("Square refund failed:", refundError)
       const msg =

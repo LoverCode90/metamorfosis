@@ -35,6 +35,7 @@ export interface CheckoutVariationRow {
   square_variation_id: string
   name_en: string
   price_cents: number
+  /** Square-synced; gates online-vs-online contention only — post-purchase counts are webhook-driven */
   inventory_count: number
   is_active: boolean
   product_translations: {
