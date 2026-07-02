@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+import Image from "next/image"
 import Link from "next/link"
 
 import { BentoGrid } from "@/components/ui/bento-grid"
@@ -22,14 +22,16 @@ export function HomeBrandLines() {
             href="/products"
             className={cn(
               "group relative flex h-full min-h-0 flex-col justify-end overflow-hidden rounded-xl",
-              "border border-white/10 shadow-lg transition-opacity duration-300 hover:opacity-95",
+              "border border-white/10 bg-white shadow-lg transition-opacity duration-300 hover:opacity-95",
               line.className,
             )}
           >
-            <img
+            <Image
               src={line.image}
               alt={line.name}
-              className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              fill
+              sizes="(max-width: 768px) 100vw, 33vw"
+              className="object-contain object-center p-4 transition-transform duration-500 group-hover:scale-105"
             />
             <div
               className="absolute inset-0 bg-gradient-to-t from-black via-black/55 to-black/10"

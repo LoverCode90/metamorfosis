@@ -33,7 +33,25 @@ const SOCIAL_LINKS = [
   },
 ] as const
 
-function FooterGlowIcon({
+const FOOTER_TILE_CLASS =
+  "border-violet-500/20 bg-violet-950/90 relative overflow-hidden border text-white transition-opacity hover:opacity-90"
+
+function FooterTileGlow() {
+  return (
+    <>
+      <div
+        className="pointer-events-none absolute -top-8 -right-6 h-20 w-20 rounded-full bg-violet-500/35 blur-2xl"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -bottom-6 -left-5 h-16 w-16 rounded-full bg-fuchsia-600/25 blur-2xl"
+        aria-hidden
+      />
+    </>
+  )
+}
+
+function FooterMenuTile({
   children,
   className,
 }: {
@@ -41,16 +59,31 @@ function FooterGlowIcon({
   className?: string
 }) {
   return (
-    <div className={cn("relative overflow-hidden", className)}>
-      <div
-        className="pointer-events-none absolute -top-10 -right-8 h-24 w-24 rounded-full bg-violet-500/25 blur-2xl"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -bottom-8 -left-6 h-20 w-20 rounded-full bg-fuchsia-500/15 blur-2xl"
-        aria-hidden
-      />
-      <div className="relative z-10 flex h-full w-full items-center justify-center">
+    <div
+      className={cn(
+        FOOTER_TILE_CLASS,
+        "flex aspect-square flex-col items-center justify-center gap-2 rounded-xl p-3",
+        className,
+      )}
+    >
+      <FooterTileGlow />
+      <div className="relative z-10 flex flex-col items-center justify-center gap-2">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function FooterSocialTile({ children }: { children: ReactNode }) {
+  return (
+    <div
+      className={cn(
+        FOOTER_TILE_CLASS,
+        "flex h-10 w-10 items-center justify-center rounded-md",
+      )}
+    >
+      <FooterTileGlow />
+      <div className="relative z-10 flex items-center justify-center">
         {children}
       </div>
     </div>
@@ -73,15 +106,11 @@ export function HomeFooter() {
               </p>
               <div className="mt-4 grid grid-cols-3 gap-3">
                 {MENU_ITEMS.map(({ label, href, icon: Icon }) => (
-                  <Link
-                    key={label}
-                    href={href}
-                    className="border-border bg-muted/40 hover:bg-muted flex aspect-square flex-col items-center justify-center gap-1.5 rounded-xl border p-3 transition-colors"
-                  >
-                    <FooterGlowIcon className="flex flex-1 flex-col items-center justify-center gap-1.5">
-                      <Icon className="h-7 w-7" strokeWidth={1.75} />
+                  <Link key={label} href={href} className="block">
+                    <FooterMenuTile>
+                      <Icon className="h-7 w-7 shrink-0" strokeWidth={1.75} />
                       <span className="text-xs font-medium">{label}</span>
-                    </FooterGlowIcon>
+                    </FooterMenuTile>
                   </Link>
                 ))}
               </div>
@@ -126,9 +155,8 @@ export function HomeFooter() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={label}
-                    className="border-border text-foreground hover:bg-muted relative h-10 w-10 overflow-hidden rounded-md border transition-colors"
                   >
-                    <FooterGlowIcon>
+                    <FooterSocialTile>
                       <svg
                         viewBox="0 0 24 24"
                         className="h-4 w-4"
@@ -137,7 +165,7 @@ export function HomeFooter() {
                       >
                         <path d={path} />
                       </svg>
-                    </FooterGlowIcon>
+                    </FooterSocialTile>
                   </a>
                 ))}
               </div>

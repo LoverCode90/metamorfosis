@@ -28,7 +28,7 @@ export function BentoImage({
         alt={alt}
         fill
         sizes={sizes}
-        className="object-cover grayscale"
+        className="object-cover object-top grayscale"
       />
     </div>
   )
