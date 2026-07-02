@@ -9,17 +9,17 @@ interface BentoImageProps {
   sizes?: string
 }
 
-/** Rounded image tile used in the about-page hero bento grid. */
+/** Square image tile for the about-page photo row. */
 export function BentoImage({
   src,
   alt,
   className,
-  sizes = "(max-width: 1024px) 50vw, 25vw",
+  sizes = "50vw",
 }: BentoImageProps) {
   return (
     <div
       className={cn(
-        "border-border bg-muted relative min-h-[180px] overflow-hidden rounded-xl border sm:min-h-[220px]",
+        "border-border bg-muted relative aspect-square w-full overflow-hidden rounded-xl border",
         className,
       )}
     >

@@ -18,22 +18,14 @@ export function AboutHero() {
         </p>
       </section>
 
-      <div className="mt-10 grid auto-rows-[180px] grid-cols-2 gap-3 sm:auto-rows-[220px] sm:gap-4 lg:grid-cols-4">
-        <BentoImage
-          src="/about/about-image-1.webp"
-          alt="Professional stylist at work in the salon"
-          className="col-span-2 row-span-2"
-          sizes="(max-width: 1024px) 100vw, 50vw"
-        />
+      <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-4">
         <BentoImage
           src="/about/about-image-2.webp"
-          alt="Color formulation and salon tools"
-          className="col-span-2"
+          alt="Professional certification and credentials"
         />
         <BentoImage
           src="/about/about-image-3.webp"
-          alt="Hair color application in the studio"
-          className="col-span-2"
+          alt="Stylist working on color in the studio"
         />
       </div>
     </>

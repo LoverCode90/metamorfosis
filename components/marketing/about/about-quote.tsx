@@ -10,7 +10,7 @@ const FOUNDER_QUOTE = {
 /** Founder testimonial pull-quote section. */
 export function AboutQuote() {
   return (
-    <section className="mx-auto max-w-3xl py-20 text-center sm:py-28">
+    <section className="mx-auto max-w-3xl pt-16 pb-10 text-center sm:pt-20 sm:pb-12">
       <Quote className="text-foreground mx-auto h-8 w-8" strokeWidth={1.75} />
       <blockquote className="text-foreground mt-6 text-xl leading-relaxed font-medium text-balance sm:text-2xl">
         &ldquo;{FOUNDER_QUOTE.text}&rdquo;

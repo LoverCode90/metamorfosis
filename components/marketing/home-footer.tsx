@@ -1,9 +1,11 @@
 import Link from "next/link"
+import type { ReactNode } from "react"
 import { Home, Info, ShoppingBag } from "lucide-react"
 
 import { StoreMap } from "@/components/marketing/store-map"
 import { EMAIL_ADDRESSES } from "@/lib/email/addresses"
 import { PICKUP_ADDRESS } from "@/lib/checkout/pickup"
+import { cn } from "@/lib/utils"
 
 const GOOGLE_MAPS_LINK = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(PICKUP_ADDRESS)}`
 
@@ -31,6 +33,30 @@ const SOCIAL_LINKS = [
   },
 ] as const
 
+function FooterGlowIcon({
+  children,
+  className,
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <div className={cn("relative overflow-hidden", className)}>
+      <div
+        className="pointer-events-none absolute -top-10 -right-8 h-24 w-24 rounded-full bg-violet-500/25 blur-2xl"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -bottom-8 -left-6 h-20 w-20 rounded-full bg-fuchsia-500/15 blur-2xl"
+        aria-hidden
+      />
+      <div className="relative z-10 flex h-full w-full items-center justify-center">
+        {children}
+      </div>
+    </div>
+  )
+}
+
 export function HomeFooter() {
   return (
     <footer className="border-border bg-background border-t pb-20">
@@ -52,8 +78,10 @@ export function HomeFooter() {
                     href={href}
                     className="border-border bg-muted/40 hover:bg-muted flex aspect-square flex-col items-center justify-center gap-1.5 rounded-xl border p-3 transition-colors"
                   >
-                    <Icon className="h-7 w-7" strokeWidth={1.75} />
-                    <span className="text-xs font-medium">{label}</span>
+                    <FooterGlowIcon className="flex flex-1 flex-col items-center justify-center gap-1.5">
+                      <Icon className="h-7 w-7" strokeWidth={1.75} />
+                      <span className="text-xs font-medium">{label}</span>
+                    </FooterGlowIcon>
                   </Link>
                 ))}
               </div>
@@ -98,16 +126,18 @@ export function HomeFooter() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={label}
-                    className="border-border text-foreground hover:bg-muted flex h-10 w-10 items-center justify-center rounded-md border transition-colors"
+                    className="border-border text-foreground hover:bg-muted relative h-10 w-10 overflow-hidden rounded-md border transition-colors"
                   >
-                    <svg
-                      viewBox="0 0 24 24"
-                      className="h-4 w-4"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path d={path} />
-                    </svg>
+                    <FooterGlowIcon>
+                      <svg
+                        viewBox="0 0 24 24"
+                        className="h-4 w-4"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path d={path} />
+                      </svg>
+                    </FooterGlowIcon>
                   </a>
                 ))}
               </div>
