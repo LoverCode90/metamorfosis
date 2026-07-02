@@ -21,10 +21,35 @@ function printViaHiddenBlobFrame(blobUrl: string): Promise<void> {
 
     printFrame.onload = () => {
       try {
-        printFrame.contentWindow?.focus()
-        printFrame.contentWindow?.print()
-        cleanupFrame()
-        resolve()
+        const frameWindow = printFrame.contentWindow
+        if (!frameWindow) {
+          cleanupFrame()
+          reject(new Error("Could not open print preview"))
+          return
+        }
+
+        let settled = false
+        const finish = () => {
+          if (settled) return
+          settled = true
+          frameWindow.removeEventListener("afterprint", finish)
+          cleanupFrame()
+          resolve()
+        }
+
+        frameWindow.addEventListener("afterprint", finish, { once: true })
+        frameWindow.focus()
+        window.setTimeout(() => {
+          try {
+            frameWindow.print()
+            // Some browsers never fire afterprint for hidden iframes.
+            window.setTimeout(finish, 1500)
+          } catch (error: unknown) {
+            frameWindow.removeEventListener("afterprint", finish)
+            cleanupFrame()
+            reject(error)
+          }
+        }, 150)
       } catch (printError: unknown) {
         cleanupFrame()
         reject(printError)

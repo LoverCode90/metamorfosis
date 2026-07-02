@@ -39,7 +39,7 @@ const FOOTER_TILE_CLASS =
 function FooterTileGlow() {
   return (
     <div
-      className="pointer-events-none absolute -top-10 -right-8 h-24 w-24 rounded-full bg-violet-500/30 blur-3xl"
+      className="pointer-events-none absolute -top-10 -right-8 h-24 w-24 rounded-full bg-violet-400/40 blur-3xl"
       aria-hidden
     />
   )

@@ -58,7 +58,7 @@ export function SignOutButton({
       </button>
 
       <Dialog open={open} onOpenChange={(o) => !pending && setOpen(o)}>
-        <DialogContent>
+        <DialogContent className="dark bg-background text-foreground">
           <DialogHeader>
             <DialogTitle>Are you sure you want to sign out?</DialogTitle>
             <DialogDescription>
@@ -66,7 +66,7 @@ export function SignOutButton({
               and saved items.
             </DialogDescription>
           </DialogHeader>
-          <DialogFooter>
+          <DialogFooter className="border-border bg-background">
             <Button
               variant="outline"
               onClick={() => setOpen(false)}

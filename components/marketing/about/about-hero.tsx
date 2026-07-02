@@ -22,7 +22,7 @@ export function AboutHero() {
         <BentoImage
           src="/about/about-image-2.webp"
           alt="Professional certification and credentials"
-          objectPosition="center 50px"
+          objectPosition="center -100px"
         />
         <BentoImage
           src="/about/about-image-3.webp"
