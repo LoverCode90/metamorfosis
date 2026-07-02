@@ -46,7 +46,7 @@ interface UseUserResult {
 }
 
 export function useUser(): UseUserResult {
-  const supabase = createClient()
+  const [supabase] = useState(() => createClient())
   const { savedAddress, saveAddress, clearAddress } = useAddressStore()
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<UserProfile>(DEFAULT_PROFILE)
@@ -104,12 +104,14 @@ export function useUser(): UseUserResult {
         const u = session?.user ?? null
         setUser(u)
         if (u) {
-          fetchProfile(u.id)
+          setIsLoading(true)
+          fetchProfile(u.id).finally(() => setIsLoading(false))
         } else {
           setDbProfile(null)
           setProfile(DEFAULT_PROFILE)
           setVerificationStatus("regular")
           clearAddress()
+          setIsLoading(false)
         }
       },
     )
