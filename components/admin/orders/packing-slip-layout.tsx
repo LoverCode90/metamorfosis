@@ -3,6 +3,8 @@ import { Package, Store } from "lucide-react"
 import type { PackingSlipData } from "@/lib/admin/packing-slip-types"
 import { formatUSD } from "@/lib/utils/format"
 
+/* eslint-disable @next/next/no-img-element */
+
 interface PackingSlipLayoutProps {
   slipData: PackingSlipData
 }
@@ -74,16 +76,23 @@ export function PackingSlipLayout({ slipData }: PackingSlipLayoutProps) {
                 key={lineItem.id}
                 className="flex items-start justify-between gap-4 border-t border-dashed border-gray-300 pt-3"
               >
-                <div className="flex flex-col">
-                  <span className="text-base leading-tight font-bold">
-                    {lineItem.productName}
-                  </span>
-                  <span className="mt-0.5 text-sm font-medium text-gray-600">
-                    {lineItem.variationName}
-                  </span>
-                  <span className="mt-1 text-xs font-medium">
-                    {formatUSD(lineItem.unitPriceCents)} x {lineItem.quantity}
-                  </span>
+                <div className="flex min-w-0 items-start gap-3">
+                  <img
+                    src={lineItem.imageUrl}
+                    alt={lineItem.productName}
+                    className="h-12 w-12 shrink-0 rounded border border-gray-200 object-cover"
+                  />
+                  <div className="flex flex-col">
+                    <span className="text-base leading-tight font-bold">
+                      {lineItem.productName}
+                    </span>
+                    <span className="mt-0.5 text-sm font-medium text-gray-600">
+                      {lineItem.variationName}
+                    </span>
+                    <span className="mt-1 text-xs font-medium">
+                      {formatUSD(lineItem.unitPriceCents)} x {lineItem.quantity}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   <div className="flex shrink-0 items-center justify-center rounded bg-black px-2.5 py-1 text-white">

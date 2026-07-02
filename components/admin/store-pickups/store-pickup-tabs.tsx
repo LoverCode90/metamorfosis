@@ -5,6 +5,7 @@ import type { StorePickupTab } from "@/lib/admin/store-pickup-types"
 
 const TABS: { id: StorePickupTab; label: string }[] = [
   { id: "pending", label: "Pending" },
+  { id: "canceled", label: "Canceled" },
   { id: "history", label: "History" },
 ]
 

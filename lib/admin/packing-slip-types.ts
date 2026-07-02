@@ -4,6 +4,7 @@ export interface PackingSlipItem {
   unitPriceCents: number
   productName: string
   variationName: string
+  imageUrl: string
 }
 
 export interface PackingSlipAddress {

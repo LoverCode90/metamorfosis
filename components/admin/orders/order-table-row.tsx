@@ -5,12 +5,12 @@ import { ArrowRight, Check, Minus } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { TableCell, TableRow } from "@/components/ui/table"
 import { displayInitialsFromName } from "@/lib/admin/display-initials"
+import { AdminOrderItemsPreview } from "@/components/admin/admin-order-items-preview"
 import { orderStatusBadge } from "@/lib/admin/status-badge"
 import { formatUSD } from "@/lib/utils/format"
 import {
   customerEmail,
   customerName,
-  itemsSummary,
   orderLabel,
   type AdminOrderListItem,
 } from "@/lib/admin/order-list"
@@ -51,8 +51,8 @@ export const OrderTableRow = memo(function OrderTableRow({
       <TableCell className="text-muted-foreground px-5 py-4 whitespace-nowrap">
         {new Date(order.created_at).toLocaleDateString()}
       </TableCell>
-      <TableCell className="text-muted-foreground max-w-[200px] px-5 py-4 break-words whitespace-normal">
-        {itemsSummary(order.order_items)}
+      <TableCell className="text-muted-foreground max-w-[240px] px-5 py-4 whitespace-normal">
+        <AdminOrderItemsPreview items={order.order_items} />
       </TableCell>
       <TableCell className="px-5 py-4">
         <Badge variant={statusBadge.variant}>{statusBadge.label}</Badge>

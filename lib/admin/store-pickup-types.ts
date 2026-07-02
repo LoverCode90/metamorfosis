@@ -1,6 +1,8 @@
 import type { AdminOrderItemSummary } from "@/lib/admin/order-list"
 
-export type StorePickupTab = "pending" | "history"
+export type StorePickupTab = "pending" | "canceled" | "history"
+
+export const STORE_PICKUP_PAGE_SIZE = 10
 
 export interface StorePickupOrder {
   id: string
@@ -34,4 +36,16 @@ export type StorePickupCancelSource =
 
 export interface StorePickupHistoryOrder extends StorePickupOrder {
   cancelSource: StorePickupCancelSource | null
+}
+
+export interface StorePickupPage {
+  items: StorePickupHistoryOrder[]
+  nextCursor: string | null
+}
+
+export function storePickupActivityAt(order: StorePickupOrder): string {
+  if (order.status === "delivered") {
+    return order.picked_up_at ?? order.updated_at
+  }
+  return order.updated_at
 }

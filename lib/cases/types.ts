@@ -48,6 +48,11 @@ export interface AdminCaseListItem {
   created_at: string
   profiles: { full_name: string; email: string } | null
   orders: { square_order_id: string } | null
+  product_variations: {
+    name_en: string
+    image_url: string | null
+    product_translations: { name_en: string; image_url?: string | null } | null
+  } | null
 }
 
 /** Admin case-detail — full case plus joined relations. */
@@ -70,6 +75,11 @@ export interface AdminCaseDetail extends DbCase {
     name_en: string
     sku: string | null
     price_cents: number
-    product_translations: { is_returnable: boolean; name_en: string } | null
+    image_url: string | null
+    product_translations: {
+      is_returnable: boolean
+      name_en: string
+      image_url?: string | null
+    } | null
   } | null
 }

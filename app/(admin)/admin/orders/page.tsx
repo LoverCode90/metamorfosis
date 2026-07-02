@@ -58,7 +58,8 @@ export default async function AdminOrdersPage(props: {
          quantity,
          product_variations (
            name_en,
-           product_translations ( name_en )
+           image_url,
+           product_translations ( name_en, image_url )
          )
        )`,
       { count: "exact" },

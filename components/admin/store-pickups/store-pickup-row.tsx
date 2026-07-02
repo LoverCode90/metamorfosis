@@ -3,6 +3,7 @@ import { memo } from "react"
 
 import { CancelPickupButton } from "@/components/admin/orders/cancel-pickup-button"
 import { FulfillPickupButton } from "@/components/admin/store-pickups/fulfill-pickup-button"
+import { AdminProductThumb } from "@/components/admin/admin-product-thumb"
 import { StorePickupStatusBadge } from "@/components/admin/store-pickups/store-pickup-status-badge"
 import {
   customerEmail,
@@ -16,6 +17,7 @@ import type {
   StorePickupHistoryOrder,
   StorePickupOrder,
 } from "@/lib/admin/store-pickup-types"
+import { storePickupActivityAt } from "@/lib/admin/store-pickup-types"
 import { itemLabel } from "@/lib/orders/item-label"
 import { cn } from "@/lib/utils"
 import { formatUSD } from "@/lib/utils/format"
@@ -23,6 +25,8 @@ import { formatUSD } from "@/lib/utils/format"
 interface StorePickupRowProps {
   order: StorePickupOrder | StorePickupHistoryOrder
   mode: "pending" | "history"
+  variant?: "full" | "compact"
+  onExpand?: () => void
 }
 
 function customerPhone(order: StorePickupOrder): string | null {
@@ -38,12 +42,30 @@ function pickupItems(items: AdminOrderItemSummary[]) {
       item.product_variations?.name_en,
     ),
     quantity: item.quantity,
+    variation: item.product_variations,
   }))
+}
+
+function compactDateLabel(
+  order: StorePickupOrder,
+  mode: "pending" | "history",
+): string {
+  if (mode === "pending") {
+    return format(new Date(order.created_at), "MMM d, h:mm a")
+  }
+
+  if (order.status === "delivered" && order.picked_up_at) {
+    return format(new Date(order.picked_up_at), "MMM d, h:mm a")
+  }
+
+  return format(new Date(storePickupActivityAt(order)), "MMM d, h:mm a")
 }
 
 export const StorePickupRow = memo(function StorePickupRow({
   order,
   mode,
+  variant = "full",
+  onExpand,
 }: StorePickupRowProps) {
   const ticket = orderLabel(order.square_order_id)
   const deadline = resolvePickupDeadline(
@@ -53,6 +75,33 @@ export const StorePickupRow = memo(function StorePickupRow({
   const urgency = mode === "pending" ? pickupUrgency(deadline) : null
   const cancelSource = "cancelSource" in order ? order.cancelSource : undefined
   const items = pickupItems(order.order_items)
+
+  if (variant === "compact") {
+    return (
+      <button
+        type="button"
+        onClick={onExpand}
+        className="border-border bg-card hover:bg-muted/40 grid w-full grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors sm:px-5"
+      >
+        <span className="text-foreground text-sm font-bold tabular-nums">
+          {ticket}
+        </span>
+        <span className="text-foreground truncate text-sm font-medium">
+          {customerName(order)}
+        </span>
+        <span className="text-muted-foreground text-sm whitespace-nowrap">
+          {compactDateLabel(order, mode)}
+        </span>
+        <StorePickupStatusBadge
+          status={order.status}
+          cancelSource={cancelSource}
+        />
+        <span className="text-foreground text-sm font-semibold tabular-nums">
+          {formatUSD(order.total_cents)}
+        </span>
+      </button>
+    )
+  }
 
   return (
     <article className="border-border bg-card rounded-2xl border p-6">
@@ -130,10 +179,17 @@ export const StorePickupRow = memo(function StorePickupRow({
           <p className="text-muted-foreground text-sm font-medium">
             Items in bag
           </p>
-          <ul className="text-foreground mt-2 space-y-1 text-base">
+          <ul className="text-foreground mt-2 space-y-2 text-base">
             {items.map((item) => (
-              <li key={item.key}>
-                {item.quantity}× {item.label}
+              <li key={item.key} className="flex items-center gap-3">
+                <AdminProductThumb
+                  variation={item.variation}
+                  alt={item.label}
+                  size="md"
+                />
+                <span>
+                  {item.quantity}× {item.label}
+                </span>
               </li>
             ))}
           </ul>

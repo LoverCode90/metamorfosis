@@ -5,9 +5,11 @@ import { ArrowRight } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { TableCell, TableRow } from "@/components/ui/table"
+import { AdminProductThumb } from "@/components/admin/admin-product-thumb"
 import { displayInitialsFromName } from "@/lib/admin/display-initials"
 import { caseStatusBadge } from "@/lib/admin/status-badge"
 import { caseReasonLabel } from "@/lib/profile/case-reasons"
+import { itemLabel } from "@/lib/orders/item-label"
 import type { AdminCaseListItem } from "@/lib/cases/types"
 
 function orderLabel(squareOrderId: string | undefined): string {
@@ -28,6 +30,10 @@ export const CaseTableRow = memo(function CaseTableRow({
   const badge = caseStatusBadge(caseItem.status)
   const customerName = caseItem.profiles?.full_name ?? "Unknown"
   const caseDetailHref = `/admin/cases/${caseItem.id}`
+  const productLabel = itemLabel(
+    caseItem.product_variations?.product_translations?.name_en,
+    caseItem.product_variations?.name_en,
+  )
 
   return (
     <TableRow className="border-border/40 hover:bg-primary/5">
@@ -50,7 +56,22 @@ export const CaseTableRow = memo(function CaseTableRow({
         {orderLabel(caseItem.orders?.square_order_id)}
       </TableCell>
       <TableCell className="text-muted-foreground px-5 py-4">
-        {caseReasonLabel(caseItem.reason)}
+        <div className="flex min-w-0 items-center gap-3">
+          {caseItem.product_variations && (
+            <AdminProductThumb
+              variation={caseItem.product_variations}
+              alt={productLabel}
+            />
+          )}
+          <div className="min-w-0">
+            <p className="text-foreground text-sm font-medium">
+              {caseReasonLabel(caseItem.reason)}
+            </p>
+            <p className="text-muted-foreground truncate text-xs">
+              {productLabel}
+            </p>
+          </div>
+        </div>
       </TableCell>
       <TableCell className="px-5 py-4">
         <Badge variant={badge.variant}>{badge.label}</Badge>

@@ -2,12 +2,12 @@ import Link from "next/link"
 import { Check, Minus } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
+import { AdminOrderItemsPreview } from "@/components/admin/admin-order-items-preview"
 import { orderStatusBadge } from "@/lib/admin/status-badge"
 import { formatUSD } from "@/lib/utils/format"
 import {
   customerEmail,
   customerName,
-  itemsSummary,
   orderLabel,
   type AdminOrderListItem,
 } from "@/lib/admin/order-list"
@@ -33,9 +33,9 @@ export function OrderMobileCard({ order }: { order: AdminOrderListItem }) {
         <Badge variant={badge.variant}>{badge.label}</Badge>
       </div>
 
-      <p className="text-muted-foreground mt-3 text-sm break-words whitespace-normal">
-        {itemsSummary(order.order_items)}
-      </p>
+      <div className="mt-3">
+        <AdminOrderItemsPreview items={order.order_items} />
+      </div>
 
       <div className="text-muted-foreground mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
         <span>{orderLabel(order.square_order_id)}</span>

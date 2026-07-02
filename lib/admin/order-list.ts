@@ -4,7 +4,11 @@ export interface AdminOrderItemSummary {
   quantity: number
   product_variations: {
     name_en: string
-    product_translations: { name_en: string } | null
+    image_url: string | null
+    product_translations: {
+      name_en: string
+      image_url?: string | null
+    } | null
   } | null
 }
 
