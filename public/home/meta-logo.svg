@@ -1,10 +1,94 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
-  <rect width="32" height="32" rx="4" fill="#0a0a0a" />
-  <path
-    d="M8 10V8a4 4 0 0 1 8 0v2M6 10h20l-1.5 14H7.5L6 10Z"
-    stroke="#fafafa"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-  />
+<svg viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gemGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffd400"/>
+      <stop offset="45%" stop-color="#ff9d00"/>
+      <stop offset="100%" stop-color="#2b2b2b"/>
+    </linearGradient>
+    <linearGradient id="wingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff9a2e"/>
+      <stop offset="100%" stop-color="#e8600a"/>
+    </linearGradient>
+    <linearGradient id="leafGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7bc94a"/>
+      <stop offset="100%" stop-color="#2e8b2e"/>
+    </linearGradient>
+    <linearGradient id="cocoonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4caf3a"/>
+      <stop offset="100%" stop-color="#1f6b1f"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="500" cy="500" r="480" fill="none"/>
+
+  <path d="M 240 640 A 340 340 0 1 0 200 420" fill="none" stroke="#111" stroke-width="16" stroke-linecap="round"/>
+  <path d="M 270 660 A 320 320 0 1 0 240 430" fill="none" stroke="#3a9d3a" stroke-width="14" stroke-linecap="round"/>
+
+  <g transform="translate(230,330)">
+    <g stroke="#ffb020" stroke-width="6" stroke-linecap="round" opacity="0.85">
+      <path d="M -10 20 C -80 10 -140 -10 -170 -40" fill="none"/>
+      <path d="M -5 40 C -70 45 -130 55 -165 70" fill="none"/>
+      <path d="M 0 55 C -60 75 -110 100 -140 130" fill="none"/>
+      <path d="M 10 65 C -35 100 -70 140 -90 175" fill="none"/>
+      <path d="M 25 70 C -5 115 -25 160 -35 200" fill="none"/>
+    </g>
+    <polygon points="0,-70 60,-40 80,20 40,80 -20,90 -70,50 -60,-20" fill="url(#gemGrad)" stroke="#1a1a1a" stroke-width="4"/>
+    <polygon points="0,-70 60,-40 20,-10" fill="#ffe066" opacity="0.7"/>
+    <polygon points="-20,90 -70,50 -30,30" fill="#1a1a1a" opacity="0.5"/>
+    <line x1="-15" y1="95" x2="-25" y2="180" stroke="#1a1a1a" stroke-width="10" stroke-linecap="round"/>
+    <line x1="10" y1="90" x2="30" y2="170" stroke="#1a1a1a" stroke-width="10" stroke-linecap="round"/>
+  </g>
+
+  <g transform="translate(680,220)">
+    <path d="M 0 60 C 40 -20 20 -100 -10 -140 C -40 -100 -60 -20 0 60 Z" fill="url(#leafGrad)" stroke="#1f6b1f" stroke-width="3"/>
+    <path d="M -10 -140 C -8 -60 -5 -10 0 60" fill="none" stroke="#1f6b1f" stroke-width="3"/>
+    <path d="M 70 100 C 100 40 90 -20 60 -60 C 30 -30 20 40 70 100 Z" fill="url(#leafGrad)" stroke="#1f6b1f" stroke-width="3"/>
+    <path d="M 60 -60 C 58 0 60 60 70 100" fill="none" stroke="#1f6b1f" stroke-width="3"/>
+    <path d="M 130 140 C 160 90 150 40 120 10 C 95 35 85 95 130 140 Z" fill="url(#leafGrad)" stroke="#1f6b1f" stroke-width="3"/>
+  </g>
+
+  <g transform="translate(560,190) rotate(-8)">
+    <path d="M 0 0 C -60 -70 -160 -70 -190 -20 C -160 10 -80 20 0 0 Z" fill="url(#wingGrad)" stroke="#1a1a1a" stroke-width="4"/>
+    <path d="M 0 0 C -50 30 -130 60 -150 100 C -110 110 -40 70 0 0 Z" fill="url(#wingGrad)" stroke="#1a1a1a" stroke-width="4"/>
+    <circle cx="-40" cy="-30" r="6" fill="#fff" opacity="0.8"/>
+    <circle cx="-80" cy="-15" r="5" fill="#fff" opacity="0.8"/>
+    <circle cx="-70" cy="40" r="5" fill="#fff" opacity="0.8"/>
+    <ellipse cx="0" cy="0" rx="8" ry="45" fill="#1a1a1a"/>
+    <line x1="0" y1="-40" x2="-15" y2="-60" stroke="#1a1a1a" stroke-width="3"/>
+    <line x1="0" y1="-40" x2="10" y2="-62" stroke="#1a1a1a" stroke-width="3"/>
+  </g>
+
+  <g transform="translate(730,540)">
+    <ellipse cx="90" cy="10" rx="35" ry="55" fill="url(#cocoonGrad)" stroke="#1f6b1f" stroke-width="3"/>
+    <line x1="70" y1="-30" x2="110" y2="-30" stroke="#c9a86a" stroke-width="4"/>
+    <g transform="rotate(-15)">
+      <path d="M 0 0 C -55 -55 -140 -50 -170 -10 C -140 15 -60 25 0 0 Z" fill="url(#wingGrad)" stroke="#1a1a1a" stroke-width="4"/>
+      <path d="M 0 0 C -45 25 -110 45 -130 80 C -95 90 -35 55 0 0 Z" fill="url(#wingGrad)" stroke="#1a1a1a" stroke-width="4"/>
+      <circle cx="-35" cy="-25" r="5" fill="#fff" opacity="0.8"/>
+      <circle cx="-70" cy="-10" r="4" fill="#fff" opacity="0.8"/>
+      <circle cx="-60" cy="30" r="4" fill="#fff" opacity="0.8"/>
+      <ellipse cx="0" cy="0" rx="7" ry="35" fill="#1a1a1a"/>
+    </g>
+  </g>
+
+  <g transform="translate(870,780)">
+    <path d="M 0 -60 C -35 -50 -40 30 -10 65 C 20 80 40 40 30 -20 C 25 -45 15 -60 0 -60 Z" fill="url(#cocoonGrad)" stroke="#1f6b1f" stroke-width="3"/>
+    <line x1="-30" y1="-25" x2="35" y2="-25" stroke="#c9a86a" stroke-width="5"/>
+  </g>
+
+  <g transform="translate(500,900)">
+    <ellipse cx="-160" cy="0" rx="24" ry="20" fill="#a6c93a" stroke="#1a1a1a" stroke-width="3"/>
+    <ellipse cx="-110" cy="-6" rx="26" ry="22" fill="#a6c93a" stroke="#1a1a1a" stroke-width="3"/>
+    <ellipse cx="-55" cy="-10" rx="28" ry="24" fill="#a6c93a" stroke="#1a1a1a" stroke-width="3"/>
+    <ellipse cx="5" cy="-10" rx="30" ry="25" fill="#a6c93a" stroke="#1a1a1a" stroke-width="3"/>
+    <ellipse cx="65" cy="-8" rx="28" ry="23" fill="#8ab52e" stroke="#1a1a1a" stroke-width="3"/>
+    <ellipse cx="115" cy="-4" rx="24" ry="20" fill="#8ab52e" stroke="#1a1a1a" stroke-width="3"/>
+    <circle cx="-90" cy="-8" r="4" fill="#ff7a00"/>
+    <circle cx="-30" cy="-14" r="4" fill="#ff7a00"/>
+    <circle cx="30" cy="-14" r="4" fill="#ff7a00"/>
+    <circle cx="90" cy="-8" r="4" fill="#ff7a00"/>
+    <circle cx="135" cy="-6" r="6" fill="#1a1a1a"/>
+    <line x1="145" y1="-15" x2="160" y2="-30" stroke="#1a1a1a" stroke-width="3"/>
+    <line x1="145" y1="0" x2="162" y2="-5" stroke="#1a1a1a" stroke-width="3"/>
+  </g>
 </svg>

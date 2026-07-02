@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Heart, Menu, Search, ShoppingBag, User } from "lucide-react"
@@ -45,12 +46,17 @@ export function CustomerHeader({
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-2"
+          className="flex shrink-0 items-center gap-2.5"
           aria-label="Metamorfosis Lab home"
         >
-          <span className="bg-foreground text-background flex h-7 w-7 items-center justify-center rounded-sm">
-            <ShoppingBag className="h-3.5 w-3.5" strokeWidth={2.25} />
-          </span>
+          <Image
+            src="/home/meta-logo.svg"
+            alt=""
+            width={32}
+            height={32}
+            className="h-8 w-8 shrink-0"
+            priority
+          />
           <span className="text-foreground text-sm font-semibold tracking-[0.18em]">
             METAMORFOSIS
           </span>
@@ -85,7 +91,7 @@ export function CustomerHeader({
             active={pathname.startsWith("/search")}
             className="sm:hidden"
           >
-            <Search className="h-7 w-7" strokeWidth={1.5} />
+            <Search className="h-9 w-9" strokeWidth={1.5} />
           </HeaderIconButton>
 
           <HeaderIconButton
@@ -95,7 +101,7 @@ export function CustomerHeader({
             onClick={() => router.push("/cart")}
             active={pathname === "/cart" || pathname === "/checkout"}
           >
-            <ShoppingBag className="h-7 w-7" strokeWidth={1.5} />
+            <ShoppingBag className="h-9 w-9 sm:h-7 sm:w-7" strokeWidth={1.5} />
           </HeaderIconButton>
 
           {isAuthenticated ? (
@@ -125,9 +131,9 @@ export function CustomerHeader({
             onClick={onOpenMenu}
             aria-label="Open menu"
             aria-expanded={mobileNavOpen}
-            className="ml-1 h-10 w-10 md:hidden"
+            className="ml-1 h-11 w-11 md:hidden"
           >
-            <Menu className="h-7 w-7" strokeWidth={1.5} />
+            <Menu className="h-9 w-9" strokeWidth={1.5} />
           </Button>
         </div>
       </div>
