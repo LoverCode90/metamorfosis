@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+import Image from "next/image"
 import { Quote } from "lucide-react"
 
 const FOUNDER_QUOTE = {
@@ -16,11 +16,15 @@ export function AboutQuote() {
         &ldquo;{FOUNDER_QUOTE.text}&rdquo;
       </blockquote>
       <div className="mt-8 flex items-center justify-center gap-3">
-        <img
-          src="/about/team-owner.png"
-          alt={FOUNDER_QUOTE.name}
-          className="h-11 w-11 rounded-full object-cover grayscale"
-        />
+        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-full">
+          <Image
+            src="/about/about-image-3.webp"
+            alt={FOUNDER_QUOTE.name}
+            fill
+            sizes="44px"
+            className="object-cover object-top grayscale"
+          />
+        </div>
         <div className="text-left">
           <p className="text-foreground text-sm font-semibold">
             {FOUNDER_QUOTE.name}

@@ -7,6 +7,7 @@ interface BentoImageProps {
   alt: string
   className?: string
   sizes?: string
+  objectPosition?: string
 }
 
 /** Square image tile for the about-page photo row. */
@@ -15,6 +16,7 @@ export function BentoImage({
   alt,
   className,
   sizes = "50vw",
+  objectPosition = "center top",
 }: BentoImageProps) {
   return (
     <div
@@ -28,7 +30,8 @@ export function BentoImage({
         alt={alt}
         fill
         sizes={sizes}
-        className="object-cover object-top grayscale"
+        className="object-cover grayscale"
+        style={{ objectPosition }}
       />
     </div>
   )

@@ -6,12 +6,21 @@ export function HomeHero() {
   return (
     <section className="bg-foreground relative flex min-h-[88vh] items-end overflow-hidden">
       <Image
+        src="/home/banner-movil.webp"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-center md:hidden"
+        aria-hidden
+      />
+      <Image
         src="/home/banner-image.webp"
         alt=""
         fill
         priority
         sizes="100vw"
-        className="object-cover object-center"
+        className="hidden object-cover object-center md:block"
         aria-hidden
       />
 

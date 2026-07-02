@@ -22,7 +22,7 @@ export function HomeBrandLines() {
             href="/products"
             className={cn(
               "group relative flex h-full min-h-0 flex-col justify-end overflow-hidden rounded-xl",
-              "border border-white/10 bg-white shadow-lg transition-opacity duration-300 hover:opacity-95",
+              "bg-white shadow-lg transition-opacity duration-300 hover:opacity-95",
               line.className,
             )}
           >

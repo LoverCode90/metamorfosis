@@ -34,20 +34,14 @@ const SOCIAL_LINKS = [
 ] as const
 
 const FOOTER_TILE_CLASS =
-  "border-violet-500/20 bg-violet-950/90 relative overflow-hidden border text-white transition-opacity hover:opacity-90"
+  "bg-neutral-950 relative overflow-hidden border border-white/5 text-white transition-opacity hover:opacity-90"
 
 function FooterTileGlow() {
   return (
-    <>
-      <div
-        className="pointer-events-none absolute -top-8 -right-6 h-20 w-20 rounded-full bg-violet-500/35 blur-2xl"
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -bottom-6 -left-5 h-16 w-16 rounded-full bg-fuchsia-600/25 blur-2xl"
-        aria-hidden
-      />
-    </>
+    <div
+      className="pointer-events-none absolute -top-10 -right-8 h-24 w-24 rounded-full bg-violet-500/30 blur-3xl"
+      aria-hidden
+    />
   )
 }
 

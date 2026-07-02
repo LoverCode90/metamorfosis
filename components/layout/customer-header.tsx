@@ -65,7 +65,7 @@ export function CustomerHeader({
             active={pathname.startsWith("/search")}
             className="hidden sm:flex"
           >
-            <Search className="h-6 w-6 sm:h-6 sm:w-6" strokeWidth={1.5} />
+            <Search className="h-7 w-7" strokeWidth={1.5} />
           </HeaderIconButton>
 
           <HeaderIconButton
@@ -85,7 +85,7 @@ export function CustomerHeader({
             active={pathname.startsWith("/search")}
             className="sm:hidden"
           >
-            <Search className="h-6 w-6 sm:h-6 sm:w-6" strokeWidth={1.5} />
+            <Search className="h-7 w-7" strokeWidth={1.5} />
           </HeaderIconButton>
 
           <HeaderIconButton
@@ -95,7 +95,7 @@ export function CustomerHeader({
             onClick={() => router.push("/cart")}
             active={pathname === "/cart" || pathname === "/checkout"}
           >
-            <ShoppingBag className="h-6 w-6 sm:h-6 sm:w-6" strokeWidth={1.5} />
+            <ShoppingBag className="h-7 w-7" strokeWidth={1.5} />
           </HeaderIconButton>
 
           {isAuthenticated ? (
@@ -105,7 +105,7 @@ export function CustomerHeader({
               active={pathname.startsWith("/profile")}
               className="hidden sm:flex"
             >
-              <User className="h-6 w-6 sm:h-6 sm:w-6" strokeWidth={1.5} />
+              <User className="h-7 w-7" strokeWidth={1.5} />
             </HeaderIconButton>
           ) : (
             <Button
@@ -125,9 +125,9 @@ export function CustomerHeader({
             onClick={onOpenMenu}
             aria-label="Open menu"
             aria-expanded={mobileNavOpen}
-            className="ml-1 h-9 w-9 md:hidden"
+            className="ml-1 h-10 w-10 md:hidden"
           >
-            <Menu className="h-6 w-6 sm:h-6 sm:w-6" strokeWidth={1.5} />
+            <Menu className="h-7 w-7" strokeWidth={1.5} />
           </Button>
         </div>
       </div>
