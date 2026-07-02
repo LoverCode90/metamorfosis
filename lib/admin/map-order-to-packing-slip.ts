@@ -3,7 +3,6 @@ import type {
   PackingSlipData,
   PackingSlipItem,
 } from "@/lib/admin/packing-slip-types"
-import { resolveProductImageUrl } from "@/lib/admin/product-image"
 import { isPickupShipment } from "@/lib/admin/is-pickup-shipment"
 
 interface OrderItemRow {
@@ -12,8 +11,7 @@ interface OrderItemRow {
   unit_price_cents: number
   product_variations: {
     name_en: string
-    image_url: string | null
-    product_translations: { name_en: string; image_url?: string | null } | null
+    product_translations: { name_en: string } | null
   } | null
 }
 
@@ -41,7 +39,6 @@ function mapOrderItemToSlipItem(orderItem: OrderItemRow): PackingSlipItem {
       orderItem.product_variations?.product_translations?.name_en ??
       "Unknown Product",
     variationName: orderItem.product_variations?.name_en ?? "",
-    imageUrl: resolveProductImageUrl(orderItem.product_variations),
   }
 }
 

@@ -6,11 +6,6 @@ import type {
   StorePickupCancelSource,
   StorePickupHistoryOrder,
   StorePickupOrder,
-  StorePickupPage,
-} from "@/lib/admin/store-pickup-types"
-import {
-  STORE_PICKUP_PAGE_SIZE,
-  storePickupActivityAt,
 } from "@/lib/admin/store-pickup-types"
 
 const STORE_PICKUP_SELECT = `
@@ -21,40 +16,44 @@ const STORE_PICKUP_SELECT = `
     quantity,
     product_variations (
       name_en,
-      image_url,
-      product_translations ( name_en, image_url )
+      product_translations ( name_en )
     )
   )
 `
 
-const HISTORY_FETCH_BUFFER = 30
+export async function fetchPendingStorePickups(): Promise<StorePickupOrder[]> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from("orders")
+    .select(STORE_PICKUP_SELECT)
+    .eq("carrier", "pickup")
+    .in("status", [...CANCELABLE_PICKUP_STATUSES])
+    .order("created_at", { ascending: true })
 
-function parseCompositeCursor(
-  cursor: string | null | undefined,
-): [string | null, string | null] {
-  if (!cursor) return [null, null]
-  const separator = cursor.indexOf("|")
-  if (separator === -1) return [cursor, null]
-  return [cursor.slice(0, separator), cursor.slice(separator + 1)]
-}
-
-function compositeCursor(at: string, id: string): string {
-  return `${at}|${id}`
-}
-
-function pageResult<T extends { id: string; created_at: string }>(
-  rows: T[],
-  limit: number,
-  cursorAt: (row: T) => string,
-): { items: T[]; nextCursor: string | null } {
-  const hasMore = rows.length > limit
-  const items = hasMore ? rows.slice(0, limit) : rows
-  const last = items[items.length - 1]
-  return {
-    items,
-    nextCursor:
-      hasMore && last ? compositeCursor(cursorAt(last), last.id) : null,
+  if (error) {
+    console.error("[fetchPendingStorePickups]", error)
+    return []
   }
+  return (data ?? []) as unknown as StorePickupOrder[]
+}
+
+export async function fetchFulfilledStorePickups(
+  limit = 10,
+): Promise<StorePickupOrder[]> {
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from("orders")
+    .select(STORE_PICKUP_SELECT)
+    .eq("carrier", "pickup")
+    .eq("status", "delivered")
+    .order("picked_up_at", { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    console.error("[fetchFulfilledStorePickups]", error)
+    return []
+  }
+  return (data ?? []) as unknown as StorePickupOrder[]
 }
 
 async function resolveCancelSources(
@@ -85,235 +84,28 @@ async function resolveCancelSources(
   return map
 }
 
-async function attachCancelSources(
-  orders: StorePickupOrder[],
-): Promise<StorePickupHistoryOrder[]> {
-  const canceledIds = orders
-    .filter((order) => order.status === "canceled")
-    .map((order) => order.id)
-  const sources = await resolveCancelSources(canceledIds)
-
-  return orders.map((order) => ({
-    ...order,
-    cancelSource:
-      order.status === "canceled" ? (sources.get(order.id) ?? "unknown") : null,
-  }))
-}
-
-export async function fetchPendingStorePickupsPage(
-  limit = STORE_PICKUP_PAGE_SIZE,
-  cursor?: string,
-): Promise<StorePickupPage> {
-  const [cursorAt, cursorId] = parseCompositeCursor(cursor)
-  const admin = createAdminClient()
-
-  let query = admin
-    .from("orders")
-    .select(STORE_PICKUP_SELECT)
-    .eq("carrier", "pickup")
-    .in("status", [...CANCELABLE_PICKUP_STATUSES])
-    .order("created_at", { ascending: false })
-    .order("id", { ascending: false })
-    .limit(limit + 1)
-
-  if (cursorAt && cursorId) {
-    query = query.or(
-      `and(created_at.eq.${cursorAt},id.lt.${cursorId}),created_at.lt.${cursorAt}`,
-    )
-  }
-
-  const { data, error } = await query
-
-  if (error) {
-    console.error("[fetchPendingStorePickupsPage]", error)
-    return { items: [], nextCursor: null }
-  }
-
-  const orders = (data ?? []) as unknown as StorePickupOrder[]
-  const { items, nextCursor } = pageResult(
-    orders,
-    limit,
-    (row) => row.created_at,
-  )
-
-  return {
-    items: await attachCancelSources(items),
-    nextCursor,
-  }
-}
-
-export async function fetchCanceledStorePickupsPage(
-  limit = STORE_PICKUP_PAGE_SIZE,
-  cursor?: string,
-): Promise<StorePickupPage> {
-  const [cursorAt, cursorId] = parseCompositeCursor(cursor)
-  const admin = createAdminClient()
-
-  let query = admin
-    .from("orders")
-    .select(STORE_PICKUP_SELECT)
-    .eq("carrier", "pickup")
-    .eq("status", "canceled")
-    .order("updated_at", { ascending: false })
-    .order("id", { ascending: false })
-    .limit(limit + 1)
-
-  if (cursorAt && cursorId) {
-    query = query.or(
-      `and(updated_at.eq.${cursorAt},id.lt.${cursorId}),updated_at.lt.${cursorAt}`,
-    )
-  }
-
-  const { data, error } = await query
-
-  if (error) {
-    console.error("[fetchCanceledStorePickupsPage]", error)
-    return { items: [], nextCursor: null }
-  }
-
-  const orders = (data ?? []) as unknown as StorePickupOrder[]
-  const { items, nextCursor } = pageResult(
-    orders,
-    limit,
-    (row) => row.updated_at,
-  )
-
-  return {
-    items: await attachCancelSources(items),
-    nextCursor,
-  }
-}
-
-function compareHistoryOrders(
-  a: StorePickupHistoryOrder,
-  b: StorePickupHistoryOrder,
-): number {
-  const activityCmp = storePickupActivityAt(b).localeCompare(
-    storePickupActivityAt(a),
-  )
-  if (activityCmp !== 0) return activityCmp
-  return b.id.localeCompare(a.id)
-}
-
-function isBeforeHistoryCursor(
-  order: StorePickupHistoryOrder,
-  cursorAt: string,
-  cursorId: string,
-): boolean {
-  const activityAt = storePickupActivityAt(order)
-  if (activityAt < cursorAt) return true
-  if (activityAt > cursorAt) return false
-  return order.id < cursorId
-}
-
-export async function fetchHistoryStorePickupsPage(
-  limit = STORE_PICKUP_PAGE_SIZE,
-  cursor?: string,
-): Promise<StorePickupPage> {
-  const [cursorAt, cursorId] = parseCompositeCursor(cursor)
-  const admin = createAdminClient()
-
-  let fulfilledQuery = admin
-    .from("orders")
-    .select(STORE_PICKUP_SELECT)
-    .eq("carrier", "pickup")
-    .eq("status", "delivered")
-    .order("picked_up_at", { ascending: false, nullsFirst: false })
-    .order("id", { ascending: false })
-    .limit(HISTORY_FETCH_BUFFER)
-
-  let canceledQuery = admin
-    .from("orders")
-    .select(STORE_PICKUP_SELECT)
-    .eq("carrier", "pickup")
-    .eq("status", "canceled")
-    .order("updated_at", { ascending: false })
-    .order("id", { ascending: false })
-    .limit(HISTORY_FETCH_BUFFER)
-
-  if (cursorAt && cursorId) {
-    fulfilledQuery = fulfilledQuery.or(
-      `and(picked_up_at.eq.${cursorAt},id.lt.${cursorId}),picked_up_at.lt.${cursorAt}`,
-    )
-    canceledQuery = canceledQuery.or(
-      `and(updated_at.eq.${cursorAt},id.lt.${cursorId}),updated_at.lt.${cursorAt}`,
-    )
-  }
-
-  const [fulfilledResult, canceledResult] = await Promise.all([
-    fulfilledQuery,
-    canceledQuery,
-  ])
-
-  if (fulfilledResult.error) {
-    console.error(
-      "[fetchHistoryStorePickupsPage] fulfilled",
-      fulfilledResult.error,
-    )
-  }
-  if (canceledResult.error) {
-    console.error(
-      "[fetchHistoryStorePickupsPage] canceled",
-      canceledResult.error,
-    )
-  }
-
-  const fulfilled = (fulfilledResult.data ??
-    []) as unknown as StorePickupOrder[]
-  const canceled = (canceledResult.data ?? []) as unknown as StorePickupOrder[]
-  const merged = await attachCancelSources([...fulfilled, ...canceled])
-
-  let sorted = merged.sort(compareHistoryOrders)
-
-  if (cursorAt && cursorId) {
-    sorted = sorted.filter((order) =>
-      isBeforeHistoryCursor(order, cursorAt, cursorId),
-    )
-  }
-
-  const hasMore = sorted.length > limit
-  const items = sorted.slice(0, limit)
-  const last = items[items.length - 1]
-
-  return {
-    items,
-    nextCursor:
-      hasMore && last
-        ? compositeCursor(storePickupActivityAt(last), last.id)
-        : null,
-  }
-}
-
-/** @deprecated Use fetchPendingStorePickupsPage for paginated lists. */
-export async function fetchPendingStorePickups(): Promise<StorePickupOrder[]> {
-  const page = await fetchPendingStorePickupsPage(1000)
-  return page.items
-}
-
-/** @deprecated Use fetchHistoryStorePickupsPage for paginated lists. */
-export async function fetchFulfilledStorePickups(
+export async function fetchExpiredStorePickups(
   limit = 10,
-): Promise<StorePickupOrder[]> {
+): Promise<StorePickupHistoryOrder[]> {
   const admin = createAdminClient()
   const { data, error } = await admin
     .from("orders")
     .select(STORE_PICKUP_SELECT)
     .eq("carrier", "pickup")
-    .eq("status", "delivered")
-    .order("picked_up_at", { ascending: false })
+    .eq("status", "canceled")
+    .order("updated_at", { ascending: false })
     .limit(limit)
 
   if (error) {
-    console.error("[fetchFulfilledStorePickups]", error)
+    console.error("[fetchExpiredStorePickups]", error)
     return []
   }
-  return (data ?? []) as unknown as StorePickupOrder[]
-}
 
-/** @deprecated Use fetchCanceledStorePickupsPage for paginated lists. */
-export async function fetchExpiredStorePickups(
-  limit = 10,
-): Promise<StorePickupHistoryOrder[]> {
-  const page = await fetchCanceledStorePickupsPage(limit)
-  return page.items
+  const orders = (data ?? []) as unknown as StorePickupOrder[]
+  const sources = await resolveCancelSources(orders.map((o) => o.id))
+
+  return orders.map((order) => ({
+    ...order,
+    cancelSource: sources.get(order.id) ?? "unknown",
+  }))
 }

@@ -23,8 +23,7 @@ export default async function PackingSlipPage(props: {
         id, quantity, unit_price_cents,
         product_variations (
           name_en,
-          image_url,
-          product_translations ( name_en, image_url )
+          product_translations ( name_en )
         )
       )`,
     )

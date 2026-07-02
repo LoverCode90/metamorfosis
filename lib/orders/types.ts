@@ -11,7 +11,6 @@ export interface DbOrderItem {
       square_product_id: string
       name_en: string
       is_returnable: boolean
-      image_url?: string | null
     } | null
   } | null
 }

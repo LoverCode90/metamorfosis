@@ -47,12 +47,7 @@ export default async function AdminCasesPage(props: {
     .select(
       `id, status, reason, created_at,
        profiles ( full_name, email ),
-       orders ( square_order_id ),
-       product_variations (
-         name_en,
-         image_url,
-         product_translations ( name_en, image_url )
-       )`,
+       orders ( square_order_id )`,
     )
     .order("created_at", { ascending: false })
 

@@ -1,6 +1,5 @@
 import { itemLabel } from "@/lib/orders/item-label"
 import type { DbOrderItem } from "@/lib/orders/types"
-import { AdminProductThumb } from "@/components/admin/admin-product-thumb"
 import { ADMIN_SERVER_CARD_CLASS } from "@/lib/admin/card-styles"
 import { formatUSD } from "@/lib/utils/format"
 import { cn } from "@/lib/utils"
@@ -36,38 +35,27 @@ export function OrderItemsSummaryCard({
     <div className={cn(ADMIN_SERVER_CARD_CLASS, "flex h-full flex-col p-6")}>
       <h2 className="text-foreground mb-4 text-base font-semibold">Items</h2>
       <ul className="divide-border flex-1 divide-y">
-        {items?.map((item) => {
-          const label = itemLabel(
-            item.product_variations?.product_translations?.name_en,
-            item.product_variations?.name_en,
-          )
-          return (
-            <li
-              key={item.id}
-              className="flex items-start justify-between gap-3 py-4 first:pt-0"
-            >
-              <div className="flex min-w-0 items-start gap-3">
-                <AdminProductThumb
-                  variation={item.product_variations}
-                  alt={label}
-                  size="md"
-                />
-                <div className="min-w-0">
-                  <p className="text-foreground text-sm font-medium break-words">
-                    {label}
-                  </p>
-                  <p className="text-muted-foreground text-xs">
-                    Qty {item.quantity} · {formatUSD(item.unit_price_cents)}{" "}
-                    each
-                  </p>
-                </div>
-              </div>
-              <p className="text-foreground shrink-0 text-sm font-medium">
-                {formatUSD(item.unit_price_cents * item.quantity)}
+        {items?.map((item) => (
+          <li
+            key={item.id}
+            className="flex items-start justify-between gap-3 py-4 first:pt-0"
+          >
+            <div className="min-w-0">
+              <p className="text-foreground text-sm font-medium break-words">
+                {itemLabel(
+                  item.product_variations?.product_translations?.name_en,
+                  item.product_variations?.name_en,
+                )}
               </p>
-            </li>
-          )
-        })}
+              <p className="text-muted-foreground text-xs">
+                Qty {item.quantity} · {formatUSD(item.unit_price_cents)} each
+              </p>
+            </div>
+            <p className="text-foreground shrink-0 text-sm font-medium">
+              {formatUSD(item.unit_price_cents * item.quantity)}
+            </p>
+          </li>
+        ))}
       </ul>
 
       <div className="border-border mt-4 space-y-2 border-t pt-4">

@@ -33,8 +33,8 @@ export default async function AdminCaseDetailPage(props: {
       profiles ( id, full_name, email, phone_number ),
       orders ( id, square_order_id, status, created_at, shipping_method ),
       product_variations (
-        id, name_en, sku, price_cents, image_url,
-        product_translations ( is_returnable, name_en, image_url )
+        id, name_en, sku, price_cents,
+        product_translations ( is_returnable, name_en )
       )`,
     )
     .eq("id", params.id)

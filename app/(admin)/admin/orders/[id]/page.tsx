@@ -32,8 +32,7 @@ export default async function AdminOrderDetailPage(props: {
         id, variation_id, quantity, unit_price_cents, discount_cents,
         product_variations (
           name_en,
-          image_url,
-          product_translations ( square_product_id, name_en, image_url )
+          product_translations ( square_product_id, name_en )
         )
       )`,
     )
